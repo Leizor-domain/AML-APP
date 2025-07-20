@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AML Registration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        input { margin: 5px; padding: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>AML Registration Test</h1>
+    
+    <div class="section">
+        <h2>1. Database Health Check</h2>
+        <button onclick="checkDbHealth()">Check Database Health</button>
+        <div id="dbHealthResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. User Registration</h2>
+        <input type="text" id="username" placeholder="Username" value="testuser">
+        <input type="password" id="password" placeholder="Password" value="testpass123">
+        <select id="role">
+            <option value="VIEWER">VIEWER</option>
+            <option value="ANALYST">ANALYST</option>
+            <option value="SUPERVISOR">SUPERVISOR</option>
+            <option value="ADMIN">ADMIN</option>
+        </select>
+        <button onclick="registerUser()">Register User</button>
+        <div id="registerResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Verify User in Database</h2>
+        <button onclick="verifyUser()">Check if User Exists</button>
+        <div id="verifyResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Test Login</h2>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. List All Users</h2>
+        <button onclick="listAllUsers()">List All Users</button>
+        <div id="listUsersResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        
+        async function checkDbHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/db-health`);
+                const result = await response.json();
+                
+                document.getElementById('dbHealthResult').innerHTML = `
+                    <p class="${result.status === 'OK' ? 'success' : 'error'}">
+                        Status: ${result.status}
+                    </p>
+                    <p>Message: ${result.message}</p>
+                    <p>User Count: ${result.userCount}</p>
+                    <pre>${JSON.stringify(result.users, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('dbHealthResult').innerHTML = 
+                    `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function registerUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        role: role
+                    })
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    document.getElementById('registerResult').innerHTML = 
+                        `<p class="success">Registration successful!</p>
+                         <pre>${result}</pre>`;
+                } else {
+                    document.getElementById('registerResult').innerHTML = 
+                        `<p class="error">Registration failed: ${response.status} ${response.statusText}</p>
+                         <pre>${result}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('registerResult').innerHTML = 
+                    `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function verifyUser() {
+            const username = document.getElementById('username').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/db-health`);
+                const result = await response.json();
+                
+                const user = result.users.find(u => u.username === username);
+                
+                if (user) {
+                    document.getElementById('verifyResult').innerHTML = 
+                        `<p class="success">User found in database!</p>
+                         <pre>${JSON.stringify(user, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('verifyResult').innerHTML = 
+                        `<p class="error">User not found in database</p>
+                         <p>Available users: ${result.users.map(u => u.username).join(', ')}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('verifyResult').innerHTML = 
+                    `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<p class="success">Login successful!</p>
+                         <pre>${result}</pre>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<p class="error">Login failed: ${response.status} ${response.statusText}</p>
+                         <pre>${result}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function listAllUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/db-health`);
+                const result = await response.json();
+                
+                document.getElementById('listUsersResult').innerHTML = `
+                    <p class="info">Total users: ${result.userCount}</p>
+                    <pre>${JSON.stringify(result.users, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('listUsersResult').innerHTML = 
+                    `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-check database health on page load
+        window.onload = function() {
+            checkDbHealth();
+        };
+    </script>
+</body>
+</html> 

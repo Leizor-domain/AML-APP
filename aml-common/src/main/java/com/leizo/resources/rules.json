@@ -1,0 +1,29 @@
+[
+  {
+    "description": "High Value Transfer Rule",
+    "sensitivity": "HIGH",
+    "tags": ["value", "priority", "large_txn"],
+    "condition": {
+      "type": "amount_greater_than",
+      "value": 10000
+    }
+  },
+  {
+    "description": "Medium Risk Region Transfer",
+    "sensitivity": "MEDIUM",
+    "tags": ["geo", "moderate_risk"],
+    "condition": {
+      "type": "country_in",
+      "value": ["Turkey", "Mexico"]
+    }
+  },
+  {
+    "description": "Low Value Routine Transfer",
+    "sensitivity": "LOW",
+    "tags": ["routine", "small_amount", "low_risk"],
+    "condition": {
+      "type": "amount_less_than",
+      "value": 500
+    }
+  }
+]

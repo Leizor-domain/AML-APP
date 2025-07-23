@@ -1,8 +1,8 @@
 services:
   - type: web
     name: aml-admin
-    rootDir: aml-admin
-    dockerfilePath: Dockerfile
+    rootDir: .
+    dockerfilePath: Dockerfile.admin
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
@@ -17,8 +17,8 @@ services:
 
   - type: web
     name: aml-portal
-    rootDir: aml-portal
-    dockerfilePath: Dockerfile
+    rootDir: .
+    dockerfilePath: Dockerfile.portal
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
@@ -33,8 +33,8 @@ services:
 
   - type: web
     name: aml-engine
-    rootDir: aml-engine
-    dockerfilePath: Dockerfile
+    rootDir: .
+    dockerfilePath: Dockerfile.engine
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL

@@ -13,6 +13,7 @@ import ViewerDashboard from './components/Dashboard/ViewerDashboard.jsx'
 import IngestPage from './pages/IngestPage.jsx'
 import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
+import RegisterForm from './components/Auth/RegisterForm.jsx'
 
 function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
@@ -57,6 +58,10 @@ function App() {
                   <LoginPage />
                 )
               }
+            />
+            <Route
+              path="/register"
+              element={<RegisterForm />}
             />
 
             {/* Protected Routes */}

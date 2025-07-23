@@ -111,9 +111,11 @@ const LoginForm = () => {
             {loading ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" color="primary">
-              Don't have an account? Sign Up
-            </Typography>
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              <Typography variant="body2" color="primary">
+                Don't have an account? Sign Up
+              </Typography>
+            </Link>
           </Box>
         </Box>
       </Paper>

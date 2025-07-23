@@ -2,8 +2,7 @@ services:
   - type: web
     name: aml-admin
     rootDir: aml-admin
-    buildCommand: ./mvnw clean package || mvn clean package
-    startCommand: java -jar target/*.jar
+    dockerfilePath: Dockerfile
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
@@ -19,8 +18,7 @@ services:
   - type: web
     name: aml-portal
     rootDir: aml-portal
-    buildCommand: ./mvnw clean package || mvn clean package
-    startCommand: java -jar target/*.jar
+    dockerfilePath: Dockerfile
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
@@ -36,8 +34,7 @@ services:
   - type: web
     name: aml-engine
     rootDir: aml-engine
-    buildCommand: ./mvnw clean package || mvn clean package
-    startCommand: java -jar target/*.jar
+    dockerfilePath: Dockerfile
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL

@@ -42,15 +42,6 @@ public class UserController {
         return ResponseEntity.ok(userService.register(user));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Users> register(@RequestBody Users user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("VIEWER");
-        }
-        return ResponseEntity.ok(userService.register(user));
-    }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request) {
         String username = loginRequest.get("username");

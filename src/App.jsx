@@ -59,10 +59,7 @@ function App() {
                 )
               }
             />
-            <Route
-              path="/register"
-              element={<RegisterForm />}
-            />
+            {/* /register route removed for production security */}
 
             {/* Protected Routes */}
             <Route

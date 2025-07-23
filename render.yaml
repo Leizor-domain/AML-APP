@@ -8,14 +8,11 @@ services:
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: amlengine-db
-        property: connectionString
+        value: ${DATABASE_URL}
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: amlengine-db
-        property: user
+        value: ${DATABASE_USER}
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: amlengine-db
-        property: password
+        value: ${DATABASE_PASSWORD}
       - key: SPRING_PROFILES_ACTIVE
         value: prod
     autoDeploy: true
@@ -29,14 +26,11 @@ services:
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: amlengine-db
-        property: connectionString
+        value: ${DATABASE_URL}
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: amlengine-db
-        property: user
+        value: ${DATABASE_USER}
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: amlengine-db
-        property: password
+        value: ${DATABASE_PASSWORD}
       - key: SPRING_PROFILES_ACTIVE
         value: prod
     autoDeploy: true
@@ -50,14 +44,11 @@ services:
     plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: amlengine-db
-        property: connectionString
+        value: ${DATABASE_URL}
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: amlengine-db
-        property: user
+        value: ${DATABASE_USER}
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: amlengine-db
-        property: password
+        value: ${DATABASE_PASSWORD}
       - key: SPRING_PROFILES_ACTIVE
         value: prod
     autoDeploy: true

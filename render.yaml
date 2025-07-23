@@ -62,8 +62,9 @@ services:
         value: prod
     autoDeploy: true
 
-  - type: static
+  - type: web
     name: aml-frontend
+    env: static
     rootDir: .
     buildCommand: yarn install && yarn build
     staticPublishPath: dist

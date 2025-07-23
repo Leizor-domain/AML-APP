@@ -2,8 +2,8 @@ package com.leizo.service.impl;
 
 import com.leizo.enums.RiskScore;
 import com.leizo.loader.SanctionListLoader;
-import com.leizo.model.Rule;
-import com.leizo.model.Transaction;
+import com.leizo.admin.entity.Rule;
+import com.leizo.admin.entity.Transaction;
 import com.leizo.service.RiskScoringService;
 
 import java.math.BigDecimal;
@@ -83,7 +83,7 @@ public class RiskScoringServiceImpl implements RiskScoringService {
     }
 
     private boolean hasManualFlag(Transaction txn) {
-        return txn.getMetadata() != null && containsKeyIgnoreCase(txn.getMetadata(), "flagged");
+        return txn.getMetadata() instanceof Map && containsKeyIgnoreCase((Map<String, String>)txn.getMetadata(), "flagged");
     }
 
     private boolean containsKeyIgnoreCase(Map<String, String> map, String key) {

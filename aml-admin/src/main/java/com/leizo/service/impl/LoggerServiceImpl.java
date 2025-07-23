@@ -1,6 +1,6 @@
 package com.leizo.service.impl;
 
-import com.leizo.model.Alert;
+import com.leizo.admin.entity.Alert;
 import com.leizo.service.LoggerService;
 
 import java.io.IOException;
@@ -37,18 +37,15 @@ public class LoggerServiceImpl implements LoggerService{
         }
     }
 
-    @Override
     public void logRiskScore(String sender, int score) {
         System.out.printf("[Risk] [Sender: %s] Risk Score: %d%n", sender, score);
     }
 
-    @Override
     public void logEvent(String eventType, String actor, String details) {
         String message = String.format("[%s] [%s]: %s", eventType, actor, details);
         logger.info(message);
     }
 
-    @Override
     public void logAlert(Alert alert){
         String message = String.format(
                 "[ALERT] ID: %s | Type: %s | Priority: %s | Reason: %s | Timestamp: %s | Sender: %s | Receiver: %s",

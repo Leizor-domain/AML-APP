@@ -1,6 +1,6 @@
 package com.leizo.loader;
 
-import com.leizo.model.SanctionedEntity;
+import com.leizo.admin.entity.SanctionedEntity;
 import com.leizo.service.FileImportService;
 import com.leizo.service.impl.FileImportServiceImpl;
 

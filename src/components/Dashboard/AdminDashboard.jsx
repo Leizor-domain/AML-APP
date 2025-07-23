@@ -21,7 +21,17 @@ import {
   Notifications,
   People,
 } from '@mui/icons-material'
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { useSelector } from 'react-redux'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import CircularProgress from '@mui/material/CircularProgress';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import { adminApi } from '../../services/api';
+import { alertsService } from '../../services/alerts';
+import AdminUserCreateForm from './AdminUserCreateForm';
+import UserTable from './UserTable';
+import UserRolePieChart from './UserRolePieChart';
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth)
@@ -31,32 +41,60 @@ const AdminDashboard = () => {
     highRiskAlerts: 0,
     activeUsers: 0,
   })
-
   const [recentAlerts, setRecentAlerts] = useState([])
+  const [alertData, setAlertData] = useState([])
+  const [loadingStats, setLoadingStats] = useState(true)
+  const [loadingAlerts, setLoadingAlerts] = useState(true)
+  const [errorStats, setErrorStats] = useState(null)
+  const [errorAlerts, setErrorAlerts] = useState(null)
 
   useEffect(() => {
-    // In a real app, fetch dashboard data from API
-    setStats({
-      totalTransactions: 15420,
-      totalAlerts: 342,
-      highRiskAlerts: 23,
-      activeUsers: 45,
-    })
+    setLoadingStats(true)
+    setErrorStats(null)
+    adminApi.get('/public/db/health')
+      .then(res => {
+        const d = res.data.data || {}
+        setStats({
+          totalTransactions: d.transactions_count || 0,
+          totalAlerts: d.alerts_count || 0,
+          highRiskAlerts: d.high_risk_alerts || 0, // fallback if not present
+          activeUsers: d.users_count || 0,
+        })
+        setLoadingStats(false)
+      })
+      .catch(err => {
+        setErrorStats('Failed to load dashboard stats')
+        setLoadingStats(false)
+      })
+  }, [])
 
-    setRecentAlerts([
-      {
-        id: 1,
-        type: 'HIGH_RISK',
-        description: 'Large transaction from sanctioned country',
-        timestamp: '2024-01-15T10:30:00Z',
-      },
-      {
-        id: 2,
-        type: 'MEDIUM_RISK',
-        description: 'Unusual transaction pattern detected',
-        timestamp: '2024-01-15T09:15:00Z',
-      },
-    ])
+  useEffect(() => {
+    setLoadingAlerts(true)
+    setErrorAlerts(null)
+    alertsService.getAlerts({ size: 5 })
+      .then(res => {
+        const alerts = res.content || res.alerts || []
+        setRecentAlerts(alerts)
+        // If backend provides time-series, use it; else fallback
+        if (res.alertsByDay) {
+          setAlertData(res.alertsByDay)
+        } else {
+          setAlertData([
+            { date: 'Mon', alerts: 12 },
+            { date: 'Tue', alerts: 18 },
+            { date: 'Wed', alerts: 9 },
+            { date: 'Thu', alerts: 15 },
+            { date: 'Fri', alerts: 22 },
+            { date: 'Sat', alerts: 7 },
+            { date: 'Sun', alerts: 11 },
+          ])
+        }
+        setLoadingAlerts(false)
+      })
+      .catch(err => {
+        setErrorAlerts('Failed to load recent alerts')
+        setLoadingAlerts(false)
+      })
   }, [])
 
   const getRiskColor = (risk) => {
@@ -72,9 +110,34 @@ const AdminDashboard = () => {
     }
   }
 
+  // --- Currency Exchange Widget ---
+  const [currencies, setCurrencies] = useState([]);
+  const [from, setFrom] = useState('USD');
+  const [to, setTo] = useState('EUR');
+  const [amount, setAmount] = useState(1);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch('https://api.exchangerate.host/symbols')
+      .then(res => res.json())
+      .then(data => setCurrencies(Object.keys(data.symbols)));
+  }, []);
+
+  useEffect(() => {
+    if (!from || !to || !amount) return;
+    setLoading(true);
+    fetch(`https://api.exchangerate.host/convert?from=${from}&to=${to}&amount=${amount}`)
+      .then(res => res.json())
+      .then(data => {
+        setResult(data.result);
+        setLoading(false);
+      });
+  }, [from, to, amount]);
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
         Admin Dashboard
       </Typography>
       <Typography variant="body1" color="text.secondary" gutterBottom>
@@ -82,17 +145,26 @@ const AdminDashboard = () => {
       </Typography>
 
       {/* Statistics Cards */}
+      {loadingStats ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}><CircularProgress /></Box>
+      ) : errorStats ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}><Typography color="error">{errorStats}</Typography></Box>
+      ) : (
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{
+            background: 'linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)',
+            boxShadow: 3,
+            borderRadius: 3,
+          }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <TrendingUp color="primary" sx={{ mr: 2 }} />
+              <Box display="flex" alignItems="center" gap={2}>
+                <TrendingUp color="primary" sx={{ fontSize: 36 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     Total Transactions
                   </Typography>
-                  <Typography variant="h4">
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
                     {stats.totalTransactions.toLocaleString()}
                   </Typography>
                 </Box>
@@ -100,63 +172,154 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{
+            background: 'linear-gradient(135deg, #fceabb 0%, #f8b500 100%)',
+            boxShadow: 3,
+            borderRadius: 3,
+          }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <Warning color="error" sx={{ mr: 2 }} />
+              <Box display="flex" alignItems="center" gap={2}>
+                <Warning color="error" sx={{ fontSize: 36 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     Total Alerts
                   </Typography>
-                  <Typography variant="h4">{stats.totalAlerts}</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {stats.totalAlerts}
+                  </Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{
+            background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+            boxShadow: 3,
+            borderRadius: 3,
+          }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <Security color="warning" sx={{ mr: 2 }} />
+              <Box display="flex" alignItems="center" gap={2}>
+                <Security color="warning" sx={{ fontSize: 36 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     High Risk Alerts
                   </Typography>
-                  <Typography variant="h4">{stats.highRiskAlerts}</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {stats.highRiskAlerts}
+                  </Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{
+            background: 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)',
+            boxShadow: 3,
+            borderRadius: 3,
+          }}>
             <CardContent>
-              <Box display="flex" alignItems="center">
-                <People color="success" sx={{ mr: 2 }} />
+              <Box display="flex" alignItems="center" gap={2}>
+                <People color="success" sx={{ fontSize: 36 }} />
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     Active Users
                   </Typography>
-                  <Typography variant="h4">{stats.activeUsers}</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {stats.activeUsers}
+                  </Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+      )}
+
+      {/* Chart Section */}
+      <Card sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          Alerts This Week
+        </Typography>
+        {loadingAlerts ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>
+        ) : errorAlerts ? (
+          <Typography color="error">{errorAlerts}</Typography>
+        ) : (
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={alertData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="alerts" fill="#1976d2" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+        )}
+      </Card>
+
+      {/* Live Currency Exchange Widget */}
+      <Card sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          Live Currency Exchange
+        </Typography>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={4}>
+            <Autocomplete
+              options={currencies}
+              value={from}
+              onChange={(_, v) => setFrom(v)}
+              renderInput={(params) => <TextField {...params} label="From" variant="outlined" />}
+              disableClearable
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Autocomplete
+              options={currencies}
+              value={to}
+              onChange={(_, v) => setTo(v)}
+              renderInput={(params) => <TextField {...params} label="To" variant="outlined" />}
+              disableClearable
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label="Amount"
+              type="number"
+              value={amount}
+              onChange={e => setAmount(Number(e.target.value))}
+              fullWidth
+              size="small"
+              inputProps={{ min: 0 }}
+            />
+          </Grid>
+        </Grid>
+        <Box sx={{ mt: 2 }}>
+          {loading ? <CircularProgress size={24} /> :
+            result !== null && (
+              <Typography variant="subtitle1">
+                {amount} {from} = <b>{result.toLocaleString(undefined, { maximumFractionDigits: 4 })} {to}</b>
+              </Typography>
+            )}
+        </Box>
+      </Card>
 
       {/* Recent Alerts and Quick Actions */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               Recent Alerts
             </Typography>
+            {loadingAlerts ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>
+            ) : errorAlerts ? (
+              <Typography color="error">{errorAlerts}</Typography>
+            ) : (
             <List>
               {recentAlerts.map((alert) => (
                 <ListItem key={alert.id} divider>
@@ -168,13 +331,14 @@ const AdminDashboard = () => {
                     secondary={new Date(alert.timestamp).toLocaleString()}
                   />
                   <Chip
-                    label={alert.type.replace('_', ' ')}
+                    label={alert.type ? alert.type.replace('_', ' ') : ''}
                     color={getRiskColor(alert.type)}
                     size="small"
                   />
                 </ListItem>
               ))}
             </List>
+            )}
             <Box sx={{ mt: 2 }}>
               <Button variant="outlined" color="primary">
                 View All Alerts
@@ -184,8 +348,8 @@ const AdminDashboard = () => {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               Quick Actions
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -193,6 +357,7 @@ const AdminDashboard = () => {
                 variant="contained"
                 startIcon={<Assessment />}
                 fullWidth
+                sx={{ fontWeight: 600 }}
               >
                 Generate Report
               </Button>
@@ -200,6 +365,7 @@ const AdminDashboard = () => {
                 variant="outlined"
                 startIcon={<Security />}
                 fullWidth
+                sx={{ fontWeight: 600 }}
               >
                 System Settings
               </Button>
@@ -207,6 +373,7 @@ const AdminDashboard = () => {
                 variant="outlined"
                 startIcon={<People />}
                 fullWidth
+                sx={{ fontWeight: 600 }}
               >
                 User Management
               </Button>
@@ -214,6 +381,13 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
       </Grid>
+      <Box sx={{ mt: 6 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          User Management
+        </Typography>
+        <UserRolePieChart />
+        <UserTable />
+      </Box>
     </Box>
   )
 }

@@ -2,8 +2,8 @@ package com.leizo.loader;
 
 import com.fasterxml.jackson.databind.*;
 import com.leizo.enums.RuleSensitivity;
-import com.leizo.model.Transaction;
-import com.leizo.repository.RuleRepositoryImpl;
+import com.leizo.admin.entity.Transaction;
+import com.leizo.admin.entity.Rule;
 
 import java.util.*;
 import java.math.*;
@@ -17,7 +17,7 @@ import java.util.function.BiPredicate;
  * This supports scalable, rule-driven AML detection logic with externalized configuration.
  */
 public class RuleLoader {
-    private final RuleRepositoryImpl ruleRepository;
+    private final List<Rule> rules;
 
     /**
      * Constructor for injecting the RuleRepository implementation
@@ -26,8 +26,8 @@ public class RuleLoader {
      * @param ruleRepository the in-memory rule storage handler
      */
 
-    public RuleLoader(RuleRepositoryImpl ruleRepository) {
-        this.ruleRepository = ruleRepository;
+    public RuleLoader(List<Rule> rules) {
+        this.rules = rules;
     }
 
     /**
@@ -61,7 +61,8 @@ public class RuleLoader {
 
                 // Add rule to repository if valid
                 if (condition != null) {
-                    ruleRepository.addRule(description, sensitivity, condition, tags);
+                    Rule rule = new Rule(description, sensitivity, condition, tags);
+                    rules.add(rule);
                 }
             }
         } catch (Exception e) {

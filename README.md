@@ -87,7 +87,7 @@ A comprehensive React frontend application for Anti-Money Laundering (AML) Engin
 ### Features
 
 #### 🔐 Authentication & Authorization
-- **Secure Login/Register**: JWT-based authentication with role-based access control
+- **Secure Login**: JWT-based authentication with role-based access control. Only admins can create new users.
 - **Role-based Dashboards**: Different dashboards for Admin, Analyst, Supervisor, and Viewer roles
 - **Protected Routes**: Automatic redirection based on user roles and authentication status
 - **Logout Functionality**: Secure token removal and session cleanup
@@ -158,7 +158,7 @@ src/
 - Node.js (v16 or higher)
 - Yarn package manager
 - Admin server running on `http://localhost:8080`
-- Portal server running on `http://localhost:8081`
+- Portal server running on `http://localhost:8082`
 
 ### Installation
 
@@ -177,7 +177,7 @@ src/
    Create a `.env` file in the root directory:
    ```env
    VITE_ADMIN_API_URL=http://localhost:8080
-   VITE_PORTAL_API_URL=http://localhost:8081
+   VITE_PORTAL_API_URL=http://localhost:8082
    ```
 
 4. **Start the development server**
@@ -206,14 +206,14 @@ The frontend is designed to work with dual Spring Boot backends:
 - Alert management
 - System administration
 
-### Portal Server (Port 8081)
+### Portal Server (Port 8082)
 - Transaction ingestion
 - Transaction history
 - Portal-specific operations
 
 ### Authentication
 - `POST /users/login` - User login
-- `POST /users/register` - User registration
+- `POST /users/create` - Admin-only user creation (requires ROLE_ADMIN)
 
 ### Transactions
 - `POST /ingest` - Submit new transaction
@@ -312,3 +312,93 @@ const theme = createTheme({
 ## 📝 License
 
 This project is licensed under the MIT License.
+
+## Troubleshooting Backend Build Errors
+
+### 1. Run Maven Clean to Remove Stale Classes
+```
+cd aml-admin
+mvn clean
+```
+
+### 2. Ensure Only One UserRepository Exists
+- Only keep `aml-admin/src/main/java/com/leizo/admin/repository/UserRepository.java`.
+- Delete any duplicate `UserRepository.java` in other packages (e.g., `com/leizo/repository`).
+
+### 3. Check @EnableJpaRepositories
+- In `AMLAdminApplication.java`, use:
+  ```java
+  @EnableJpaRepositories(basePackages = {"com.leizo.admin.repository"})
+  ```
+- Do **not** include `com.leizo.repository` or other packages.
+
+### 4. Remove Stale Compiled Files
+- Delete any `.class` files in `aml-admin/target/classes/com/leizo/repository/` if they exist.
+
+### 5. Rebuild and Run Only the Correct Module
+```
+cd aml-admin
+mvn clean compile
+mvn spring-boot:run
+```
+
+### 6. If Bean Conflict Persists
+- Add to `application.properties` (for debugging only):
+  ```
+  spring.main.allow-bean-definition-overriding=true
+  ```
+
+### 7. Other Common Issues
+- If you see `Database may be already in use`, stop all Java processes and delete the H2 database file:
+  ```powershell
+  Get-Process java | Stop-Process -Force
+  Remove-Item "aml-admin/data/amlengine_db.mv.db" -Force
+  ```
+- If you see schema validation errors, drop and recreate your dev database or update your entity/table definitions to match.
+
+## OpenSanctions Integration (Real-Time Sanctions Screening)
+
+### How It Works
+- Every transaction is screened in real time against the OpenSanctions API.
+- If a match is found, an `Alert` is created in the database with details of the match (entity name, list, reason, etc.).
+- The backend logs a warning and returns alert details for frontend feedback.
+
+### Example Test Data (Sanctioned Transaction)
+
+Submit a transaction with a known sanctioned individual:
+
+```json
+{
+  "transactionId": 1001,
+  "senderName": "Viktor Yanukovych",
+  "senderCountry": "Ukraine",
+  "senderDob": "1950-07-09",
+  "receiverName": "John Doe",
+  "receiverCountry": "USA",
+  "amount": 10000,
+  "currency": "USD",
+  "date": "2025-07-21T10:00:00Z"
+}
+```
+
+### Backend Logging and Alert Details
+- When a match is found, the backend logs:
+  - `OpenSanctions MATCH: Entity [Viktor Yanukovych] from [Ukraine] (DOB: 1950-07-09) is sanctioned! Details: {...}`
+  - `ALERT CREATED: Transaction [1001] flagged for sanctioned entity [Viktor Yanukovych]`
+- The `Alert` entity will have:
+  - `matchedEntityName`: Viktor Yanukovych
+  - `matchedList`: OpenSanctions
+  - `matchReason`: Matched by OpenSanctions real-time screening
+  - `transactionId`, `reason`, `timestamp`, `alertType`, `priorityLevel`
+
+### Frontend Real-Time Feedback
+- When a transaction is flagged, the backend returns alert details.
+- The frontend should display a red warning banner or modal:
+  - `⚠️ Transaction flagged! Sender "Viktor Yanukovych" is on OpenSanctions list.`
+  - Show details: name, country, DOB, matched list, reason, and a link to the OpenSanctions profile if available.
+- If no match, show a "Clear" or "Not Sanctioned" status.
+
+### Troubleshooting
+- Ensure the backend can reach `https://api.opensanctions.org/`.
+- Check backend logs for `OpenSanctions MATCH` and `ALERT CREATED` messages.
+- Alerts are stored in the `alerts` table with match details for audit and review.

@@ -1,4 +1,4 @@
-package com.leizo.controller;
+package com.leizo.portal.controller;
 
 import com.leizo.enums.RiskScore;
 import com.leizo.model.Transaction;
@@ -40,4 +40,11 @@ public class PortalStatusController {
         return txn;
     }
 
-}
+    @GetMapping("/public/db-health")
+    public Map<String, Object> dbHealth() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "OK");
+        response.put("message", "Portal database health check (no DB logic implemented)");
+        return response;
+    }
+} 

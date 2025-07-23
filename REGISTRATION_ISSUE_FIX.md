@@ -96,8 +96,8 @@ spring.jpa.hibernate.ddl-auto=update
 # Check database health
 curl http://localhost:8080/admin/db-health
 
-# Register a user
-curl -X POST http://localhost:8080/users/register \
+# Registration is now admin-only. Use /users/create as an authenticated admin.
+curl -X POST http://localhost:8080/users/create \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"testpass123","role":"VIEWER"}'
 

@@ -1,6 +1,6 @@
 package com.leizo.service;
 
-import com.leizo.model.SanctionedEntity;
+import com.leizo.admin.entity.SanctionedEntity;
 
 import java.util.List;
 import java.util.Set;

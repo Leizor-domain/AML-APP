@@ -2,18 +2,35 @@ package com.leizo.service.impl;
 
 import com.leizo.loader.SanctionListLoader;
 import com.leizo.service.SanctionsChecker;
+import com.leizo.service.OpenSanctionsService;
+import com.leizo.admin.entity.Alert;
+import com.leizo.admin.repository.AlertRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
 
 public class SanctionsCheckerImpl implements SanctionsChecker {
 
-    private final SanctionListLoader sanctionListLoader;
+    private static final Logger logger = LoggerFactory.getLogger(SanctionsCheckerImpl.class);
 
-    public SanctionsCheckerImpl(SanctionListLoader sanctionListLoader) {
+    private final SanctionListLoader sanctionListLoader;
+    private final OpenSanctionsService openSanctionsService;
+    private final AlertRepository alertRepository;
+
+    public SanctionsCheckerImpl(SanctionListLoader sanctionListLoader, OpenSanctionsService openSanctionsService, AlertRepository alertRepository) {
         this.sanctionListLoader = sanctionListLoader;
+        this.openSanctionsService = openSanctionsService;
+        this.alertRepository = alertRepository;
     }
 
     @Override
     public boolean isSanctionedEntity(String name, String country, String dob, String sanctioningBody) {
-        // Body is optional — for multi-field exact match if needed later
+        // First, check OpenSanctions API
+        if (openSanctionsService.isEntitySanctioned(name, country, dob)) {
+            return true;
+        }
+        // Fallback to local list
         return sanctionListLoader.isEntitySanctioned(name, country, dob, "Any");
     }
 
@@ -37,5 +54,24 @@ public class SanctionsCheckerImpl implements SanctionsChecker {
         return sanctionListLoader.isSanctioningBodySanctioned(sanctioningBody);
     }
 
+    public Alert checkAndAlertSanctionedEntity(String name, String country, String dob, String sanctioningBody, Integer transactionId) {
+        // First, check OpenSanctions API
+        if (openSanctionsService.isEntitySanctioned(name, country, dob)) {
+            Alert alert = new Alert();
+            alert.setMatchedEntityName(name);
+            alert.setMatchedList("OpenSanctions");
+            alert.setMatchReason("Matched by OpenSanctions real-time screening");
+            alert.setTransactionId(transactionId);
+            alert.setReason("Matched by OpenSanctions real-time screening");
+            alert.setTimestamp(LocalDateTime.now());
+            alert.setAlertType("SANCTIONS");
+            alert.setPriorityLevel("HIGH");
+            alertRepository.save(alert);
+            logger.warn("ALERT CREATED: Transaction [{}] flagged for sanctioned entity [{}]", transactionId, name);
+            return alert;
+        }
+        // Fallback to local list
+        return null;
+    }
 
 }

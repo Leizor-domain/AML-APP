@@ -1,6 +1,6 @@
 package com.leizo.service;
 
-import com.leizo.model.Transaction;
+import com.leizo.admin.entity.Transaction;
 import java.util.List;
 
 public interface BehavioralPatternDetector {

@@ -16,14 +16,18 @@ import java.util.*;
 import com.leizo.enums.IngestionStatus;
 import com.leizo.enums.RuleSensitivity;
 import com.leizo.exception.UnauthorizedAccessException;
-import com.leizo.model.*;
-import com.leizo.repository.RuleRepository;
-import com.leizo.repository.SanctionedEntityRepository;
+import com.leizo.admin.entity.Rule;
+import com.leizo.admin.entity.SanctionedEntity;
+import com.leizo.admin.entity.Transaction;
+import com.leizo.admin.entity.Alert;
+import com.leizo.admin.entity.User;
+import com.leizo.model.IngestionResult;
+import com.leizo.loader.SanctionListLoader;
 import com.leizo.service.*;
-import com.leizo.util.AlertFSS;
-import com.leizo.util.RuleFSS;
-import com.leizo.util.SanctionedEntityFSS;
-import com.leizo.util.TransactionFSS;
+import com.leizo.admin.util.AlertFSS;
+import com.leizo.admin.util.RuleFSS;
+import com.leizo.admin.util.SanctionedEntityFSS;
+import com.leizo.admin.util.TransactionFSS;
 
 
 public class AMLEngine {
@@ -40,8 +44,7 @@ public class AMLEngine {
     private final BehavioralPatternDetector behavioralPatternDetector;
     private final TransactionHistoryService transactionHistoryService;
     private final AlertHistoryService alertHistoryService;
-    private final RuleRepository ruleRepository;
-    private final SanctionedEntityRepository entityRepository;
+    private final SanctionListLoader sanctionListLoader;
 
 
     // Constructor - ensures all services are available at runtime
@@ -56,8 +59,7 @@ public class AMLEngine {
                      BehavioralPatternDetector behavioralPatternDetector,
                      TransactionHistoryService transactionHistoryService,
                      AlertHistoryService alertHistoryService,
-                     RuleRepository ruleRepository,
-                     SanctionedEntityRepository entityRepository
+                     SanctionListLoader sanctionListLoader
     ) {
 
         this.transactionService = Objects.requireNonNull(transactionService, "Transaction Service is required");
@@ -71,8 +73,7 @@ public class AMLEngine {
         this.behavioralPatternDetector = behavioralPatternDetector;
         this.transactionHistoryService = transactionHistoryService;
         this.alertHistoryService = alertHistoryService;
-        this.ruleRepository = ruleRepository;
-        this.entityRepository = entityRepository;
+        this.sanctionListLoader = sanctionListLoader;
     }
 
     //Service 1
@@ -216,8 +217,7 @@ public class AMLEngine {
                 : 0;
 
         // Manual override flag check
-        boolean isManuallyFlagged = txn.getMetadata() != null &&
-                txn.getMetadata().keySet().stream().anyMatch(k -> k.equalsIgnoreCase("flagged"));
+        boolean isManuallyFlagged = txn.getMetadata() != null && txn.getMetadata() instanceof Map && ((Map<?,?>)txn.getMetadata()).keySet().stream().anyMatch(k -> k.toString().equalsIgnoreCase("flagged"));
 
         // Country risk check
         boolean fromHighRiskCountry = riskScoringService.getHighRiskCountries()
@@ -359,17 +359,17 @@ public class AMLEngine {
 
     //Filter rules by sensitivity and optional tag.
     public List<Rule> filterRules(RuleSensitivity sensitivity, String tag) {
-        return RuleFSS.filter(ruleRepository.getAllRules(), sensitivity, tag);
+        return RuleFSS.filter(ruleEngine.getActiveRules(), sensitivity, tag);
     }
 
     //Search rules by description keyword.
     public List<Rule> searchRules(String keyword) {
-        return RuleFSS.search(ruleRepository.getAllRules(), keyword);
+        return RuleFSS.search(ruleEngine.getActiveRules(), keyword);
     }
 
     //Sort rules by sensitivity weight (ascending or descending).
     public Rule[] sortRulesBySensitivity(boolean descending) {
-        return RuleFSS.sortBySensitivity(ruleRepository.getAllRules(), descending);
+        return RuleFSS.sortBySensitivity(ruleEngine.getActiveRules(), descending);
     }
 
     // ======================
@@ -378,17 +378,17 @@ public class AMLEngine {
 
     //Filter sanctioned entities by country.
     public List<SanctionedEntity> filterEntitiesByCountry(String country) {
-        return SanctionedEntityFSS.filterByCountry(entityRepository.getAllEntities(), country);
+        return SanctionedEntityFSS.filterByCountry(sanctionListLoader.getConsolidatedList(), country);
     }
 
     //Search sanctioned entities by name containing a keyword.
     public List<SanctionedEntity> searchEntitiesByName(String keyword) {
-        return SanctionedEntityFSS.searchByName(entityRepository.getAllEntities(), keyword);
+        return SanctionedEntityFSS.searchByName(sanctionListLoader.getConsolidatedList(), keyword);
     }
 
     //Sort sanctioned entities by name A-Z or Z-A.
     public SanctionedEntity[] sortEntitiesByName(boolean descending) {
-        return SanctionedEntityFSS.sortByName(entityRepository.getAllEntities(), descending);
+        return SanctionedEntityFSS.sortByName(sanctionListLoader.getConsolidatedList(), descending);
     }
 }
 

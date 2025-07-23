@@ -85,18 +85,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- H2 Database dependency (Development) -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
         <!-- Postgree SQL dependency -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.2</version>
+            <version>42.7.3</version>
         </dependency>
 
         <!-- Spring security dependency -->

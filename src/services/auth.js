@@ -7,7 +7,8 @@ export const authService = {
   },
 
   register: async (userData) => {
-    const response = await authApi.post('/users/register', userData)
+    // Registration is now admin-only. Use /users/create as an authenticated admin (if needed).
+    const response = await authApi.post('/users/create', userData)
     return response.data
   },
 

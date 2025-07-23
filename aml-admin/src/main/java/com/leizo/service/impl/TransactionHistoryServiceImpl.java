@@ -1,6 +1,6 @@
 package com.leizo.service.impl;
 
-import com.leizo.model.Transaction;
+import com.leizo.admin.entity.Transaction;
 import com.leizo.enums.RiskScore;
 import com.leizo.service.TransactionHistoryService;
 

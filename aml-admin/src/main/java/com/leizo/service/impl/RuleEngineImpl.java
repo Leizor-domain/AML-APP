@@ -1,8 +1,7 @@
 package com.leizo.service.impl;
 
-import com.leizo.model.Rule;
-import com.leizo.model.Transaction;
-import com.leizo.repository.RuleRepositoryImpl;
+import com.leizo.admin.entity.Rule;
+import com.leizo.admin.entity.Transaction;
 import com.leizo.service.RuleEngine;
 
 import java.math.BigDecimal;
@@ -10,15 +9,15 @@ import java.util.*;
 
 public class RuleEngineImpl implements RuleEngine {
 
-    private final RuleRepositoryImpl ruleRepository;
+    private final List<Rule> rules = new ArrayList<>();
 
-    public RuleEngineImpl(RuleRepositoryImpl ruleRepository) {
-        this.ruleRepository = ruleRepository;
+    public RuleEngineImpl() {
+        // Optionally, load rules from a file or static source here
     }
 
     @Override
     public List<Rule> getActiveRules() {
-        return ruleRepository.getAllRules();
+        return rules;
     }
 
     @Override

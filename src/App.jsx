@@ -6,7 +6,6 @@ import Navbar from './components/Layout/Navbar.jsx'
 import Sidebar from './components/Layout/Sidebar.jsx'
 import ProtectedRoute from './components/Layout/ProtectedRoute.jsx'
 import LoginPage from './pages/LoginPage.jsx'
-import RegisterPage from './pages/RegisterPage.jsx'
 import AdminDashboard from './components/Dashboard/AdminDashboard.jsx'
 import AnalystDashboard from './components/Dashboard/AnalystDashboard.jsx'
 import SupervisorDashboard from './components/Dashboard/SupervisorDashboard.jsx'
@@ -56,16 +55,6 @@ function App() {
                   <Navigate to={`/${user?.role?.toLowerCase()}/dashboard`} replace />
                 ) : (
                   <LoginPage />
-                )
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                isAuthenticated ? (
-                  <Navigate to={`/${user?.role?.toLowerCase()}/dashboard`} replace />
-                ) : (
-                  <RegisterPage />
                 )
               }
             />

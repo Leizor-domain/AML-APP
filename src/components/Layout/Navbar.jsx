@@ -13,11 +13,17 @@ import {
 } from '@mui/material'
 import { AccountCircle, Logout } from '@mui/icons-material'
 import { logout } from '../../store/authSlice.js'
+import { useContext } from 'react'
+import { ColorModeContext } from '../../main.jsx'
+import { useTheme } from '@mui/material/styles'
+import { Brightness4, Brightness7 } from '@mui/icons-material'
 
 const Navbar = () => {
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.auth)
   const [anchorEl, setAnchorEl] = React.useState(null)
+  const colorMode = useContext(ColorModeContext)
+  const theme = useTheme()
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget)
@@ -39,6 +45,9 @@ const Navbar = () => {
           AML Engine
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
+            {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+          </IconButton>
           <Typography variant="body2">
             Welcome, {user?.name || user?.username}
           </Typography>

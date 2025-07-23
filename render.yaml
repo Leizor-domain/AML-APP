@@ -3,8 +3,7 @@ services:
     name: aml-admin
     env: java
     rootDir: aml-admin
-    build:
-      buildCommand: ./mvnw clean package || mvn clean package
+    buildCommand: ./mvnw clean package || mvn clean package
     startCommand: java -jar target/*.jar
     plan: starter
     envVars:
@@ -22,8 +21,7 @@ services:
     name: aml-portal
     env: java
     rootDir: aml-portal
-    build:
-      buildCommand: ./mvnw clean package || mvn clean package
+    buildCommand: ./mvnw clean package || mvn clean package
     startCommand: java -jar target/*.jar
     plan: starter
     envVars:
@@ -41,8 +39,7 @@ services:
     name: aml-engine
     env: java
     rootDir: aml-engine
-    build:
-      buildCommand: ./mvnw clean package || mvn clean package
+    buildCommand: ./mvnw clean package || mvn clean package
     startCommand: java -jar target/*.jar
     plan: starter
     envVars:

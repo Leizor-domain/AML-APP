@@ -2,38 +2,79 @@ services:
   - type: web
     name: aml-admin
     env: java
-    buildCommand: mvn clean install
-    startCommand: java -jar aml-admin/target/aml-admin.jar
+    rootDir: aml-admin
+    buildCommand: ./mvnw clean package || mvn clean package
+    startCommand: java -jar target/*.jar
+    plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://dpg-d201e92dbo4c73fv5nb0-a.frankfurt-postgres.render.com:5432/amlengine_db
+        fromDatabase: amlengine-db
+        property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: admin
+        fromDatabase: amlengine-db
+        property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        value: 8FLqQ4m1VELiPdvK9amQI1hxwkBpvt3A
+        fromDatabase: amlengine-db
+        property: password
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+    autoDeploy: true
 
   - type: web
     name: aml-portal
     env: java
-    buildCommand: mvn clean install
-    startCommand: java -jar aml-portal/target/aml-portal.jar
+    rootDir: aml-portal
+    buildCommand: ./mvnw clean package || mvn clean package
+    startCommand: java -jar target/*.jar
+    plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://dpg-d201e92dbo4c73fv5nb0-a.frankfurt-postgres.render.com:5432/amlengine_db
+        fromDatabase: amlengine-db
+        property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: admin
+        fromDatabase: amlengine-db
+        property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        value: 8FLqQ4m1VELiPdvK9amQI1hxwkBpvt3A
+        fromDatabase: amlengine-db
+        property: password
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+    autoDeploy: true
 
   - type: web
     name: aml-engine
     env: java
-    buildCommand: mvn clean install
-    startCommand: java -jar aml-engine/target/aml-engine.jar
+    rootDir: aml-engine
+    buildCommand: ./mvnw clean package || mvn clean package
+    startCommand: java -jar target/*.jar
+    plan: starter
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://dpg-d201e92dbo4c73fv5nb0-a.frankfurt-postgres.render.com:5432/amlengine_db
+        fromDatabase: amlengine-db
+        property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: admin
+        fromDatabase: amlengine-db
+        property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        value: 8FLqQ4m1VELiPdvK9amQI1hxwkBpvt3A 
+        fromDatabase: amlengine-db
+        property: password
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+    autoDeploy: true
+
+  - type: static
+    name: aml-frontend
+    rootDir: .
+    buildCommand: yarn install && yarn build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_ADMIN_API_URL
+        value: https://aml-admin.onrender.com
+      - key: VITE_PORTAL_API_URL
+        value: https://aml-portal.onrender.com
+    autoDeploy: true
+
+databases:
+  - name: amlengine-db
+    plan: starter
+    postgresMajorVersion: 15 

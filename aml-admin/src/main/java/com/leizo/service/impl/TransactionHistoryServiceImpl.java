@@ -4,17 +4,19 @@ import com.leizo.admin.entity.Transaction;
 import com.leizo.enums.RiskScore;
 import com.leizo.service.TransactionHistoryService;
 
+import org.springframework.beans.factory.annotation.Value;
 import java.sql.*;
 import java.util.*;
 import java.math.*;
 
 public class TransactionHistoryServiceImpl implements TransactionHistoryService {
 
-    //Postgres connection details
-    private final String URL = "jdbc:postgresql://localhost:5432/amlengine_db";
-    private final String USER = "postgres";
-    private final String PASSWORD = "1234";
-
+    @Value("${spring.datasource.url}")
+    private String URL;
+    @Value("${spring.datasource.username}")
+    private String USER;
+    @Value("${spring.datasource.password}")
+    private String PASSWORD;
 
 
     @Override

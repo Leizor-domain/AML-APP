@@ -2,6 +2,8 @@ package com.leizo.admin.controller;
 
 import com.leizo.common.entity.Users;
 import com.leizo.common.repository.UserRepository;
+import com.leizo.admin.repository.AlertRepository;
+import com.leizo.admin.entity.Alert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,9 @@ public class AMLAdminController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AlertRepository alertRepository;
 
     @GetMapping("/users")
     public ResponseEntity<List<Users>> getAllUsers() {
@@ -55,5 +60,10 @@ public class AMLAdminController {
             
             return ResponseEntity.status(500).body(response);
         }
+    }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<List<Alert>> getAllAlerts() {
+        return ResponseEntity.ok(alertRepository.findAll());
     }
 }

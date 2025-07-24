@@ -1,6 +1,6 @@
 package com.leizo.service;
 
-import com.leizo.admin.auth.Users;
+import com.leizo.common.entity.Users;
 
 public interface UserService {
     Users register(Users user);

@@ -1,7 +1,7 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.auth.Users;
-import com.leizo.admin.repository.UserRepository;
+import com.leizo.common.entity.Users;
+import com.leizo.common.repository.UserRepository;
 import com.leizo.service.UserService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;

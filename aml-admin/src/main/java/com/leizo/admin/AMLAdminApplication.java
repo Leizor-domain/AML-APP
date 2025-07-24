@@ -14,7 +14,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.leizo.service",
     "com.leizo.admin.repository"
 })
-@EnableJpaRepositories(basePackages = "com.leizo.common.repository")
+@EnableJpaRepositories(basePackages = {
+    "com.leizo.common.repository",
+    "com.leizo.admin.repository"
+})
 @EntityScan(basePackages = "com.leizo.common.entity")
 public class AMLAdminApplication {
     public static void main(String[] args) {

@@ -1,6 +1,6 @@
 package com.leizo.admin.auth;
 
-import com.leizo.admin.repository.UserRepository;
+import com.leizo.common.repository.UserRepository;
 import com.leizo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import java.nio.charset.StandardCharsets;
+import com.leizo.common.entity.Users;
 
 @RestController
 @RequestMapping("/users")

@@ -1,7 +1,7 @@
 package com.leizo.admin.controller;
 
-import com.leizo.admin.auth.Users;
-import com.leizo.admin.repository.UserRepository;
+import com.leizo.common.entity.Users;
+import com.leizo.common.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -62,7 +62,6 @@
 
 
         <!-- Internal modules -->
-        <!-- Dependency on common utilities -->
         <dependency>
             <groupId>com.leizo</groupId>
             <artifactId>aml-common</artifactId>

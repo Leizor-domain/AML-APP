@@ -11,7 +11,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.leizo.common.security",
     "com.leizo.common.repository",
     "com.leizo.common.entity",
-    "com.leizo.service"
+    "com.leizo.service",
+    "com.leizo.admin.repository"
 })
 @EnableJpaRepositories(basePackages = "com.leizo.common.repository")
 @EntityScan(basePackages = "com.leizo.common.entity")

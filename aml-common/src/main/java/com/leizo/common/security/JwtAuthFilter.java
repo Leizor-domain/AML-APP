@@ -14,9 +14,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,8 +37,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            if (JwtUtil.isTokenValid(token)) {
-                Claims claims = JwtUtil.validateToken(token);
+            if (jwtUtil.isTokenValid(token)) {
+                Claims claims = jwtUtil.validateToken(token);
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
 

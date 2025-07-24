@@ -1,34 +1,40 @@
 package com.leizo.common.security;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import java.util.Date;
 
+@Component
 public class JwtUtil {
 
-    private static final String SECRET = "super-secure-production-key-12345678901234567890"; // 256-bit
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
+    @Value("${jwt.secret}")
+    private String secret;
 
-    public static String generateToken(String username, String role) {
+    @Value("${jwt.expiration}")
+    private long expirationTime;
+
+    public String generateToken(String username, String role) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + EXPIRATION_TIME);
+        Date expiry = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
-                .signWith(SignatureAlgorithm.HS256, SECRET.getBytes())
+                .signWith(SignatureAlgorithm.HS256, secret.getBytes())
                 .compact();
     }
 
-    public static Claims validateToken(String token) {
+    public Claims validateToken(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET.getBytes())
+                .setSigningKey(secret.getBytes())
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    public static boolean isTokenValid(String token) {
+    public boolean isTokenValid(String token) {
         try {
             validateToken(token);
             return true;

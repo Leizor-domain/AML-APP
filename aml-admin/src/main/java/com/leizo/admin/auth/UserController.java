@@ -37,6 +37,9 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Users> createUser(@RequestBody Users user) {
@@ -46,34 +49,42 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request) {
-        String username = loginRequest.get("username");
-        String password = loginRequest.get("password");
-        Users user = userRepository.findByUsername(username).orElse(null);
-        Map<String, Object> response = new HashMap<>();
-        if (user != null && user.isEnabled() && passwordEncoder.matches(password, user.getPassword())) {
-            user.setLastLoginAt(java.time.LocalDateTime.now());
-            user.setLastLoginIp(request.getRemoteAddr());
-            userRepository.save(user);
-            System.out.println("[AUDIT] Login: " + username + " from IP: " + request.getRemoteAddr());
-            // Generate JWT token
-            String token = JwtUtil.generateToken(user.getUsername(), user.getRole());
-            response.put("success", true);
-            response.put("message", "Login successful");
-            response.put("token", token);
-            Map<String, Object> userObj = new HashMap<>();
-            userObj.put("userId", user.getId());
-            userObj.put("username", user.getUsername());
-            userObj.put("role", user.getRole());
-            response.put("user", userObj);
-            return ResponseEntity.ok(response);
-        } else {
-            response.put("success", false);
-            if (user != null && !user.isEnabled()) {
-                response.put("message", "User account is disabled");
+        try {
+            String username = loginRequest.get("username");
+            String password = loginRequest.get("password");
+            Users user = userRepository.findByUsername(username).orElse(null);
+            Map<String, Object> response = new HashMap<>();
+            if (user != null && user.isEnabled() && passwordEncoder.matches(password, user.getPassword())) {
+                user.setLastLoginAt(java.time.LocalDateTime.now());
+                user.setLastLoginIp(request.getRemoteAddr());
+                userRepository.save(user);
+                System.out.println("[AUDIT] Login: " + username + " from IP: " + request.getRemoteAddr());
+                // Generate JWT token
+                String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+                response.put("success", true);
+                response.put("message", "Login successful");
+                response.put("token", token);
+                Map<String, Object> userObj = new HashMap<>();
+                userObj.put("userId", user.getId());
+                userObj.put("username", user.getUsername());
+                userObj.put("role", user.getRole());
+                response.put("user", userObj);
+                return ResponseEntity.ok(response);
             } else {
-                response.put("message", "Invalid username or password");
+                response.put("success", false);
+                if (user != null && !user.isEnabled()) {
+                    response.put("message", "User account is disabled");
+                } else {
+                    response.put("message", "Invalid username or password");
+                }
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Internal server error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 
@@ -199,5 +210,10 @@ public class UserController {
         response.put("deleted", deleted);
         response.put("message", "Plain text users deleted");
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/auth/health")
+    public ResponseEntity<String> authHealth() {
+        return ResponseEntity.ok("OK");
     }
 }

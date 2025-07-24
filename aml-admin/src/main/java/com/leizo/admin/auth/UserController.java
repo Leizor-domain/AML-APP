@@ -50,7 +50,7 @@ public class UserController {
         String password = loginRequest.get("password");
         Users user = userRepository.findByUsername(username).orElse(null);
         Map<String, Object> response = new HashMap<>();
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+        if (user != null && user.isEnabled() && passwordEncoder.matches(password, user.getPassword())) {
             user.setLastLoginAt(java.time.LocalDateTime.now());
             user.setLastLoginIp(request.getRemoteAddr());
             userRepository.save(user);
@@ -67,9 +67,12 @@ public class UserController {
             response.put("user", userObj);
             return ResponseEntity.ok(response);
         } else {
-            System.out.println("[AUDIT] Failed login attempt: " + username + " from IP: " + request.getRemoteAddr());
             response.put("success", false);
-            response.put("message", "Invalid username or password");
+            if (user != null && !user.isEnabled()) {
+                response.put("message", "User account is disabled");
+            } else {
+                response.put("message", "Invalid username or password");
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }

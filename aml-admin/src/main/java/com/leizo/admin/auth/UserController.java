@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import java.nio.charset.StandardCharsets;
 import com.leizo.common.entity.Users;
+import com.leizo.common.security.JwtUtil;
 
 @RestController
 @RequestMapping("/users")
@@ -54,8 +55,11 @@ public class UserController {
             user.setLastLoginIp(request.getRemoteAddr());
             userRepository.save(user);
             System.out.println("[AUDIT] Login: " + username + " from IP: " + request.getRemoteAddr());
+            // Generate JWT token
+            String token = JwtUtil.generateToken(user.getUsername(), user.getRole());
             response.put("success", true);
             response.put("message", "Login successful");
+            response.put("token", token);
             Map<String, Object> userObj = new HashMap<>();
             userObj.put("userId", user.getId());
             userObj.put("username", user.getUsername());

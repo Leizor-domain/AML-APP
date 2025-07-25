@@ -5,10 +5,12 @@ import com.leizo.loader.SanctionListLoader;
 import com.leizo.admin.entity.Rule;
 import com.leizo.admin.entity.Transaction;
 import com.leizo.service.RiskScoringService;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+@Service
 public class RiskScoringServiceImpl implements RiskScoringService {
 
     private static final BigDecimal HIGH_AMOUNT_THRESHOLD = new BigDecimal("100000");

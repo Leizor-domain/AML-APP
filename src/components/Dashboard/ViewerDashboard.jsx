@@ -28,9 +28,13 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import TooltipMUI from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
+import { Navigate } from 'react-router-dom'
 
 const ViewerDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   const [stats, setStats] = useState({
     totalTransactions: 0,
     totalAlerts: 0,

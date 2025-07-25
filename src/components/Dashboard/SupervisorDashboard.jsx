@@ -29,9 +29,13 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import TooltipMUI from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
+import { Navigate } from 'react-router-dom'
 
 const SupervisorDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   const [stats, setStats] = useState({
     teamAlerts: 0,
     pendingReviews: 0,

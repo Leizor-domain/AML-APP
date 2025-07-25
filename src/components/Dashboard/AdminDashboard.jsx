@@ -32,9 +32,13 @@ import { alertsService } from '../../services/alerts';
 import AdminUserCreateForm from './AdminUserCreateForm';
 import UserTable from './UserTable';
 import UserRolePieChart from './UserRolePieChart';
+import { Navigate } from 'react-router-dom'
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   const [stats, setStats] = useState({
     totalTransactions: 0,
     totalAlerts: 0,
@@ -165,7 +169,7 @@ const AdminDashboard = () => {
                     Total Transactions
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {typeof stats.totalTransactions === 'number' ? stats.totalTransactions.toLocaleString() : '0'}
+                    {typeof stats.totalTransactions === 'number' ? stats.totalTransactions?.toLocaleString() : '0'}
                   </Typography>
                 </Box>
               </Box>
@@ -302,7 +306,7 @@ const AdminDashboard = () => {
           {loading ? <CircularProgress size={24} /> :
             result !== null && (
               <Typography variant="subtitle1">
-                {amount} {from} = <b>{result.toLocaleString(undefined, { maximumFractionDigits: 4 })} {to}</b>
+                {amount} {from} = <b>{result?.toLocaleString(undefined, { maximumFractionDigits: 4 })} {to}</b>
               </Typography>
             )}
         </Box>
@@ -322,17 +326,17 @@ const AdminDashboard = () => {
             ) : (
             <List>
               {recentAlerts.map((alert) => (
-                <ListItem key={alert.id} divider>
+                <ListItem key={alert?.id} divider>
                   <ListItemIcon>
                     <Notifications color="error" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={alert.description}
-                    secondary={new Date(alert.timestamp).toLocaleString()}
+                    primary={alert?.description || ''}
+                    secondary={alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
                   />
                   <Chip
-                    label={alert.type ? alert.type.replace('_', ' ') : ''}
-                    color={getRiskColor(alert.type)}
+                    label={alert?.type ? alert.type.replace('_', ' ') : ''}
+                    color={getRiskColor(alert?.type)}
                     size="small"
                   />
                 </ListItem>

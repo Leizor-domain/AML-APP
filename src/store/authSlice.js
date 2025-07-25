@@ -62,6 +62,7 @@ const authSlice = createSlice({
       state.user = null;
       state.loading = false;
       state.error = action.payload;
+      localStorage.removeItem('token');
     },
     logout: (state) => {
       state.isAuthenticated = false;
@@ -79,3 +80,9 @@ const authSlice = createSlice({
 
 export const { loginStart, loginSuccess, loginFailure, logout, clearError } = authSlice.actions
 export default authSlice.reducer 
+
+// Add a helper to clear token from both Redux and localStorage
+export const resetToken = () => {
+  localStorage.removeItem('token');
+  // Optionally, dispatch logout if you have access to dispatch
+}; 

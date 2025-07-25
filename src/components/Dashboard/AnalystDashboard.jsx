@@ -28,9 +28,13 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import TooltipMUI from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
+import { Navigate } from 'react-router-dom'
 
 const AnalystDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   const [stats, setStats] = useState({
     pendingAlerts: 0,
     analyzedToday: 0,

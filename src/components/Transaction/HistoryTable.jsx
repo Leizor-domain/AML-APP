@@ -21,6 +21,11 @@ import {
 } from '@mui/material'
 import { Visibility, FilterList } from '@mui/icons-material'
 import { transactionService } from '../../services/transaction.js'
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
+import Avatar from '@mui/material/Avatar';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
 const HistoryTable = () => {
   const [transactions, setTransactions] = useState([])
@@ -34,6 +39,7 @@ const HistoryTable = () => {
     dateFrom: '',
     dateTo: '',
   })
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     fetchTransactions()
@@ -51,33 +57,9 @@ const HistoryTable = () => {
       setTransactions(response.content || response.transactions || [])
       setTotalCount(response.totalElements || response.total || 0)
     } catch (error) {
-      console.error('Error fetching transactions:', error)
-      // Set mock data for demo
-      setTransactions([
-        {
-          id: 1,
-          amount: 50000,
-          currency: 'USD',
-          senderName: 'John Doe',
-          receiverName: 'Jane Smith',
-          transactionType: 'TRANSFER',
-          status: 'COMPLETED',
-          riskScore: 'LOW',
-          timestamp: '2024-01-15T10:30:00Z',
-        },
-        {
-          id: 2,
-          amount: 100000,
-          currency: 'EUR',
-          senderName: 'Alice Johnson',
-          receiverName: 'Bob Wilson',
-          transactionType: 'PAYMENT',
-          status: 'FLAGGED',
-          riskScore: 'HIGH',
-          timestamp: '2024-01-15T09:15:00Z',
-        },
-      ])
-      setTotalCount(2)
+      setSnackbar({ open: true, message: 'Failed to fetch transactions', severity: 'error' });
+      setTransactions([])
+      setTotalCount(0)
     } finally {
       setLoading(false)
     }
@@ -214,41 +196,67 @@ const HistoryTable = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction?.id}>
-                  <TableCell>{transaction?.id}</TableCell>
-                  <TableCell>
-                    {transaction ? formatAmount(transaction.amount, transaction.currency) : ''}
-                  </TableCell>
-                  <TableCell>{transaction?.senderName || ''}</TableCell>
-                  <TableCell>{transaction?.receiverName || ''}</TableCell>
-                  <TableCell>{transaction?.transactionType || ''}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={transaction?.status || ''}
-                      color={getStatusColor(transaction?.status)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={transaction?.riskScore || ''}
-                      color={getRiskColor(transaction?.riskScore)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {transaction?.timestamp ? new Date(transaction.timestamp).toLocaleDateString() : ''}
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title="View Details">
-                      <IconButton size="small">
-                        <Visibility />
-                      </IconButton>
-                    </Tooltip>
+              {loading ? (
+                Array.from({ length: rowsPerPage }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell><Skeleton width={30} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
+                  </TableRow>
+                ))
+              ) : transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center">
+                    <Box sx={{ py: 4 }}>
+                      <Avatar sx={{ bgcolor: 'info.light', width: 56, height: 56, mb: 2 }}><ReceiptLongIcon color="info" /></Avatar>
+                      <Typography variant="h6" color="text.secondary">No transactions found</Typography>
+                      <Typography variant="body2" color="text.secondary">Try adjusting your filters.</Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                transactions.map((transaction) => (
+                  <TableRow key={transaction?.id}>
+                    <TableCell>{transaction?.id}</TableCell>
+                    <TableCell>
+                      {transaction ? formatAmount(transaction.amount, transaction.currency) : ''}
+                    </TableCell>
+                    <TableCell>{transaction?.senderName || ''}</TableCell>
+                    <TableCell>{transaction?.receiverName || ''}</TableCell>
+                    <TableCell>{transaction?.transactionType || ''}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={transaction?.status || ''}
+                        color={getStatusColor(transaction?.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={transaction?.riskScore || ''}
+                        color={getRiskColor(transaction?.riskScore)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {transaction?.timestamp ? new Date(transaction.timestamp).toLocaleDateString() : ''}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="View Details">
+                        <IconButton size="small">
+                          <Visibility />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -262,6 +270,11 @@ const HistoryTable = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <MuiAlert elevation={6} variant="filled" onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   )
 }

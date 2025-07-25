@@ -32,6 +32,12 @@ import {
   Error,
 } from '@mui/icons-material'
 import { alertsService } from '../../services/alerts.js'
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
+import Tooltip from '@mui/material/Tooltip';
+import Avatar from '@mui/material/Avatar';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 const AlertDetails = () => {
   const { id } = useParams()
@@ -44,6 +50,7 @@ const AlertDetails = () => {
     action: '',
     reason: '',
   })
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     fetchAlertDetails()
@@ -103,13 +110,15 @@ const AlertDetails = () => {
       const { action, reason } = actionDialog
       if (action === 'dismiss') {
         await alertsService.dismissAlert(id, reason)
+        setSnackbar({ open: true, message: 'Alert dismissed', severity: 'success' });
       } else if (action === 'false-positive') {
         await alertsService.tagAsFalsePositive(id, reason)
+        setSnackbar({ open: true, message: 'Alert marked as false positive', severity: 'success' });
       }
       setActionDialog({ open: false, action: '', reason: '' })
       fetchAlertDetails() // Refresh the alert details
     } catch (error) {
-      console.error('Error performing action:', error)
+      setSnackbar({ open: true, message: 'Failed to perform action', severity: 'error' });
     }
   }
 
@@ -159,15 +168,21 @@ const AlertDetails = () => {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Typography>Loading alert details...</Typography>
+        <Skeleton variant="circular" width={56} height={56} sx={{ mb: 2 }} />
+        <Box sx={{ ml: 2 }}>
+          <Skeleton width={200} height={40} />
+          <Skeleton width={300} height={30} />
+          <Skeleton width={400} height={30} />
+        </Box>
       </Box>
     )
   }
 
   if (error || !alert) {
     return (
-      <Box>
-        <Alert severity="error">{error || 'Alert not found'}</Alert>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="300px">
+        <Avatar sx={{ bgcolor: 'warning.light', width: 56, height: 56, mb: 2 }}><ReportProblemIcon color="warning" /></Avatar>
+        <MuiAlert severity="error">{error || 'Alert not found'}</MuiAlert>
       </Box>
     )
   }
@@ -348,22 +363,26 @@ const AlertDetails = () => {
                   Actions
                 </Typography>
                 <Box display="flex" flexDirection="column" gap={2}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Close />}
-                    onClick={() => handleActionClick('dismiss')}
-                    fullWidth
-                  >
-                    Dismiss Alert
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Flag />}
-                    onClick={() => handleActionClick('false-positive')}
-                    fullWidth
-                  >
-                    Mark as False Positive
-                  </Button>
+                  <Tooltip title="Dismiss Alert">
+                    <Button
+                      variant="outlined"
+                      startIcon={<Close />}
+                      onClick={() => handleActionClick('dismiss')}
+                      fullWidth
+                    >
+                      Dismiss Alert
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Mark as False Positive">
+                    <Button
+                      variant="outlined"
+                      startIcon={<Flag />}
+                      onClick={() => handleActionClick('false-positive')}
+                      fullWidth
+                    >
+                      Mark as False Positive
+                    </Button>
+                  </Tooltip>
                 </Box>
               </CardContent>
             </Card>
@@ -411,6 +430,11 @@ const AlertDetails = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <MuiAlert elevation={6} variant="filled" onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   )
 }

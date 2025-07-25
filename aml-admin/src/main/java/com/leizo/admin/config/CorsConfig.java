@@ -10,8 +10,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
             .allowedOrigins(
-                "https://aml-frontend-gtqd.onrender.com",
-                "https://aml-frontend-pwh1.onrender.com"
+                "https://aml-app.onrender.com"
             )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             .allowedHeaders("*")

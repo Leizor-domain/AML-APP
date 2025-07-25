@@ -150,7 +150,7 @@ const SupervisorDashboard = () => {
                     Team Alerts
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.teamAlerts}
+                    {typeof stats.teamAlerts === 'number' ? stats.teamAlerts?.toLocaleString() : '0'}
                   </Typography>
                 </Box>
               </Box>
@@ -171,7 +171,7 @@ const SupervisorDashboard = () => {
                     Pending Reviews
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.pendingReviews}
+                    {typeof stats.pendingReviews === 'number' ? stats.pendingReviews?.toLocaleString() : '0'}
                   </Typography>
                 </Box>
               </Box>
@@ -192,7 +192,7 @@ const SupervisorDashboard = () => {
                     Team Performance
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.teamPerformance}%
+                    {typeof stats.teamPerformance === 'number' ? stats.teamPerformance?.toLocaleString() : '0'}%
                   </Typography>
                 </Box>
               </Box>
@@ -213,7 +213,7 @@ const SupervisorDashboard = () => {
                     Escalated Cases
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.escalatedCases}
+                    {typeof stats.escalatedCases === 'number' ? stats.escalatedCases?.toLocaleString() : '0'}
                   </Typography>
                 </Box>
               </Box>
@@ -259,23 +259,23 @@ const SupervisorDashboard = () => {
             ) : (
             <List>
               {teamAlerts.map((alert) => (
-                <ListItem key={alert.id} divider>
+                <ListItem key={alert?.id} divider>
                   <ListItemIcon>
                     <Notifications color="error" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={alert.description}
-                    secondary={`${alert.analyst || ''} 2 ${new Date(alert.timestamp).toLocaleString()}`}
+                    primary={alert?.description || ''}
+                    secondary={`${alert?.analyst || ''} 2 ${alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}`}
                   />
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
-                      label={alert.type ? alert.type.replace('_', ' ') : ''}
-                      color={getRiskColor(alert.type)}
+                      label={alert?.type ? alert.type.replace('_', ' ') : ''}
+                      color={getRiskColor(alert?.type)}
                       size="small"
                     />
                     <Chip
-                      label={alert.status ? alert.status.replace('_', ' ') : ''}
-                      color={getStatusColor(alert.status)}
+                      label={alert?.status ? alert.status.replace('_', ' ') : ''}
+                      color={getStatusColor(alert?.status)}
                       size="small"
                     />
                   </Box>

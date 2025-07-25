@@ -183,7 +183,7 @@ const AlertDetails = () => {
         >
           Back to Alerts
         </Button>
-        <Typography variant="h4">Alert #{alert.id}</Typography>
+        <Typography variant="h4">Alert #{alert?.id ?? ''}</Typography>
       </Box>
 
       <Grid container spacing={3}>
@@ -196,14 +196,14 @@ const AlertDetails = () => {
               </Typography>
               <Box display="flex" gap={1}>
                 <Chip
-                  icon={getStatusIcon(alert.status)}
-                  label={alert.status.replace('_', ' ')}
-                  color={getStatusColor(alert.status)}
+                  icon={getStatusIcon(alert?.status)}
+                  label={alert?.status ? alert.status.replace('_', ' ') : ''}
+                  color={getStatusColor(alert?.status)}
                 />
                 <Chip
                   icon={<Warning />}
-                  label={alert.riskLevel}
-                  color={getRiskColor(alert.riskLevel)}
+                  label={alert?.riskLevel || ''}
+                  color={getRiskColor(alert?.riskLevel)}
                 />
               </Box>
             </Box>
@@ -213,12 +213,12 @@ const AlertDetails = () => {
             </Typography>
 
             <Typography variant="body2" color="text.secondary">
-              Created: {new Date(alert.timestamp).toLocaleString()}
+              Created: {alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
             </Typography>
 
             {alert.analyst && (
               <Typography variant="body2" color="text.secondary">
-                Assigned to: {alert.analyst}
+                Assigned to: {alert?.analyst || ''}
               </Typography>
             )}
           </Paper>
@@ -229,14 +229,14 @@ const AlertDetails = () => {
               Matched Rules
             </Typography>
             <List>
-              {alert.matchedRules?.map((rule, index) => (
+              {alert?.matchedRules?.map((rule, index) => (
                 <ListItem key={index}>
                   <ListItemIcon>
                     <Security color="warning" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={rule.name}
-                    secondary={rule.description}
+                    primary={rule?.name || ''}
+                    secondary={rule?.description || ''}
                   />
                 </ListItem>
               ))}
@@ -261,23 +261,23 @@ const AlertDetails = () => {
                     Amount
                   </Typography>
                   <Typography variant="body1">
-                    {new Intl.NumberFormat('en-US', {
+                    {alert?.transaction ? new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: alert.transaction.currency,
-                    }).format(alert.transaction.amount)}
+                    }).format(alert.transaction.amount) : ''}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="text.secondary">
                     Type
                   </Typography>
-                  <Typography variant="body1">{alert.transaction.transactionType}</Typography>
+                  <Typography variant="body1">{alert?.transaction?.transactionType || ''}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="text.secondary">
                     Description
                   </Typography>
-                  <Typography variant="body1">{alert.transaction.description}</Typography>
+                  <Typography variant="body1">{alert?.transaction?.description || ''}</Typography>
                 </Grid>
               </Grid>
 
@@ -289,13 +289,13 @@ const AlertDetails = () => {
                     Sender Information
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Name: {alert.transaction.senderName}
+                    Name: {alert?.transaction?.senderName || ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Account: {alert.transaction.senderAccount}
+                    Account: {alert?.transaction?.senderAccount || ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Country: {alert.transaction.senderCountry}
+                    Country: {alert?.transaction?.senderCountry || ''}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -303,13 +303,13 @@ const AlertDetails = () => {
                     Receiver Information
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Name: {alert.transaction.receiverName}
+                    Name: {alert?.transaction?.receiverName || ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Account: {alert.transaction.receiverAccount}
+                    Account: {alert?.transaction?.receiverAccount || ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Country: {alert.transaction.receiverCountry}
+                    Country: {alert?.transaction?.receiverCountry || ''}
                   </Typography>
                 </Grid>
               </Grid>
@@ -320,7 +320,7 @@ const AlertDetails = () => {
         {/* Sidebar */}
         <Grid item xs={12} md={4}>
           {/* Sanction Flags */}
-          {alert.sanctionFlags && alert.sanctionFlags.length > 0 && (
+          {alert?.sanctionFlags && alert.sanctionFlags.length > 0 && (
             <Card sx={{ mb: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -341,7 +341,7 @@ const AlertDetails = () => {
           )}
 
           {/* Actions */}
-          {alert.status === 'OPEN' && (
+          {alert?.status === 'OPEN' && (
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -370,7 +370,7 @@ const AlertDetails = () => {
           )}
 
           {/* Notes */}
-          {alert.notes && (
+          {alert?.notes && (
             <Card sx={{ mt: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>

@@ -215,30 +215,30 @@ const HistoryTable = () => {
             </TableHead>
             <TableBody>
               {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>{transaction.id}</TableCell>
+                <TableRow key={transaction?.id}>
+                  <TableCell>{transaction?.id}</TableCell>
                   <TableCell>
-                    {formatAmount(transaction.amount, transaction.currency)}
+                    {transaction ? formatAmount(transaction.amount, transaction.currency) : ''}
                   </TableCell>
-                  <TableCell>{transaction.senderName}</TableCell>
-                  <TableCell>{transaction.receiverName}</TableCell>
-                  <TableCell>{transaction.transactionType}</TableCell>
+                  <TableCell>{transaction?.senderName || ''}</TableCell>
+                  <TableCell>{transaction?.receiverName || ''}</TableCell>
+                  <TableCell>{transaction?.transactionType || ''}</TableCell>
                   <TableCell>
                     <Chip
-                      label={transaction.status}
-                      color={getStatusColor(transaction.status)}
+                      label={transaction?.status || ''}
+                      color={getStatusColor(transaction?.status)}
                       size="small"
                     />
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={transaction.riskScore}
-                      color={getRiskColor(transaction.riskScore)}
+                      label={transaction?.riskScore || ''}
+                      color={getRiskColor(transaction?.riskScore)}
                       size="small"
                     />
                   </TableCell>
                   <TableCell>
-                    {new Date(transaction.timestamp).toLocaleDateString()}
+                    {transaction?.timestamp ? new Date(transaction.timestamp).toLocaleDateString() : ''}
                   </TableCell>
                   <TableCell>
                     <Tooltip title="View Details">

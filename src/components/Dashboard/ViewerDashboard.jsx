@@ -147,7 +147,7 @@ const ViewerDashboard = () => {
                     Total Transactions
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.totalTransactions.toLocaleString()}
+                    {typeof stats.totalTransactions === 'number' ? stats.totalTransactions?.toLocaleString() : '0'}
                   </Typography>
                 </Box>
               </Box>
@@ -258,23 +258,23 @@ const ViewerDashboard = () => {
             ) : (
             <List>
               {recentAlerts.map((alert) => (
-                <ListItem key={alert.id} divider>
+                <ListItem key={alert?.id} divider>
                   <ListItemIcon>
                     <Notifications color="error" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={alert.description}
-                    secondary={new Date(alert.timestamp).toLocaleString()}
+                    primary={alert?.description || ''}
+                    secondary={alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
                   />
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
-                      label={alert.type ? alert.type.replace('_', ' ') : ''}
-                      color={getRiskColor(alert.type)}
+                      label={alert?.type ? alert.type.replace('_', ' ') : ''}
+                      color={getRiskColor(alert?.type)}
                       size="small"
                     />
                     <Chip
-                      label={alert.status ? alert.status.replace('_', ' ') : ''}
-                      color={getStatusColor(alert.status)}
+                      label={alert?.status ? alert.status.replace('_', ' ') : ''}
+                      color={getStatusColor(alert?.status)}
                       size="small"
                     />
                   </Box>

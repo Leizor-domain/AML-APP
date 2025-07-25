@@ -248,25 +248,25 @@ const AlertsList = () => {
             </TableHead>
             <TableBody>
               {alerts.map((alert) => (
-                <TableRow key={alert.id}>
-                  <TableCell>{alert.id}</TableCell>
+                <TableRow key={alert?.id}>
+                  <TableCell>{alert?.id}</TableCell>
                   <TableCell>
                     <Chip
-                      label={alert.riskLevel}
-                      color={getRiskColor(alert.riskLevel)}
+                      label={alert?.riskLevel || ''}
+                      color={getRiskColor(alert?.riskLevel)}
                       size="small"
                     />
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={alert.status.replace('_', ' ')}
-                      color={getStatusColor(alert.status)}
+                      label={alert?.status ? alert.status.replace('_', ' ') : ''}
+                      color={getStatusColor(alert?.status)}
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{alert.description}</TableCell>
+                  <TableCell>{alert?.description || ''}</TableCell>
                   <TableCell>
-                    {alert.matchedRules?.map((rule, index) => (
+                    {alert?.matchedRules?.map((rule, index) => (
                       <Chip
                         key={index}
                         label={rule}
@@ -277,7 +277,7 @@ const AlertsList = () => {
                     ))}
                   </TableCell>
                   <TableCell>
-                    {alert.sanctionFlags?.map((flag, index) => (
+                    {alert?.sanctionFlags?.map((flag, index) => (
                       <Chip
                         key={index}
                         label={flag}
@@ -288,24 +288,24 @@ const AlertsList = () => {
                     ))}
                   </TableCell>
                   <TableCell>
-                    {new Date(alert.timestamp).toLocaleDateString()}
+                    {alert?.timestamp ? new Date(alert.timestamp).toLocaleDateString() : ''}
                   </TableCell>
                   <TableCell>
                     <Box display="flex" gap={1}>
                       <Tooltip title="View Details">
                         <IconButton
                           size="small"
-                          onClick={() => navigate(`/alerts/${alert.id}`)}
+                          onClick={() => navigate(`/alerts/${alert?.id}`)}
                         >
                           <Visibility />
                         </IconButton>
                       </Tooltip>
-                      {alert.status === 'OPEN' && (
+                      {alert?.status === 'OPEN' && (
                         <>
                           <Tooltip title="Dismiss Alert">
                             <IconButton
                               size="small"
-                              onClick={() => handleActionClick(alert.id, 'dismiss')}
+                              onClick={() => handleActionClick(alert?.id, 'dismiss')}
                             >
                               <Close />
                             </IconButton>
@@ -313,7 +313,7 @@ const AlertsList = () => {
                           <Tooltip title="Mark as False Positive">
                             <IconButton
                               size="small"
-                              onClick={() => handleActionClick(alert.id, 'false-positive')}
+                              onClick={() => handleActionClick(alert?.id, 'false-positive')}
                             >
                               <Flag />
                             </IconButton>

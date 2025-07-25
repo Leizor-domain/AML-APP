@@ -24,6 +24,7 @@ import {
   Security,
   Menu as MenuIcon,
 } from '@mui/icons-material'
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const drawerWidth = 240
 
@@ -35,47 +36,34 @@ const Sidebar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  const normRole = normalizeRole(user?.role);
   const menuItems = [
-    {
+    canAccess(normRole, 'VIEW_DASHBOARD') && {
       text: 'Dashboard',
       icon: <Dashboard />,
-      path: `/${user?.role?.toLowerCase()}/dashboard`,
+      path: `/${normRole?.toLowerCase().replace('role_', '')}/dashboard`,
     },
-    {
+    canAccess(normRole, 'UPLOAD_TRANSACTIONS') && {
       text: 'Transaction Ingestion',
       icon: <Upload />,
       path: '/ingest',
     },
-    {
+    canAccess(normRole, 'VIEW_ALERTS') && {
       text: 'Alerts',
       icon: <Notifications />,
       path: '/alerts',
     },
-  ]
-
-  // Add role-specific menu items
-  if (user?.role === 'ADMIN') {
-    menuItems.push(
-      {
-        text: 'Reports',
-        icon: <Assessment />,
-        path: '/reports',
-      },
-      {
-        text: 'Settings',
-        icon: <Settings />,
-        path: '/settings',
-      }
-    )
-  }
-
-  if (user?.role === 'ANALYST' || user?.role === 'SUPERVISOR') {
-    menuItems.push({
-      text: 'Risk Assessment',
-      icon: <Security />,
-      path: '/risk-assessment',
-    })
-  }
+    normRole === 'ROLE_ADMIN' && {
+      text: 'Reports',
+      icon: <Assessment />,
+      path: '/reports',
+    },
+    normRole === 'ROLE_ADMIN' && {
+      text: 'Settings',
+      icon: <Settings />,
+      path: '/settings',
+    },
+  ].filter(Boolean);
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

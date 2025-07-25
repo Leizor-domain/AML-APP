@@ -40,6 +40,9 @@ import Skeleton from '@mui/material/Skeleton';
 import Avatar from '@mui/material/Avatar';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { Parser as Json2csvParser } from 'json2csv';
+import { useSelector } from 'react-redux';
+import { canAccess, normalizeRole } from '../../utils/permissions';
+import Tooltip from '@mui/material/Tooltip';
 
 const AlertsList = () => {
   const navigate = useNavigate()
@@ -211,6 +214,8 @@ const AlertsList = () => {
     }
   };
 
+  const { user } = useSelector((state) => state.auth);
+  const normRole = normalizeRole(user?.role);
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -224,9 +229,19 @@ const AlertsList = () => {
             <FilterList />
             <Typography variant="h6">Filters</Typography>
           </Box>
-          <Button variant="outlined" onClick={handleExportCsv} sx={{ minWidth: 140 }}>
-            Export CSV
-          </Button>
+          {canAccess(normRole, 'EXPORT_ALERTS') ? (
+            <Button variant="outlined" onClick={handleExportCsv} sx={{ minWidth: 140 }}>
+              Export CSV
+            </Button>
+          ) : (
+            <Tooltip title="Only Admins and Supervisors can perform this action.">
+              <span>
+                <Button variant="outlined" disabled sx={{ minWidth: 140 }}>
+                  Export CSV
+                </Button>
+              </span>
+            </Tooltip>
+          )}
         </Box>
         <Box display="flex" gap={2} flexWrap="wrap">
           <FormControl sx={{ minWidth: 120 }}>

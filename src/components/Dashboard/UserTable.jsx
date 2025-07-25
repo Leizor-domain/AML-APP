@@ -41,6 +41,9 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useCallback } from 'react';
 import { deepPurple, blue, green, orange, red } from '@mui/material/colors';
+import { useSelector } from 'react-redux';
+import { canAccess, normalizeRole } from '../../utils/permissions';
+import Tooltip from '@mui/material/Tooltip';
 
 const roleColors = {
   ADMIN: 'error',
@@ -76,6 +79,7 @@ const UserTable = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [searchInput, setSearchInput] = useState('');
+  const user = useSelector(state => state.auth.user);
 
   // Debounced search
   const debouncedSearch = useCallback(
@@ -209,7 +213,15 @@ const UserTable = () => {
         <Grid item xs={12} sm={6}><UserRolePieChart /></Grid>
         <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
           <Button variant="outlined" onClick={handleExportCsv} sx={{ height: 40, mr: 2 }}>Export CSV</Button>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreate} sx={{ height: 40 }}>Create User</Button>
+          {canAccess(normalizeRole(user?.role), 'CREATE_USER') ? (
+            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreate} sx={{ height: 40 }}>Create User</Button>
+          ) : (
+            <Tooltip title="Only Admins can perform this action.">
+              <span>
+                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreate} sx={{ height: 40 }} disabled>Create User</Button>
+              </span>
+            </Tooltip>
+          )}
         </Grid>
       </Grid>
       <Paper>

@@ -13,6 +13,7 @@ import ViewerDashboard from './components/Dashboard/ViewerDashboard.jsx'
 import IngestPage from './pages/IngestPage.jsx'
 import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
+import { canAccess, normalizeRole } from './utils/permissions';
 
 const normalizeRole = (role) => {
   if (!role) return null;
@@ -105,7 +106,7 @@ function App() {
             <Route
               path="/ingest"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="ANALYST">
                   <IngestPage />
                 </ProtectedRoute>
               }
@@ -115,7 +116,7 @@ function App() {
             <Route
               path="/alerts"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="VIEW_ALERTS">
                   <AlertsPage />
                 </ProtectedRoute>
               }
@@ -123,7 +124,7 @@ function App() {
             <Route
               path="/alerts/:id"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="VIEW_ALERTS">
                   <AlertDetailsPage />
                 </ProtectedRoute>
               }

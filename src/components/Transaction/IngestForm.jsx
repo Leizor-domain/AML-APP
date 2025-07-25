@@ -20,6 +20,9 @@ import { transactionService } from '../../services/transaction.js'
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
+import { useSelector } from 'react-redux';
+import { canAccess, normalizeRole } from '../../utils/permissions';
+import Tooltip from '@mui/material/Tooltip';
 
 const IngestForm = () => {
   const [loading, setLoading] = useState(false)
@@ -128,6 +131,8 @@ const IngestForm = () => {
       setBatchLoading(false);
     }
   };
+
+  const { user } = useSelector(state => state.auth);
 
   return (
     <Box>
@@ -358,16 +363,32 @@ const IngestForm = () => {
 
                   {/* Submit Button */}
                   <Grid item xs={12}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      startIcon={loading ? <CircularProgress size={20} /> : <Upload />}
-                      disabled={loading || !isFormValid}
-                      fullWidth
-                    >
-                      {loading ? 'Processing...' : 'Submit Transaction'}
-                    </Button>
+                    {canAccess(normalizeRole(user?.role), 'UPLOAD_TRANSACTIONS') ? (
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        startIcon={loading ? <CircularProgress size={20} /> : <Upload />}
+                        disabled={loading || !isFormValid}
+                        fullWidth
+                      >
+                        {loading ? 'Processing...' : 'Submit Transaction'}
+                      </Button>
+                    ) : (
+                      <Tooltip title="Only Admins and Analysts can perform this action.">
+                        <span>
+                          <Button
+                            variant="contained"
+                            size="large"
+                            startIcon={<Upload />}
+                            disabled
+                            fullWidth
+                          >
+                            Submit Transaction
+                          </Button>
+                        </span>
+                      </Tooltip>
+                    )}
                   </Grid>
                 </Grid>
               </Box>

@@ -3,6 +3,7 @@ package com.leizo.loader;
 import com.leizo.admin.entity.SanctionedEntity;
 import com.leizo.service.FileImportService;
 import com.leizo.service.impl.FileImportServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -27,11 +28,11 @@ public class SanctionListLoader {
      *
      * @param fileImportService file import abstraction
      */
+    @Autowired
     public SanctionListLoader(FileImportService fileImportService) {
-        this.fileImportService = (fileImportService != null) ? fileImportService : new FileImportServiceImpl();
+        this.fileImportService = fileImportService;
         this.consolidatedList = new ArrayList<>();
         this.highRiskCountries = new HashSet<>();
-
         loadAllLists();
     }
 

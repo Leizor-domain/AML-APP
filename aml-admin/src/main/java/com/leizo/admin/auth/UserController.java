@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,7 @@ import org.springframework.http.MediaType;
 import java.nio.charset.StandardCharsets;
 import com.leizo.common.entity.Users;
 import com.leizo.common.security.JwtUtil;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/users")
@@ -40,6 +43,9 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // In-memory refresh token store (for demo; use persistent store in production)
+    private final ConcurrentHashMap<String, String> refreshTokenStore = new ConcurrentHashMap<>();
+
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Users> createUser(@RequestBody Users user) {
@@ -48,36 +54,45 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             String username = loginRequest.get("username");
             String password = loginRequest.get("password");
             Users user = userRepository.findByUsername(username).orElse(null);
-            Map<String, Object> response = new HashMap<>();
+            Map<String, Object> resp = new HashMap<>();
             if (user != null && user.isEnabled() && passwordEncoder.matches(password, user.getPassword())) {
                 user.setLastLoginAt(java.time.LocalDateTime.now());
                 user.setLastLoginIp(request.getRemoteAddr());
                 userRepository.save(user);
                 System.out.println("[AUDIT] Login: " + username + " from IP: " + request.getRemoteAddr());
-                // Generate JWT token
-                String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
-                response.put("success", true);
-                response.put("message", "Login successful");
-                response.put("token", token);
+                // Generate JWT access token
+                String accessToken = jwtUtil.generateToken(user.getUsername(), user.getRole());
+                // Generate refresh token (simple UUID for demo)
+                String refreshToken = java.util.UUID.randomUUID().toString();
+                refreshTokenStore.put(refreshToken, user.getUsername());
+                // Set refresh token as HttpOnly cookie
+                Cookie cookie = new Cookie("refreshToken", refreshToken);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+                response.addCookie(cookie);
+                resp.put("success", true);
+                resp.put("message", "Login successful");
+                resp.put("token", accessToken);
                 Map<String, Object> userObj = new HashMap<>();
                 userObj.put("userId", user.getId());
                 userObj.put("username", user.getUsername());
                 userObj.put("role", user.getRole());
-                response.put("user", userObj);
-                return ResponseEntity.ok(response);
+                resp.put("user", userObj);
+                return ResponseEntity.ok(resp);
             } else {
-                response.put("success", false);
+                resp.put("success", false);
                 if (user != null && !user.isEnabled()) {
-                    response.put("message", "User account is disabled");
+                    resp.put("message", "User account is disabled");
                 } else {
-                    response.put("message", "Invalid username or password");
+                    resp.put("message", "Invalid username or password");
                 }
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,6 +101,48 @@ public class UserController {
             error.put("message", "Internal server error");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No refresh token provided", "code", 401));
+        }
+        String refreshToken = null;
+        for (Cookie cookie : cookies) {
+            if ("refreshToken".equals(cookie.getName())) {
+                refreshToken = cookie.getValue();
+                break;
+            }
+        }
+        if (refreshToken == null || !refreshTokenStore.containsKey(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired refresh token", "code", 401));
+        }
+        String username = refreshTokenStore.get(refreshToken);
+        Users user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found", "code", 401));
+        }
+        String newAccessToken = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        return ResponseEntity.ok(Map.of("token", newAccessToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshTokenStore.remove(cookie.getValue());
+                    cookie.setValue("");
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    response.addCookie(cookie);
+                }
+            }
+        }
+        return ResponseEntity.ok(Map.of("success", true, "message", "Logged out successfully"));
     }
 
     @GetMapping("")
@@ -210,6 +267,34 @@ public class UserController {
         response.put("deleted", deleted);
         response.put("message", "Plain text users deleted");
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Missing or invalid Authorization header", "code", 401));
+        }
+        String token = authHeader.substring(7);
+        try {
+            var claims = jwtUtil.validateToken(token);
+            String username = claims.getSubject();
+            Users user = userRepository.findByUsername(username).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found", "code", 401));
+            }
+            return ResponseEntity.ok(Map.of(
+                "userId", user.getId(),
+                "username", user.getUsername(),
+                "role", user.getRole(),
+                "email", user.getEmail(),
+                "name", user.getName(),
+                "createdAt", user.getCreatedAt(),
+                "lastLoginAt", user.getLastLoginAt()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired token", "code", 401));
+        }
     }
 
     @GetMapping("/auth/health")

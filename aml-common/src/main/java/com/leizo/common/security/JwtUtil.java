@@ -14,6 +14,11 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expirationTime;
 
+    @Value("${jwt.audience}")
+    private String audience;
+
+    private static final String ISSUER = "aml-engine";
+
     public String generateToken(String username, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationTime);
@@ -23,15 +28,25 @@ public class JwtUtil {
                 .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
+                .setIssuer(ISSUER)
+                .setAudience(audience)
                 .signWith(SignatureAlgorithm.HS256, secret.getBytes())
                 .compact();
     }
 
     public Claims validateToken(String token) {
-        return Jwts.parser()
+        Claims claims = Jwts.parser()
                 .setSigningKey(secret.getBytes())
                 .parseClaimsJws(token)
                 .getBody();
+        // Validate standard claims
+        if (!ISSUER.equals(claims.getIssuer())) {
+            throw new JwtException("Invalid issuer");
+        }
+        if (!audience.equals(claims.getAudience())) {
+            throw new JwtException("Invalid audience");
+        }
+        return claims;
     }
 
     public boolean isTokenValid(String token) {

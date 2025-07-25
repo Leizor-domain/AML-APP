@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
 import {
@@ -10,18 +10,45 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material'
-import { loginStart, loginSuccess, loginFailure } from '../../store/authSlice.js'
+import { loginStart, loginSuccess, loginFailure, clearError } from '../../store/authSlice.js'
 import { authService } from '../../services/auth.js'
 
 const LoginForm = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { loading, error } = useSelector((state) => state.auth)
+  const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth)
 
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   })
+  
+  const [localError, setLocalError] = useState('')
+
+  // Clear local error when Redux error changes
+  useEffect(() => {
+    if (error) {
+      setLocalError(error)
+    } else {
+      setLocalError('')
+    }
+  }, [error])
+
+  // Clear error when form data changes
+  useEffect(() => {
+    if (localError) {
+      setLocalError('')
+      dispatch(clearError())
+    }
+  }, [formData.username, formData.password, localError, dispatch])
+
+  // Redirect on successful authentication
+  useEffect(() => {
+    if (isAuthenticated && user && user.role) {
+      const role = user.role.toLowerCase().replace('role_', '')
+      navigate(`/${role}/dashboard`)
+    }
+  }, [isAuthenticated, user, navigate])
 
   const handleChange = (e) => {
     setFormData({
@@ -32,19 +59,30 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Basic validation
+    if (!formData.username.trim() || !formData.password.trim()) {
+      setLocalError('Please enter both username and password')
+      return
+    }
+
     dispatch(loginStart())
+    setLocalError('')
 
     try {
       const response = await authService.login(formData)
       dispatch(loginSuccess(response))
       
-      // Redirect based on role
-      const role = response.user.role.toLowerCase()
-      navigate(`/${role}/dashboard`)
+      // Navigation will be handled by useEffect when isAuthenticated changes
     } catch (error) {
-      dispatch(loginFailure(error.response?.data?.message || 'Login failed'))
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Login failed. Please check your credentials.'
+      dispatch(loginFailure(errorMessage))
     }
   }
+
+  const displayError = localError || error
 
   return (
     <Box
@@ -68,9 +106,9 @@ const LoginForm = () => {
           AML Engine Login
         </Typography>
         
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+        {displayError && (
+          <Alert severity="error" sx={{ mb: 2 }} data-testid="login-error">
+            {displayError}
           </Alert>
         )}
 
@@ -87,6 +125,7 @@ const LoginForm = () => {
             value={formData.username}
             onChange={handleChange}
             disabled={loading}
+            inputProps={{ 'data-testid': 'username-input' }}
           />
           <TextField
             margin="normal"
@@ -100,6 +139,7 @@ const LoginForm = () => {
             value={formData.password}
             onChange={handleChange}
             disabled={loading}
+            inputProps={{ 'data-testid': 'password-input' }}
           />
           <Button
             type="submit"
@@ -107,6 +147,7 @@ const LoginForm = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
+            data-testid="login-button"
           >
             {loading ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>

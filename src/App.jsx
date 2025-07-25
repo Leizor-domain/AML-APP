@@ -13,23 +13,29 @@ import ViewerDashboard from './components/Dashboard/ViewerDashboard.jsx'
 import IngestPage from './pages/IngestPage.jsx'
 import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
-import RegisterForm from './components/Auth/RegisterForm.jsx'
+
+const normalizeRole = (role) => {
+  if (!role) return null;
+  let r = role.toUpperCase();
+  if (!r.startsWith('ROLE_')) r = 'ROLE_' + r;
+  return r;
+};
 
 function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
 
   const getDashboardComponent = (role) => {
-    switch (role) {
-      case 'ADMIN':
-        return <AdminDashboard />
-      case 'ANALYST':
-        return <AnalystDashboard />
-      case 'SUPERVISOR':
-        return <SupervisorDashboard />
-      case 'VIEWER':
-        return <ViewerDashboard />
+    switch (normalizeRole(role)) {
+      case 'ROLE_ADMIN':
+        return <AdminDashboard />;
+      case 'ROLE_ANALYST':
+        return <AnalystDashboard />;
+      case 'ROLE_SUPERVISOR':
+        return <SupervisorDashboard />;
+      case 'ROLE_VIEWER':
+        return <ViewerDashboard />;
       default:
-        return <ViewerDashboard />
+        return <ViewerDashboard />;
     }
   }
 
@@ -53,7 +59,7 @@ function App() {
               path="/login"
               element={
                 isAuthenticated ? (
-                  <Navigate to={`/${user?.role?.toLowerCase()}/dashboard`} replace />
+                  <Navigate to={`/${user?.role?.toLowerCase().replace('role_', '')}/dashboard`} replace />
                 ) : (
                   <LoginPage />
                 )
@@ -128,7 +134,7 @@ function App() {
               path="/"
               element={
                 isAuthenticated ? (
-                  <Navigate to={`/${user?.role?.toLowerCase()}/dashboard`} replace />
+                  <Navigate to={`/${user?.role?.toLowerCase().replace('role_', '')}/dashboard`} replace />
                 ) : (
                   <Navigate to="/login" replace />
                 )

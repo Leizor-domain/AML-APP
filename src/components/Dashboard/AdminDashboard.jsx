@@ -165,7 +165,7 @@ const AdminDashboard = () => {
                     Total Transactions
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.totalTransactions.toLocaleString()}
+                    {typeof stats.totalTransactions === 'number' ? stats.totalTransactions.toLocaleString() : '0'}
                   </Typography>
                 </Box>
               </Box>

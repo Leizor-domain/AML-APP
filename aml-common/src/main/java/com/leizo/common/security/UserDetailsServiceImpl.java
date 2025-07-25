@@ -22,10 +22,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Users user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+        String dbRole = user.getRole();
+        String role = dbRole != null && dbRole.startsWith("ROLE_") ? dbRole : "ROLE_" + dbRole;
         return new User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority(user.getRole()))
+                Collections.singleton(new SimpleGrantedAuthority(role))
         );
     }
 } 

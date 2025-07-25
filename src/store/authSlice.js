@@ -1,23 +1,31 @@
 import { createSlice } from '@reduxjs/toolkit'
 import jwtDecode from 'jwt-decode'
 
+const normalizeRole = (role) => {
+  if (!role) return null;
+  let r = role.toUpperCase();
+  if (!r.startsWith('ROLE_')) r = 'ROLE_' + r;
+  return r;
+};
+
 const getInitialState = () => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token');
   if (token) {
     try {
-      const decoded = jwtDecode(token)
-      const currentTime = Date.now() / 1000
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
       if (decoded.exp > currentTime) {
+        decoded.role = normalizeRole(decoded.role);
         return {
           isAuthenticated: true,
           token,
           user: decoded,
           loading: false,
           error: null,
-        }
+        };
       }
     } catch (error) {
-      localStorage.removeItem('token')
+      localStorage.removeItem('token');
     }
   }
   return {
@@ -26,45 +34,48 @@ const getInitialState = () => {
     user: null,
     loading: false,
     error: null,
-  }
-}
+  };
+};
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: getInitialState(),
   reducers: {
     loginStart: (state) => {
-      state.loading = true
-      state.error = null
+      state.loading = true;
+      state.error = null;
     },
     loginSuccess: (state, action) => {
-      state.isAuthenticated = true
-      state.token = action.payload.token
-      state.user = action.payload.user
-      state.loading = false
-      state.error = null
-      localStorage.setItem('token', action.payload.token)
+      state.isAuthenticated = true;
+      state.token = action.payload.token;
+      state.user = {
+        ...action.payload.user,
+        role: normalizeRole(action.payload.user.role),
+      };
+      state.loading = false;
+      state.error = null;
+      localStorage.setItem('token', action.payload.token);
     },
     loginFailure: (state, action) => {
-      state.isAuthenticated = false
-      state.token = null
-      state.user = null
-      state.loading = false
-      state.error = action.payload
+      state.isAuthenticated = false;
+      state.token = null;
+      state.user = null;
+      state.loading = false;
+      state.error = action.payload;
     },
     logout: (state) => {
-      state.isAuthenticated = false
-      state.token = null
-      state.user = null
-      state.loading = false
-      state.error = null
-      localStorage.removeItem('token')
+      state.isAuthenticated = false;
+      state.token = null;
+      state.user = null;
+      state.loading = false;
+      state.error = null;
+      localStorage.removeItem('token');
     },
     clearError: (state) => {
-      state.error = null
+      state.error = null;
     },
   },
-})
+});
 
 export const { loginStart, loginSuccess, loginFailure, logout, clearError } = authSlice.actions
 export default authSlice.reducer 

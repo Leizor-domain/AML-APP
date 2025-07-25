@@ -28,9 +28,14 @@ public class JwtUtil {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationTime);
 
+        // Always prefix with ROLE_ if not present
+        String normalizedRole = role != null && role.toUpperCase().startsWith("ROLE_")
+            ? role.toUpperCase()
+            : "ROLE_" + role.toUpperCase();
+
         return Jwts.builder()
                 .setSubject(username)
-                .claim("role", role)
+                .claim("role", normalizedRole)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .setIssuer(ISSUER)

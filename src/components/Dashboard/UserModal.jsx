@@ -12,7 +12,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import axios from 'axios';
+import { adminApi } from '../../services/api';
 
 const roles = [
   { value: 'ADMIN', label: 'Admin' },
@@ -72,17 +72,25 @@ const UserModal = ({ open, mode, user, onClose }) => {
     }
     try {
       if (isEdit) {
-        await axios.put(`/users/${user.id}`, {
+        await adminApi.put(`/users/${user.id}`, {
           ...form,
           password: undefined, // Don't send password unless changed
         });
       } else {
-        await axios.post('/users/create', form);
+        await adminApi.post('/users/create', {
+          username: form.username,
+          password: form.password,
+          role: form.role
+        });
       }
       setSuccess('User saved successfully');
       setTimeout(() => onClose(true), 1000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save user');
+      if (err.response?.status === 409) {
+        setError('Username already exists');
+      } else {
+        setError(err.response?.data?.message || 'Failed to save user');
+      }
     } finally {
       setLoading(false);
     }

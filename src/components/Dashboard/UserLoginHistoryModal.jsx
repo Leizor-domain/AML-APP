@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, CircularProgress } from '@mui/material';
-import axios from 'axios';
+import { adminApi } from '../../services/api';
 
 const UserLoginHistoryModal = ({ open, userId, onClose }) => {
   const [history, setHistory] = useState(null);
@@ -9,7 +9,7 @@ const UserLoginHistoryModal = ({ open, userId, onClose }) => {
   useEffect(() => {
     if (open && userId) {
       setLoading(true);
-      axios.get(`/users/${userId}/login-history`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      adminApi.get(`/users/${userId}/login-history`)
         .then(res => setHistory(res.data))
         .catch(() => setHistory(null))
         .finally(() => setLoading(false));

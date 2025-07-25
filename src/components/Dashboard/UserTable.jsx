@@ -20,7 +20,7 @@ import {
   Button
 } from '@mui/material';
 import { Search, Edit, Delete, History, Add } from '@mui/icons-material';
-import axios from 'axios';
+import { adminApi } from '../../services/api';
 import UserModal from './UserModal';
 import UserRolePieChart from './UserRolePieChart';
 import UserLoginHistoryModal from './UserLoginHistoryModal';
@@ -59,7 +59,7 @@ const UserTable = () => {
       };
       if (search) params.search = search;
       if (statusFilter !== 'all') params.status = statusFilter === 'active';
-      const res = await axios.get('/users', { params });
+      const res = await adminApi.get('/users', { params });
       setUsers(res.data.content || []);
       setTotal(res.data.totalElements || 0);
     } catch (e) {
@@ -96,13 +96,13 @@ const UserTable = () => {
   };
 
   const handleStatusToggle = async (user) => {
-    await axios.patch(`/users/${user.id}/status`, null, { params: { enabled: !user.enabled } });
+    await adminApi.patch(`/users/${user.id}/status`, null, { params: { enabled: !user.enabled } });
     fetchUsers();
   };
 
   const handleDelete = async (user) => {
     if (window.confirm(`Disable user ${user.username}?`)) {
-      await axios.delete(`/users/${user.id}`);
+      await adminApi.delete(`/users/${user.id}`);
       fetchUsers();
     }
   };
@@ -127,7 +127,7 @@ const UserTable = () => {
 
   const handleExportCsv = async () => {
     try {
-      const res = await axios.get('/users/export', { responseType: 'blob' });
+      const res = await adminApi.get('/users/export', { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;

@@ -99,6 +99,36 @@ const IngestForm = () => {
     return 'success'
   }
 
+  // Batch file upload state
+  const [batchFile, setBatchFile] = useState(null);
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchResult, setBatchResult] = useState(null);
+  const [batchError, setBatchError] = useState('');
+
+  const handleBatchFileChange = (e) => {
+    setBatchFile(e.target.files[0]);
+    setBatchResult(null);
+    setBatchError('');
+  };
+
+  const handleBatchUpload = async (e) => {
+    e.preventDefault();
+    if (!batchFile) return;
+    setBatchLoading(true);
+    setBatchResult(null);
+    setBatchError('');
+    try {
+      const resp = await transactionService.batchIngest(batchFile);
+      setBatchResult(resp);
+      setSnackbar({ open: true, message: 'Batch ingestion complete', severity: 'success' });
+    } catch (err) {
+      setBatchError(err.response?.data?.error || 'Batch ingestion failed');
+      setSnackbar({ open: true, message: err.response?.data?.error || 'Batch ingestion failed', severity: 'error' });
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -111,6 +141,68 @@ const IngestForm = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Batch Ingestion (CSV or JSON)
+            </Typography>
+            <Box component="form" onSubmit={handleBatchUpload} sx={{ mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} sm={8}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<Upload />}
+                    fullWidth
+                    disabled={batchLoading}
+                  >
+                    {batchFile ? batchFile.name : 'Select File'}
+                    <input
+                      type="file"
+                      accept=".csv,.json"
+                      hidden
+                      onChange={handleBatchFileChange}
+                    />
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    startIcon={batchLoading ? <CircularProgress size={20} /> : <Upload />}
+                    disabled={batchLoading || !batchFile}
+                    fullWidth
+                  >
+                    {batchLoading ? 'Uploading...' : 'Upload & Ingest'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+            {batchError && !batchLoading && (
+              <Alert severity="error" sx={{ mb: 2 }}>{batchError}</Alert>
+            )}
+            {batchResult && !batchLoading && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                <Box>
+                  <Typography variant="subtitle2">Batch Ingestion Summary</Typography>
+                  <ul style={{ margin: 0, paddingLeft: 20 }}>
+                    <li>Processed: {batchResult.processed}</li>
+                    <li>Successful: {batchResult.successful}</li>
+                    <li>Failed: {batchResult.failed}</li>
+                    <li>Alerts Generated: {batchResult.alertsGenerated}</li>
+                    {batchResult.errors && batchResult.errors.length > 0 && (
+                      <li>
+                        Errors:
+                        <ul>
+                          {batchResult.errors.map((err, idx) => (
+                            <li key={idx}>{err}</li>
+                          ))}
+                        </ul>
+                      </li>
+                    )}
+                  </ul>
+                </Box>
+              </Alert>
+            )}
             <Typography variant="h6" gutterBottom>
               Transaction Details
             </Typography>

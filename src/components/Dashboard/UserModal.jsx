@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import {
   Dialog,
   DialogTitle,
@@ -9,7 +11,6 @@ import {
   MenuItem,
   FormControlLabel,
   Switch,
-  Alert,
   CircularProgress
 } from '@mui/material';
 import { adminApi } from '../../services/api';
@@ -21,7 +22,7 @@ const roles = [
   { value: 'VIEWER', label: 'Viewer' },
 ];
 
-const UserModal = ({ open, mode, user, onClose }) => {
+const UserModal = ({ open, mode, user, onClose, setSnackbar }) => {
   const isEdit = mode === 'edit';
   const [form, setForm] = useState({
     username: '',
@@ -34,6 +35,7 @@ const UserModal = ({ open, mode, user, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [validation, setValidation] = useState({});
 
   useEffect(() => {
     if (isEdit && user) {
@@ -52,6 +54,14 @@ const UserModal = ({ open, mode, user, onClose }) => {
     setSuccess('');
   }, [open, isEdit, user]);
 
+  useEffect(() => {
+    const v = {};
+    if (!form.username) v.username = 'Username is required';
+    if (!isEdit && !form.password) v.password = 'Password is required';
+    if (!isEdit && form.password && form.password.length < 6) v.password = 'Password must be at least 6 characters';
+    setValidation(v);
+  }, [form, isEdit]);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -65,8 +75,8 @@ const UserModal = ({ open, mode, user, onClose }) => {
     setLoading(true);
     setError('');
     setSuccess('');
-    if (!form.username || (!isEdit && !form.password)) {
-      setError('Username and password are required');
+    if (Object.keys(validation).length > 0) {
+      setError('Please fix validation errors');
       setLoading(false);
       return;
     }
@@ -84,12 +94,15 @@ const UserModal = ({ open, mode, user, onClose }) => {
         });
       }
       setSuccess('User saved successfully');
+      if (setSnackbar) setSnackbar({ open: true, message: 'User saved successfully', severity: 'success' });
       setTimeout(() => onClose(true), 1000);
     } catch (err) {
       if (err.response?.status === 409) {
         setError('Username already exists');
+        if (setSnackbar) setSnackbar({ open: true, message: 'Username already exists', severity: 'error' });
       } else {
         setError(err.response?.data?.message || 'Failed to save user');
+        if (setSnackbar) setSnackbar({ open: true, message: 'Failed to save user', severity: 'error' });
       }
     } finally {
       setLoading(false);
@@ -112,6 +125,8 @@ const UserModal = ({ open, mode, user, onClose }) => {
             onChange={handleChange}
             disabled={isEdit}
             required
+            error={!!validation.username}
+            helperText={validation.username}
           />
           <TextField
             margin="normal"
@@ -122,7 +137,8 @@ const UserModal = ({ open, mode, user, onClose }) => {
             value={form.password}
             onChange={handleChange}
             required={!isEdit}
-            helperText={isEdit ? 'Leave blank to keep current password' : ''}
+            error={!!validation.password}
+            helperText={isEdit ? 'Leave blank to keep current password' : validation.password}
           />
           <TextField
             margin="normal"
@@ -168,7 +184,7 @@ const UserModal = ({ open, mode, user, onClose }) => {
           type="submit"
           form="user-form"
           variant="contained"
-          disabled={loading}
+          disabled={loading || Object.keys(validation).length > 0}
         >
           {loading ? <CircularProgress size={20} /> : 'Save'}
         </Button>

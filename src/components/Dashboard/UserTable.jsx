@@ -17,19 +17,38 @@ import {
   InputAdornment,
   CircularProgress,
   Switch,
-  Button
+  Button,
+  Avatar,
+  Snackbar,
+  Alert,
+  Skeleton,
+  Fab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography
 } from '@mui/material';
-import { Search, Edit, Delete, History, Add } from '@mui/icons-material';
+import { Search, Edit, Delete, History, Add, Person as PersonIcon, Security as SecurityIcon, SupervisorAccount as SupervisorIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import { adminApi } from '../../services/api';
 import UserModal from './UserModal';
 import UserRolePieChart from './UserRolePieChart';
 import UserLoginHistoryModal from './UserLoginHistoryModal';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const roleColors = {
   ADMIN: 'error',
   SUPERVISOR: 'warning',
   ANALYST: 'info',
   VIEWER: 'success',
+};
+
+const roleIcons = {
+  ADMIN: <SecurityIcon fontSize="small" />,
+  SUPERVISOR: <SupervisorIcon fontSize="small" />,
+  ANALYST: <SearchIcon fontSize="small" />,
+  VIEWER: <VisibilityIcon fontSize="small" />,
 };
 
 const UserTable = () => {
@@ -47,6 +66,21 @@ const UserTable = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [loginHistoryOpen, setLoginHistoryOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, user: null });
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [searchInput, setSearchInput] = useState('');
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line
+  }, [page, rowsPerPage, sortBy, sortDir, search, statusFilter]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setSearch(searchInput), 400);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -69,11 +103,6 @@ const UserTable = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line
-  }, [page, rowsPerPage, sortBy, sortDir, search, statusFilter]);
 
   const handleSort = (property) => {
     const isAsc = sortBy === property && sortDir === 'asc';
@@ -100,10 +129,19 @@ const UserTable = () => {
     fetchUsers();
   };
 
-  const handleDelete = async (user) => {
-    if (window.confirm(`Disable user ${user.username}?`)) {
-      await adminApi.delete(`/users/${user.id}`);
+  const handleDelete = (user) => {
+    setConfirmDialog({ open: true, user });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await adminApi.delete(`/users/${confirmDialog.user.id}`);
+      setSnackbar({ open: true, message: 'User disabled successfully', severity: 'success' });
       fetchUsers();
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to disable user', severity: 'error' });
+    } finally {
+      setConfirmDialog({ open: false, user: null });
     }
   };
 
@@ -149,15 +187,29 @@ const UserTable = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 2 }}>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({ open: false, user: null })}>
+        <DialogTitle>Disable User</DialogTitle>
+        <DialogContent>Are you sure you want to disable user <b>{confirmDialog.user?.username}</b>?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog({ open: false, user: null })}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">Disable</Button>
+        </DialogActions>
+      </Dialog>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <UserRolePieChart />
-        <Button variant="outlined" onClick={handleExportCsv} sx={{ alignSelf: 'flex-start', height: 40 }}>Export CSV</Button>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate} sx={{ height: 40 }}>Create User</Button>
       </Box>
       <Paper>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Avatar</TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortBy === 'username'}
@@ -188,27 +240,47 @@ const UserTable = () => {
                 <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <TextField
+                    fullWidth
+                    placeholder="Search users..."
+                    value={searchInput}
+                    onChange={e => setSearchInput(e.target.value)}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                    }}
+                    size="small"
+                  />
+                </TableCell>
+              </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    <CircularProgress size={32} />
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: rowsPerPage }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell><Skeleton variant="circular" width={40} height={40} /></TableCell>
+                    <TableCell colSpan={5}><Skeleton height={32} /></TableCell>
+                  </TableRow>
+                ))
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    No users found.
+                  <TableCell colSpan={6} align="center">
+                    <PersonIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">No users found.</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
                 users.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      <Avatar>{user.username?.[0]?.toUpperCase() || '?'}</Avatar>
+                    </TableCell>
                     <TableCell>{user.username}</TableCell>
                     <TableCell>
                       <Tooltip title={user.role} arrow>
                         <Chip
+                          icon={roleIcons[user.role]}
                           label={user.role}
                           color={roleColors[user.role] || 'default'}
                           size="small"
@@ -250,6 +322,7 @@ const UserTable = () => {
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           rowsPerPageOptions={[5, 10, 25, 50]}
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count} users`}
         />
       </Paper>
       <UserModal
@@ -257,8 +330,14 @@ const UserTable = () => {
         mode={modalMode}
         user={selectedUser}
         onClose={handleModalClose}
+        setSnackbar={setSnackbar}
       />
       <UserLoginHistoryModal open={loginHistoryOpen} userId={selectedUserId} onClose={() => setLoginHistoryOpen(false)} />
+      {isMobile && (
+        <Fab color="primary" aria-label="add" onClick={handleCreate} sx={{ position: 'fixed', bottom: 24, right: 24 }}>
+          <AddIcon />
+        </Fab>
+      )}
     </Box>
   );
 };

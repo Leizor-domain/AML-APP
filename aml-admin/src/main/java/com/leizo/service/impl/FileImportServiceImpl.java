@@ -12,7 +12,9 @@ import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.util.*;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FileImportServiceImpl implements FileImportService {
 
     @Override

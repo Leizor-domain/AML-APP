@@ -3,6 +3,7 @@ package com.leizo.loader;
 import com.leizo.admin.entity.SanctionedEntity;
 import com.leizo.service.FileImportService;
 import com.leizo.service.impl.FileImportServiceImpl;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -11,6 +12,7 @@ import java.util.*;
  * from various data sources (e.g., OFAC, UN, EU, UK) and maintaining
  * high-risk country information. It acts as a gatekeeper for sanction screening.
  */
+@Component
 public class SanctionListLoader {
 
     private final FileImportService fileImportService;

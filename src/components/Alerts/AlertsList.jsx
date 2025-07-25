@@ -42,7 +42,6 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { Parser as Json2csvParser } from 'json2csv';
 import { useSelector } from 'react-redux';
 import { canAccess, normalizeRole } from '../../utils/permissions';
-import Tooltip from '@mui/material/Tooltip';
 
 const AlertsList = () => {
   const navigate = useNavigate()

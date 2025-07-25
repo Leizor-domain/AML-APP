@@ -43,7 +43,6 @@ import { useCallback } from 'react';
 import { deepPurple, blue, green, orange, red } from '@mui/material/colors';
 import { useSelector } from 'react-redux';
 import { canAccess, normalizeRole } from '../../utils/permissions';
-import Tooltip from '@mui/material/Tooltip';
 
 const roleColors = {
   ADMIN: 'error',

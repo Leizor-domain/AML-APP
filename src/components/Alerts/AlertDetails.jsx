@@ -168,21 +168,16 @@ const AlertDetails = () => {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Skeleton variant="circular" width={56} height={56} sx={{ mb: 2 }} />
-        <Box sx={{ ml: 2 }}>
-          <Skeleton width={200} height={40} />
-          <Skeleton width={300} height={30} />
-          <Skeleton width={400} height={30} />
-        </Box>
+        <Skeleton variant="rectangular" width={600} height={300} />
       </Box>
     )
   }
 
   if (error || !alert) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="300px">
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="400px">
         <Avatar sx={{ bgcolor: 'warning.light', width: 56, height: 56, mb: 2 }}><ReportProblemIcon color="warning" /></Avatar>
-        <MuiAlert severity="error">{error || 'Alert not found'}</MuiAlert>
+        <Alert severity="error">{error || 'Alert not found'}</Alert>
       </Box>
     )
   }
@@ -191,13 +186,15 @@ const AlertDetails = () => {
     <Box>
       {/* Header */}
       <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <Button
-          startIcon={<ArrowBack />}
-          onClick={() => navigate('/alerts')}
-          variant="outlined"
-        >
-          Back to Alerts
-        </Button>
+        <Tooltip title="Back to Alerts">
+          <Button
+            startIcon={<ArrowBack />}
+            onClick={() => navigate('/alerts')}
+            variant="outlined"
+          >
+            Back to Alerts
+          </Button>
+        </Tooltip>
         <Typography variant="h4">Alert #{alert?.id ?? ''}</Typography>
       </Box>
 

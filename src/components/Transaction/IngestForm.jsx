@@ -117,193 +117,189 @@ const IngestForm = () => {
             {loading ? (
               <Skeleton variant="rectangular" width="100%" height={300} />
             ) : (
-              <>
-                {error && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {error}
-                  </Alert>
-                )}
-
-                {success && result && (
-                  <Alert severity={getResultColor()} sx={{ mb: 2 }}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      {getResultIcon()}
-                      <span>
-                        Transaction processed successfully. Status: {result.status}
-                      </span>
-                    </Box>
-                  </Alert>
-                )}
-
-                <Box component="form" onSubmit={handleSubmit}>
-                  <Grid container spacing={2}>
-                    {/* Amount and Currency */}
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Amount"
-                        name="amount"
-                        type="number"
-                        value={formData.amount}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth required>
-                        <InputLabel>Currency</InputLabel>
-                        <Select
-                          name="currency"
-                          value={formData.currency}
-                          label="Currency"
-                          onChange={handleChange}
-                          disabled={loading}
-                        >
-                          <MenuItem value="USD">USD</MenuItem>
-                          <MenuItem value="EUR">EUR</MenuItem>
-                          <MenuItem value="GBP">GBP</MenuItem>
-                          <MenuItem value="JPY">JPY</MenuItem>
-                          <MenuItem value="CAD">CAD</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    {/* Transaction Type */}
-                    <Grid item xs={12}>
-                      <FormControl fullWidth required>
-                        <InputLabel>Transaction Type</InputLabel>
-                        <Select
-                          name="transactionType"
-                          value={formData.transactionType}
-                          label="Transaction Type"
-                          onChange={handleChange}
-                          disabled={loading}
-                        >
-                          <MenuItem value="TRANSFER">Transfer</MenuItem>
-                          <MenuItem value="PAYMENT">Payment</MenuItem>
-                          <MenuItem value="DEPOSIT">Deposit</MenuItem>
-                          <MenuItem value="WITHDRAWAL">Withdrawal</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    {/* Sender Information */}
-                    <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>
-                        Sender Information
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Sender Name"
-                        name="senderName"
-                        value={formData.senderName}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Sender Account"
-                        name="senderAccount"
-                        value={formData.senderAccount}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Sender Country"
-                        name="senderCountry"
-                        value={formData.senderCountry}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-
-                    {/* Receiver Information */}
-                    <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>
-                        Receiver Information
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Receiver Name"
-                        name="receiverName"
-                        value={formData.receiverName}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Receiver Account"
-                        name="receiverAccount"
-                        value={formData.receiverAccount}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        required
-                        fullWidth
-                        label="Receiver Country"
-                        name="receiverCountry"
-                        value={formData.receiverCountry}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-
-                    {/* Description */}
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Description"
-                        name="description"
-                        multiline
-                        rows={3}
-                        value={formData.description}
-                        onChange={handleChange}
-                        disabled={loading}
-                      />
-                    </Grid>
-
-                    {/* Submit Button */}
-                    <Grid item xs={12}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        size="large"
-                        startIcon={loading ? <CircularProgress size={20} /> : <Upload />}
-                        disabled={loading || !isFormValid}
-                        fullWidth
-                      >
-                        {loading ? 'Processing...' : 'Submit Transaction'}
-                      </Button>
-                    </Grid>
+              <Box component="form" onSubmit={handleSubmit}>
+                <Grid container spacing={2}>
+                  {/* Amount and Currency */}
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Amount"
+                      name="amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
                   </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth required>
+                      <InputLabel>Currency</InputLabel>
+                      <Select
+                        name="currency"
+                        value={formData.currency}
+                        label="Currency"
+                        onChange={handleChange}
+                        disabled={loading}
+                      >
+                        <MenuItem value="USD">USD</MenuItem>
+                        <MenuItem value="EUR">EUR</MenuItem>
+                        <MenuItem value="GBP">GBP</MenuItem>
+                        <MenuItem value="JPY">JPY</MenuItem>
+                        <MenuItem value="CAD">CAD</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  {/* Transaction Type */}
+                  <Grid item xs={12}>
+                    <FormControl fullWidth required>
+                      <InputLabel>Transaction Type</InputLabel>
+                      <Select
+                        name="transactionType"
+                        value={formData.transactionType}
+                        label="Transaction Type"
+                        onChange={handleChange}
+                        disabled={loading}
+                      >
+                        <MenuItem value="TRANSFER">Transfer</MenuItem>
+                        <MenuItem value="PAYMENT">Payment</MenuItem>
+                        <MenuItem value="DEPOSIT">Deposit</MenuItem>
+                        <MenuItem value="WITHDRAWAL">Withdrawal</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  {/* Sender Information */}
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Sender Information
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Sender Name"
+                      name="senderName"
+                      value={formData.senderName}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Sender Account"
+                      name="senderAccount"
+                      value={formData.senderAccount}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Sender Country"
+                      name="senderCountry"
+                      value={formData.senderCountry}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+
+                  {/* Receiver Information */}
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Receiver Information
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Receiver Name"
+                      name="receiverName"
+                      value={formData.receiverName}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Receiver Account"
+                      name="receiverAccount"
+                      value={formData.receiverAccount}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Receiver Country"
+                      name="receiverCountry"
+                      value={formData.receiverCountry}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+
+                  {/* Description */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Description"
+                      name="description"
+                      multiline
+                      rows={3}
+                      value={formData.description}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </Grid>
+
+                  {/* Submit Button */}
+                  <Grid item xs={12}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      startIcon={loading ? <CircularProgress size={20} /> : <Upload />}
+                      disabled={loading || !isFormValid}
+                      fullWidth
+                    >
+                      {loading ? 'Processing...' : 'Submit Transaction'}
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+            {error && !loading && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {success && result && !loading && (
+              <Alert severity={getResultColor()} sx={{ mb: 2 }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  {getResultIcon()}
+                  <span>
+                    Transaction processed successfully. Status: {result.status}
+                  </span>
                 </Box>
-              </>
+              </Alert>
             )}
           </Paper>
         </Grid>
 
         {/* Result Details */}
-        {result && (
+        {result && !loading && (
           <Grid item xs={12} md={4}>
             <Card>
               <CardContent>

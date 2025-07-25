@@ -200,7 +200,7 @@ const HistoryTable = () => {
                 Array.from({ length: rowsPerPage }).map((_, idx) => (
                   <TableRow key={idx}>
                     <TableCell><Skeleton width={30} /></TableCell>
-                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
                     <TableCell><Skeleton width={80} /></TableCell>
                     <TableCell><Skeleton width={80} /></TableCell>
                     <TableCell><Skeleton width={60} /></TableCell>

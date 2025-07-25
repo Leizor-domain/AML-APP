@@ -3,10 +3,12 @@ package com.leizo.service.impl;
 import com.leizo.admin.entity.Rule;
 import com.leizo.admin.entity.Transaction;
 import com.leizo.service.RuleEngine;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+@Service
 public class RuleEngineImpl implements RuleEngine {
 
     private final List<Rule> rules = new ArrayList<>();

@@ -15,13 +15,6 @@ import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
 import { canAccess, normalizeRole } from './utils/permissions';
 
-const normalizeRole = (role) => {
-  if (!role) return null;
-  let r = role.toUpperCase();
-  if (!r.startsWith('ROLE_')) r = 'ROLE_' + r;
-  return r;
-};
-
 function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
 

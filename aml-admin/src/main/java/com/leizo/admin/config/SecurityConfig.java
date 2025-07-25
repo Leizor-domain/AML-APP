@@ -1,5 +1,9 @@
 package com.leizo.admin.config;
 
+/**
+ * This module requires JwtUtil and the following JWT properties in application.properties:
+ *   jwt.secret, jwt.expiration, jwt.audience
+ */
 import com.leizo.common.security.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

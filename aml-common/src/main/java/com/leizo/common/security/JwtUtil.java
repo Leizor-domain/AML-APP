@@ -1,5 +1,10 @@
 package com.leizo.common.security;
 
+/**
+ * JwtUtil is a Spring bean. To use it, ensure the following properties are set in your module's application.properties:
+ *   jwt.secret, jwt.expiration, jwt.audience
+ * Do NOT include these properties in modules that do not require JWT authentication.
+ */
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

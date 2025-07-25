@@ -26,6 +26,8 @@ import java.nio.charset.StandardCharsets;
 import com.leizo.common.entity.Users;
 import com.leizo.common.security.JwtUtil;
 import java.util.concurrent.ConcurrentHashMap;
+import com.leizo.admin.auth.UserRequest;
+import com.leizo.admin.auth.UserResponse;
 
 @RestController
 @RequestMapping("/users")
@@ -48,9 +50,20 @@ public class UserController {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Users> createUser(@RequestBody Users user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return ResponseEntity.ok(userService.register(user));
+    public ResponseEntity<?> createUser(@RequestBody UserRequest req) {
+        if (userRepository.existsByUsername(req.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "Username already exists"));
+        }
+        Users user = new Users();
+        user.setUsername(req.getUsername());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setRole(req.getRole());
+        user.setCreatedAt(java.time.LocalDateTime.now());
+        user.setEnabled(true);
+        Users saved = userService.register(user);
+        UserResponse resp = new UserResponse(saved.getUsername(), saved.getRole(), saved.getCreatedAt());
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
     @PostMapping("/login")
@@ -165,7 +178,8 @@ public class UserController {
         } else {
             userPage = userRepository.findAll(pageable);
         }
-        return ResponseEntity.ok(userPage);
+        Page<UserResponse> respPage = userPage.map(u -> new UserResponse(u.getUsername(), u.getRole(), u.getCreatedAt()));
+        return ResponseEntity.ok(respPage);
     }
 
     @GetMapping("/{id}")

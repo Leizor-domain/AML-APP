@@ -3,6 +3,7 @@ package com.leizo.admin.auth;
 public class UserRequest {
     private String username;
     private String password;
+    private String role;
 
     // Getters and setters
     public String getUsername() { return username; }
@@ -10,4 +11,7 @@ public class UserRequest {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

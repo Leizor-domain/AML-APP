@@ -32,6 +32,7 @@ import {
   Grid
 } from '@mui/material';
 import { Search, Edit, Delete, History, Add, Person as PersonIcon, Security as SecurityIcon, SupervisorAccount as SupervisorIcon, Visibility as VisibilityIcon, People, Security, Search as SearchIcon } from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
 import { adminApi } from '../../services/api';
 import UserModal from './UserModal';
 import UserRolePieChart from './UserRolePieChart';

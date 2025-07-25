@@ -39,6 +39,7 @@ import MuiAlert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import Avatar from '@mui/material/Avatar';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import { Parser as Json2csvParser } from 'json2csv';
 
 const AlertsList = () => {
   const navigate = useNavigate()
@@ -174,6 +175,42 @@ const AlertsList = () => {
     }
   }
 
+  // CSV Export logic
+  const handleExportCsv = () => {
+    if (!alerts || alerts.length === 0) {
+      setSnackbar({ open: true, message: 'No alerts to export', severity: 'info' });
+      return;
+    }
+    // Map alerts to exportable fields
+    const data = alerts.map(alert => ({
+      ID: alert?.id ?? '',
+      'Risk Level': alert?.riskLevel ?? '',
+      Status: alert?.status ?? '',
+      Description: alert?.description ?? '',
+      'Matched Rules': Array.isArray(alert?.matchedRules) ? alert.matchedRules.join('; ') : '',
+      'Sanction Flags': Array.isArray(alert?.sanctionFlags) ? alert.sanctionFlags.join('; ') : '',
+      Date: alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : '',
+    }));
+    try {
+      const parser = new Json2csvParser({ fields: [
+        'ID', 'Risk Level', 'Status', 'Description', 'Matched Rules', 'Sanction Flags', 'Date'
+      ] });
+      const csv = parser.parse(data);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      a.download = `alerts_export_${ts}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to export CSV', severity: 'error' });
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -182,9 +219,14 @@ const AlertsList = () => {
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
-          <FilterList />
-          <Typography variant="h6">Filters</Typography>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={2}>
+            <FilterList />
+            <Typography variant="h6">Filters</Typography>
+          </Box>
+          <Button variant="outlined" onClick={handleExportCsv} sx={{ minWidth: 140 }}>
+            Export CSV
+          </Button>
         </Box>
         <Box display="flex" gap={2} flexWrap="wrap">
           <FormControl sx={{ minWidth: 120 }}>

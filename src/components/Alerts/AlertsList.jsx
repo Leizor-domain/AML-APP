@@ -34,6 +34,11 @@ import {
   Warning,
 } from '@mui/icons-material'
 import { alertsService } from '../../services/alerts.js'
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
+import Avatar from '@mui/material/Avatar';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 const AlertsList = () => {
   const navigate = useNavigate()
@@ -54,6 +59,8 @@ const AlertsList = () => {
     action: '',
     reason: '',
   })
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, alertId: null, action: '', reason: '' });
 
   useEffect(() => {
     fetchAlerts()
@@ -119,28 +126,25 @@ const AlertsList = () => {
   }
 
   const handleActionClick = (alertId, action) => {
-    setActionDialog({
-      open: true,
-      alertId,
-      action,
-      reason: '',
-    })
-  }
+    setConfirmDialog({ open: true, alertId, action, reason: '' });
+  };
 
   const handleActionSubmit = async () => {
     try {
-      const { alertId, action, reason } = actionDialog
+      const { alertId, action, reason } = confirmDialog;
       if (action === 'dismiss') {
-        await alertsService.dismissAlert(alertId, reason)
+        await alertsService.dismissAlert(alertId, reason);
+        setSnackbar({ open: true, message: 'Alert dismissed', severity: 'success' });
       } else if (action === 'false-positive') {
-        await alertsService.tagAsFalsePositive(alertId, reason)
+        await alertsService.tagAsFalsePositive(alertId, reason);
+        setSnackbar({ open: true, message: 'Alert marked as false positive', severity: 'success' });
       }
-      setActionDialog({ open: false, alertId: null, action: '', reason: '' })
-      fetchAlerts() // Refresh the list
+      setConfirmDialog({ open: false, alertId: null, action: '', reason: '' });
+      fetchAlerts();
     } catch (error) {
-      console.error('Error performing action:', error)
+      setSnackbar({ open: true, message: 'Failed to perform action', severity: 'error' });
     }
-  }
+  };
 
   const getRiskColor = (risk) => {
     switch (risk) {
@@ -247,83 +251,108 @@ const AlertsList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {alerts.map((alert) => (
-                <TableRow key={alert?.id}>
-                  <TableCell>{alert?.id}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={alert?.riskLevel || ''}
-                      color={getRiskColor(alert?.riskLevel)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={alert?.status ? alert.status.replace('_', ' ') : ''}
-                      color={getStatusColor(alert?.status)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{alert?.description || ''}</TableCell>
-                  <TableCell>
-                    {alert?.matchedRules?.map((rule, index) => (
-                      <Chip
-                        key={index}
-                        label={rule}
-                        size="small"
-                        variant="outlined"
-                        sx={{ mr: 0.5, mb: 0.5 }}
-                      />
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    {alert?.sanctionFlags?.map((flag, index) => (
-                      <Chip
-                        key={index}
-                        label={flag}
-                        color="error"
-                        size="small"
-                        sx={{ mr: 0.5, mb: 0.5 }}
-                      />
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    {alert?.timestamp ? new Date(alert.timestamp).toLocaleDateString() : ''}
-                  </TableCell>
-                  <TableCell>
-                    <Box display="flex" gap={1}>
-                      <Tooltip title="View Details">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate(`/alerts/${alert?.id}`)}
-                        >
-                          <Visibility />
-                        </IconButton>
-                      </Tooltip>
-                      {alert?.status === 'OPEN' && (
-                        <>
-                          <Tooltip title="Dismiss Alert">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleActionClick(alert?.id, 'dismiss')}
-                            >
-                              <Close />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Mark as False Positive">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleActionClick(alert?.id, 'false-positive')}
-                            >
-                              <Flag />
-                            </IconButton>
-                          </Tooltip>
-                        </>
-                      )}
+              {loading ? (
+                Array.from({ length: rowsPerPage }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell><Skeleton width={30} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
+                    <TableCell><Skeleton width={60} /></TableCell>
+                    <TableCell><Skeleton width={120} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                    <TableCell><Skeleton width={80} /></TableCell>
+                  </TableRow>
+                ))
+              ) : alerts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    <Box sx={{ py: 4 }}>
+                      <Avatar sx={{ bgcolor: 'warning.light', width: 56, height: 56, mb: 2 }}><ReportProblemIcon color="warning" /></Avatar>
+                      <Typography variant="h6" color="text.secondary">No alerts found</Typography>
+                      <Typography variant="body2" color="text.secondary">Try adjusting your filters.</Typography>
                     </Box>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                alerts.map((alert) => (
+                  <TableRow key={alert?.id}>
+                    <TableCell>{alert?.id}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={alert?.riskLevel || ''}
+                        color={getRiskColor(alert?.riskLevel)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={alert?.status ? alert.status.replace('_', ' ') : ''}
+                        color={getStatusColor(alert?.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{alert?.description || ''}</TableCell>
+                    <TableCell>
+                      {alert?.matchedRules?.map((rule, index) => (
+                        <Chip
+                          key={index}
+                          label={rule}
+                          size="small"
+                          variant="outlined"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      ))}
+                    </TableCell>
+                    <TableCell>
+                      {alert?.sanctionFlags?.map((flag, index) => (
+                        <Chip
+                          key={index}
+                          label={flag}
+                          color="error"
+                          size="small"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      ))}
+                    </TableCell>
+                    <TableCell>
+                      {alert?.timestamp ? new Date(alert.timestamp).toLocaleDateString() : ''}
+                    </TableCell>
+                    <TableCell>
+                      <Box display="flex" gap={1}>
+                        <Tooltip title="View Details">
+                          <IconButton
+                            size="small"
+                            onClick={() => navigate(`/alerts/${alert?.id}`)}
+                          >
+                            <Visibility />
+                          </IconButton>
+                        </Tooltip>
+                        {alert?.status === 'OPEN' && (
+                          <>
+                            <Tooltip title="Dismiss Alert">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleActionClick(alert?.id, 'dismiss')}
+                              >
+                                <Close />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Mark as False Positive">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleActionClick(alert?.id, 'false-positive')}
+                              >
+                                <Flag />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -337,11 +366,9 @@ const AlertsList = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-
-      {/* Action Dialog */}
-      <Dialog open={actionDialog.open} onClose={() => setActionDialog({ open: false, alertId: null, action: '', reason: '' })}>
+      <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({ open: false, alertId: null, action: '', reason: '' })}>
         <DialogTitle>
-          {actionDialog.action === 'dismiss' ? 'Dismiss Alert' : 'Mark as False Positive'}
+          {confirmDialog.action === 'dismiss' ? 'Dismiss Alert' : 'Mark as False Positive'}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -351,12 +378,12 @@ const AlertsList = () => {
             fullWidth
             multiline
             rows={3}
-            value={actionDialog.reason}
-            onChange={(e) => setActionDialog(prev => ({ ...prev, reason: e.target.value }))}
+            value={confirmDialog.reason}
+            onChange={(e) => setConfirmDialog(prev => ({ ...prev, reason: e.target.value }))}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setActionDialog({ open: false, alertId: null, action: '', reason: '' })}>
+          <Button onClick={() => setConfirmDialog({ open: false, alertId: null, action: '', reason: '' })}>
             Cancel
           </Button>
           <Button onClick={handleActionSubmit} variant="contained">
@@ -364,6 +391,11 @@ const AlertsList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <MuiAlert elevation={6} variant="filled" onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   )
 }

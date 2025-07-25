@@ -40,3 +40,11 @@ aml-common/
 │
 └── utils/                              # Common utilities
     └── ValidationUtils.java
+
+```
+
+## User Management Entities
+
+- `Users` entity: Standard for all user data (username, password, role, createdAt, etc.)
+- `UserRole` enum: Defines all valid roles (ADMIN, ANALYST, SUPERVISOR, VIEWER)
+- Shared validation and error handling for user creation and login flows

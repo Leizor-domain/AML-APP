@@ -39,3 +39,11 @@ aml-pojo/
 │   ├── SanctionedEntity.java
 │   ├── Transaction.java
 │   └── User.java                        # Core domain objects
+
+```
+
+## User Model
+
+- `User` model: Used for all user-related data transfer and storage
+- Fields: username, password (hashed), role, createdAt, etc.
+- All user management is handled via the aml-admin module

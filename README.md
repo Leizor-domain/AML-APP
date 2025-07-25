@@ -402,3 +402,38 @@ Submit a transaction with a known sanctioned individual:
 - Ensure the backend can reach `https://api.opensanctions.org/`.
 - Check backend logs for `OpenSanctions MATCH` and `ALERT CREATED` messages.
 - Alerts are stored in the `alerts` table with match details for audit and review.
+
+## 👤 User Management (Admin Only)
+
+- Only admins can create new users and assign roles (ADMIN, ANALYST, SUPERVISOR, VIEWER).
+- All users are stored securely in the database with BCrypt-hashed passwords.
+- User listing, creation, and status management are available in the Admin Dashboard.
+- Passwords are never returned in any API response.
+
+### API Endpoints
+- `POST /users/create` (admin only): Create a new user. Request body: `{ username, password, role }` (UserRequest DTO)
+- `GET /users`: List all users (paginated, admin only). Response: array of `{ username, role, createdAt }` (UserResponse DTO)
+
+### UI/UX Features
+- Modern Material UI design with:
+  - Snackbars for all feedback (success/error)
+  - Skeleton loaders for tables and details
+  - Confirmation dialogs for destructive actions
+  - Avatars for users in tables
+  - Responsive design for all screens
+  - Role chips with icons
+  - Tooltips for all action buttons
+  - Improved empty states with icons/messages
+
+### Testing User Management
+1. Log in as `amladmin` (default admin)
+2. Go to Admin Dashboard → User Management
+3. Create a new user (e.g., `analyst1`, role ANALYST)
+4. Validate user appears in the table
+5. Try creating a duplicate username (should show error)
+6. Password is never shown in UI or API response
+7. Try enabling/disabling users and exporting CSV
+
+### DTOs
+- **UserRequest:** `{ username, password, role }`
+- **UserResponse:** `{ username, role, createdAt }`

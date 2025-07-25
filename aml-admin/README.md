@@ -50,3 +50,19 @@ aml-admin/
 │
 ├── AMLAdminApplication.java
 └── application.properties
+
+```
+
+## User Management (Standard)
+
+- Only admins can create new users via `POST /users/create` (UserRequest DTO)
+- List users via `GET /users` (returns UserResponse DTOs)
+- Passwords are always BCrypt-hashed and never returned in any API response
+- UserRequest: `{ username, password, role }`
+- UserResponse: `{ username, role, createdAt }`
+
+### Endpoints
+- `POST /users/create` (admin only): Create user
+- `GET /users`: List users (paginated)
+- `PATCH /users/{id}/status`: Enable/disable user
+- `GET /users/role-distribution`: Get user role counts

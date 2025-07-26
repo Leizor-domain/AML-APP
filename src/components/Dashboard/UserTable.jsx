@@ -11,7 +11,6 @@ import {
   TableSortLabel,
   Paper,
   IconButton,
-  Tooltip,
   Chip,
   TextField,
   InputAdornment,

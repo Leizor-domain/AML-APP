@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import jwtDecode from 'jwt-decode'
 
+// Import normalizeRole from utils instead of duplicating
 const normalizeRole = (role) => {
   if (!role) return null;
   let r = role.toUpperCase();

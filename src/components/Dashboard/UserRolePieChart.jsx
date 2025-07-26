@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { adminApi } from '../../services/api';
 
 const COLORS = ['#FF6384', '#FFCE56', '#36A2EB', '#4CAF50'];
@@ -33,7 +33,7 @@ const UserRolePieChart = () => {
               <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip />
+          <RechartsTooltip />
           <Legend />
         </PieChart>
       </ResponsiveContainer>

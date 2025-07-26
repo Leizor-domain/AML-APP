@@ -24,8 +24,8 @@ import {
 } from '@mui/icons-material'
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useSelector } from 'react-redux'
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import TooltipMUI from '@mui/material/Tooltip';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import Tooltip from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
 import { Navigate } from 'react-router-dom'
@@ -242,7 +242,7 @@ const ViewerDashboard = () => {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip />
+            <RechartsTooltip />
             <Legend />
           </PieChart>
         </ResponsiveContainer>

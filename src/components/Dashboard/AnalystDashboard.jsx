@@ -24,8 +24,8 @@ import {
 } from '@mui/icons-material'
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useSelector } from 'react-redux'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import TooltipMUI from '@mui/material/Tooltip';
+import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import Tooltip from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
 import { Navigate } from 'react-router-dom'
@@ -229,7 +229,7 @@ const AnalystDashboard = () => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
             <YAxis />
-            <Tooltip />
+            <RechartsTooltip />
             <Line type="monotone" dataKey="reviews" stroke="#43a047" strokeWidth={3} dot={{ r: 6 }} activeDot={{ r: 8 }} />
           </LineChart>
         </ResponsiveContainer>

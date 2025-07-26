@@ -12,6 +12,7 @@ import {
   ListItemIcon,
   Chip,
   Button,
+  Tooltip,
 } from '@mui/material'
 import {
   TrendingUp,
@@ -20,6 +21,7 @@ import {
   Assessment,
   Notifications,
   People,
+  AddIcon,
 } from '@mui/icons-material'
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useSelector } from 'react-redux'
@@ -33,6 +35,8 @@ import AdminUserCreateForm from './AdminUserCreateForm';
 import UserTable from './UserTable';
 import UserRolePieChart from './UserRolePieChart';
 import { Navigate, useNavigate } from 'react-router-dom'
+import { canAccess, normalizeRole } from '../../utils/permissions';
+import Tooltip from '@mui/material/Tooltip';
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth)
@@ -147,6 +151,8 @@ const AdminDashboard = () => {
         setLoading(false);
       });
   }, [from, to, amount]);
+
+  const normRole = normalizeRole(user?.role);
 
   return (
     <Box>

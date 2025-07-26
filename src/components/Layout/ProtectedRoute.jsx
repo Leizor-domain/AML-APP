@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import { CircularProgress, Box } from '@mui/material'
 import jwtDecode from 'jwt-decode';
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const isTokenExpired = (token) => {
   if (!token) return true;
@@ -12,13 +13,6 @@ const isTokenExpired = (token) => {
   } catch {
     return true;
   }
-};
-
-const normalizeRole = (role) => {
-  if (!role) return null;
-  let r = role.toUpperCase();
-  if (!r.startsWith('ROLE_')) r = 'ROLE_' + r;
-  return r;
 };
 
 const ProtectedRoute = ({ children, requiredRole = null }) => {
@@ -41,7 +35,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && normalizeRole(user?.role) !== normalizeRole(requiredRole)) {
+  if (requiredRole && !canAccess(normalizeRole(user?.role), requiredRole.toLowerCase())) {
     // Redirect to user's appropriate dashboard
     return <Navigate to={`/${user?.role?.toLowerCase().replace('role_', '')}/dashboard`} replace />;
   }

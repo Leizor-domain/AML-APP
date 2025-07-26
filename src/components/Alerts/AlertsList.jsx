@@ -41,6 +41,7 @@ import Avatar from '@mui/material/Avatar';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { unparse } from 'papaparse';
 import { useSelector } from 'react-redux';
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const AlertsList = () => {
   const navigate = useNavigate()
@@ -224,7 +225,7 @@ const AlertsList = () => {
             <FilterList />
             <Typography variant="h6">Filters</Typography>
           </Box>
-          {(user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'SUPERVISOR' || user?.role === 'ROLE_SUPERVISOR') && (
+          {canAccess(normalizeRole(user?.role), 'export_alerts') && (
             <Button variant="outlined" onClick={handleExportCsv} sx={{ minWidth: 140 }}>
               Export CSV
             </Button>

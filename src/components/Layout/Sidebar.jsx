@@ -24,6 +24,7 @@ import {
   Security,
   Menu as MenuIcon,
 } from '@mui/icons-material'
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const drawerWidth = 240
 
@@ -40,28 +41,29 @@ const Sidebar = () => {
     return null; // Don't render sidebar if user is not loaded
   }
 
+  const normRole = normalizeRole(user?.role);
   const menuItems = [
-    {
+    canAccess(normRole, 'view_dashboard') && {
       text: 'Dashboard',
       icon: <Dashboard />,
       path: `/${user?.role?.toLowerCase().replace('role_', '') || 'viewer'}/dashboard`,
     },
-    (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'ANALYST' || user?.role === 'ROLE_ANALYST') && {
+    canAccess(normRole, 'upload_transactions') && {
       text: 'Transaction Ingestion',
       icon: <Upload />,
       path: '/ingest',
     },
-    {
+    canAccess(normRole, 'view_alerts') && {
       text: 'Alerts',
       icon: <Notifications />,
       path: '/alerts',
     },
-    (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN') && {
+    canAccess(normRole, 'generate_report') && {
       text: 'Reports',
       icon: <Assessment />,
       path: '/reports',
     },
-    (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN') && {
+    canAccess(normRole, 'system_settings') && {
       text: 'Settings',
       icon: <Settings />,
       path: '/settings',

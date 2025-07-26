@@ -13,6 +13,7 @@ import ViewerDashboard from './components/Dashboard/ViewerDashboard.jsx'
 import IngestPage from './pages/IngestPage.jsx'
 import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
+import { canAccess, normalizeRole } from './utils/permissions';
 
 function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
@@ -68,7 +69,7 @@ function App() {
             <Route
               path="/admin/dashboard"
               element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requiredRole="view_dashboard">
                   {getDashboardComponent('ADMIN')}
                 </ProtectedRoute>
               }
@@ -76,7 +77,7 @@ function App() {
             <Route
               path="/analyst/dashboard"
               element={
-                <ProtectedRoute requiredRole="ANALYST">
+                <ProtectedRoute requiredRole="view_dashboard">
                   {getDashboardComponent('ANALYST')}
                 </ProtectedRoute>
               }
@@ -84,7 +85,7 @@ function App() {
             <Route
               path="/supervisor/dashboard"
               element={
-                <ProtectedRoute requiredRole="SUPERVISOR">
+                <ProtectedRoute requiredRole="view_dashboard">
                   {getDashboardComponent('SUPERVISOR')}
                 </ProtectedRoute>
               }
@@ -92,7 +93,7 @@ function App() {
             <Route
               path="/viewer/dashboard"
               element={
-                <ProtectedRoute requiredRole="VIEWER">
+                <ProtectedRoute requiredRole="view_dashboard">
                   {getDashboardComponent('VIEWER')}
                 </ProtectedRoute>
               }
@@ -102,7 +103,7 @@ function App() {
             <Route
               path="/ingest"
               element={
-                <ProtectedRoute requiredRole="ANALYST">
+                <ProtectedRoute requiredRole="upload_transactions">
                   <IngestPage />
                 </ProtectedRoute>
               }
@@ -112,7 +113,7 @@ function App() {
             <Route
               path="/alerts"
               element={
-                <ProtectedRoute requiredRole="VIEWER">
+                <ProtectedRoute requiredRole="view_alerts">
                   <AlertsPage />
                 </ProtectedRoute>
               }
@@ -120,7 +121,7 @@ function App() {
             <Route
               path="/alerts/:id"
               element={
-                <ProtectedRoute requiredRole="VIEWER">
+                <ProtectedRoute requiredRole="view_alerts">
                   <AlertDetailsPage />
                 </ProtectedRoute>
               }

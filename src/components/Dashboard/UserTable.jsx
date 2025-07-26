@@ -42,6 +42,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useCallback } from 'react';
 import { deepPurple, blue, green, orange, red } from '@mui/material/colors';
 import { useSelector } from 'react-redux';
+import { canAccess, normalizeRole } from '../../utils/permissions';
+import Tooltip from '@mui/material/Tooltip';
 
 const roleColors = {
   ADMIN: 'error',
@@ -211,12 +213,14 @@ const UserTable = () => {
         <Grid item xs={12} sm={6}><UserRolePieChart /></Grid>
         <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
           <Button variant="outlined" onClick={handleExportCsv} sx={{ height: 40, mr: 2 }}>Export CSV</Button>
-          {user?.role === 'ADMIN' ? (
+          {canAccess(normalizeRole(user?.role), 'create_user') ? (
             <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreate} sx={{ height: 40 }}>Create User</Button>
           ) : (
-            <Tooltip title="Only Admins can perform this action.">
+            <Tooltip title="Only Admins can create users.">
               <span>
-                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreate} sx={{ height: 40 }} disabled>Create User</Button>
+                <Button variant="contained" color="primary" startIcon={<AddIcon />} sx={{ height: 40 }} disabled>
+                  Create User
+                </Button>
               </span>
             </Tooltip>
           )}

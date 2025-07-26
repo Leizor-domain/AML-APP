@@ -29,6 +29,7 @@ import TooltipMUI from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
 import { Navigate } from 'react-router-dom'
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const AnalystDashboard = () => {
   const { user } = useSelector((state) => state.auth)

@@ -38,6 +38,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Tooltip from '@mui/material/Tooltip';
 import Avatar from '@mui/material/Avatar';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const AlertDetails = () => {
   const { id } = useParams()
@@ -380,6 +381,9 @@ const AlertDetails = () => {
                       Mark as False Positive
                     </Button>
                   </Tooltip>
+                  {canAccess(normalizeRole(user?.role), 'escalate_alerts') && (
+                    <Button onClick={handleEscalate} color="warning" variant="contained">Escalate</Button>
+                  )}
                 </Box>
               </CardContent>
             </Card>

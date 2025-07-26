@@ -21,6 +21,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import { useSelector } from 'react-redux';
+import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const IngestForm = () => {
   const [loading, setLoading] = useState(false)
@@ -361,7 +362,7 @@ const IngestForm = () => {
 
                   {/* Submit Button */}
                   <Grid item xs={12}>
-                    {user?.role === 'ADMIN' || user?.role === 'ANALYST' ? (
+                    {canAccess(normalizeRole(user?.role), 'upload_transactions') ? (
                       <Button
                         type="submit"
                         variant="contained"

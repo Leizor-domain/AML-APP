@@ -10,13 +10,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import jakarta.annotation.PostConstruct;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * Implementation of OFAC XML Sanctions API Client that fetches and parses the official OFAC SDN list.
  * 
  * Features:
- * - Real-time XML parsing from U.S. Treasury OFAC feed
+ * - Real-time XML parsing from U.S. Treasury OFAC feed using SAX for memory efficiency
  * - In-memory caching with periodic refresh
  * - Fuzzy name matching using Levenshtein distance
  * - Case-insensitive and whitespace-tolerant matching
@@ -190,7 +190,7 @@ public class OfacXmlSanctionsApiClientImpl implements OfacXmlSanctionsApiClient 
             ResponseEntity<String> response = restTemplate.getForEntity(OFAC_SDN_URL, String.class);
             
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                // Parse XML and update cache
+                // Parse XML and update cache using SAX
                 List<SanctionedEntity> newEntities = parseOfacXml(response.getBody());
                 
                 synchronized (sanctionedEntities) {
@@ -254,140 +254,167 @@ public class OfacXmlSanctionsApiClientImpl implements OfacXmlSanctionsApiClient 
     }
     
     /**
-     * Parses the OFAC SDN XML feed and extracts sanctioned entities.
+     * Parses the OFAC SDN XML feed using SAX parsing for memory efficiency.
      */
     private List<SanctionedEntity> parseOfacXml(String xmlContent) {
         List<SanctionedEntity> entities = new ArrayList<>();
         
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            // Create SAX parser factory
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            SAXParser saxParser = factory.newSAXParser();
             
+            // Create custom content handler for OFAC XML
+            OfacSaxHandler handler = new OfacSaxHandler();
+            
+            // Parse XML using SAX
             try (InputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))) {
-                Document document = builder.parse(inputStream);
-                document.getDocumentElement().normalize();
-                
-                NodeList sdnEntries = document.getElementsByTagName(SDN_ENTRY_TAG);
-                
-                for (int i = 0; i < sdnEntries.getLength(); i++) {
-                    Element sdnEntry = (Element) sdnEntries.item(i);
-                    SanctionedEntity entity = parseSdnEntry(sdnEntry);
-                    if (entity != null) {
-                        entities.add(entity);
-                    }
-                }
+                saxParser.parse(inputStream, handler);
+                entities = handler.getSanctionedEntities();
             }
             
+            logger.info("Successfully parsed OFAC XML using SAX parser, found {} entities", entities.size());
+            
         } catch (Exception e) {
-            logger.error("Error parsing OFAC XML: {}", e.getMessage(), e);
+            logger.error("Error parsing OFAC XML with SAX parser: {}", e.getMessage(), e);
+            // Return empty list instead of throwing exception to prevent app startup failure
         }
         
         return entities;
     }
     
     /**
-     * Parses a single SDN entry from the XML.
+     * SAX ContentHandler for parsing OFAC SDN XML.
+     * This processes the XML as a stream, using minimal memory.
      */
-    private SanctionedEntity parseSdnEntry(Element sdnEntry) {
-        try {
-            // Extract basic information
-            String lastName = getElementText(sdnEntry, LAST_NAME_TAG);
-            String firstName = getElementText(sdnEntry, FIRST_NAME_TAG);
-            String sdnType = getElementText(sdnEntry, SDN_TYPE_TAG);
-            String remarks = getElementText(sdnEntry, REMARKS_TAG);
+    private static class OfacSaxHandler extends DefaultHandler {
+        private final List<SanctionedEntity> sanctionedEntities = new ArrayList<>();
+        
+        // Current entity being built
+        private StringBuilder currentValue = new StringBuilder();
+        private String currentFirstName = "";
+        private String currentLastName = "";
+        private String currentSdnType = "";
+        private String currentRemarks = "";
+        private String currentCountry = "";
+        private String currentProgram = "";
+        
+        // State tracking
+        private boolean inSdnEntry = false;
+        private boolean inIdList = false;
+        private boolean inProgramList = false;
+        
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) {
+            currentValue.setLength(0); // Clear current value
             
+            switch (qName.toLowerCase()) {
+                case "sdnentry":
+                    inSdnEntry = true;
+                    // Reset current entity data
+                    currentFirstName = "";
+                    currentLastName = "";
+                    currentSdnType = "";
+                    currentRemarks = "";
+                    currentCountry = "";
+                    currentProgram = "";
+                    break;
+                case "idlist":
+                    inIdList = true;
+                    break;
+                case "programlist":
+                    inProgramList = true;
+                    break;
+            }
+        }
+        
+        @Override
+        public void characters(char[] ch, int start, int length) {
+            if (inSdnEntry) {
+                currentValue.append(ch, start, length);
+            }
+        }
+        
+        @Override
+        public void endElement(String uri, String localName, String qName) {
+            String value = currentValue.toString().trim();
+            
+            switch (qName.toLowerCase()) {
+                case "firstname":
+                    currentFirstName = value;
+                    break;
+                case "lastname":
+                    currentLastName = value;
+                    break;
+                case "sdntype":
+                    currentSdnType = value;
+                    break;
+                case "remarks":
+                    currentRemarks = value;
+                    break;
+                case "idcountry":
+                    if (inIdList && !value.isEmpty()) {
+                        currentCountry = value;
+                    }
+                    break;
+                case "program":
+                    if (inProgramList && !value.isEmpty()) {
+                        currentProgram = value;
+                    }
+                    break;
+                case "sdnentry":
+                    // End of SDN entry, create entity if we have a name
+                    inSdnEntry = false;
+                    createSanctionedEntity();
+                    break;
+                case "idlist":
+                    inIdList = false;
+                    break;
+                case "programlist":
+                    inProgramList = false;
+                    break;
+            }
+        }
+        
+        private void createSanctionedEntity() {
             // Build full name
-            String fullName = buildFullName(firstName, lastName);
+            String fullName = buildFullName(currentFirstName, currentLastName);
             if (fullName.trim().isEmpty()) {
-                return null; // Skip entries without names
+                return; // Skip entries without names
             }
             
-            // Extract country from ID list
-            String country = extractCountryFromIdList(sdnEntry);
-            
-            // Extract program information
-            String program = extractProgram(sdnEntry);
-            
             // Create SanctionedEntity
-            return new SanctionedEntity(
+            SanctionedEntity entity = new SanctionedEntity(
                 fullName,
-                country != null ? country : "Unknown",
+                currentCountry != null && !currentCountry.isEmpty() ? currentCountry : "Unknown",
                 null, // DOB not available in OFAC SDN
                 "OFAC"
             );
             
-        } catch (Exception e) {
-            logger.warn("Error parsing SDN entry: {}", e.getMessage());
-            return null;
+            sanctionedEntities.add(entity);
         }
-    }
-    
-    /**
-     * Extracts country information from the ID list.
-     */
-    private String extractCountryFromIdList(Element sdnEntry) {
-        Element idList = getChildElement(sdnEntry, ID_LIST_TAG);
-        if (idList != null) {
-            NodeList ids = idList.getElementsByTagName(ID_TAG);
-            for (int i = 0; i < ids.getLength(); i++) {
-                Element id = (Element) ids.item(i);
-                String idCountry = getElementText(id, ID_COUNTRY_TAG);
-                if (idCountry != null && !idCountry.trim().isEmpty()) {
-                    return idCountry.trim();
+        
+        private String buildFullName(String firstName, String lastName) {
+            StringBuilder fullName = new StringBuilder();
+            
+            if (firstName != null && !firstName.trim().isEmpty()) {
+                fullName.append(firstName.trim());
+            }
+            
+            if (lastName != null && !lastName.trim().isEmpty()) {
+                if (fullName.length() > 0) {
+                    fullName.append(" ");
                 }
+                fullName.append(lastName.trim());
             }
-        }
-        return null;
-    }
-    
-    /**
-     * Extracts program information.
-     */
-    private String extractProgram(Element sdnEntry) {
-        Element programList = getChildElement(sdnEntry, PROGRAM_LIST_TAG);
-        if (programList != null) {
-            NodeList programs = programList.getElementsByTagName(PROGRAM_TAG);
-            if (programs.getLength() > 0) {
-                return programs.item(0).getTextContent().trim();
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Builds full name from first and last name.
-     */
-    private String buildFullName(String firstName, String lastName) {
-        StringBuilder fullName = new StringBuilder();
-        
-        if (firstName != null && !firstName.trim().isEmpty()) {
-            fullName.append(firstName.trim());
+            
+            return fullName.toString();
         }
         
-        if (lastName != null && !lastName.trim().isEmpty()) {
-            if (fullName.length() > 0) {
-                fullName.append(" ");
-            }
-            fullName.append(lastName.trim());
+        public List<SanctionedEntity> getSanctionedEntities() {
+            return new ArrayList<>(sanctionedEntities);
         }
-        
-        return fullName.toString();
-    }
-    
-    /**
-     * Gets text content of a child element.
-     */
-    private String getElementText(Element parent, String tagName) {
-        Element element = getChildElement(parent, tagName);
-        return element != null ? element.getTextContent().trim() : null;
-    }
-    
-    /**
-     * Gets a child element by tag name.
-     */
-    private Element getChildElement(Element parent, String tagName) {
-        NodeList children = parent.getElementsByTagName(tagName);
-        return children.getLength() > 0 ? (Element) children.item(0) : null;
     }
     
     /**

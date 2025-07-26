@@ -32,7 +32,9 @@ try {
 # Test 3: Test Entity Screening - Neutral Name
 Write-Host "`n3. Testing Entity Screening - Neutral Name (Jane Doe)..." -ForegroundColor Yellow
 try {
-    $checkResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/check?name=Jane Doe&country=US" -Method GET
+    $name = [System.Web.HttpUtility]::UrlEncode("Jane Doe")
+    $country = [System.Web.HttpUtility]::UrlEncode("US")
+    $checkResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/check?name=$name&country=$country" -Method GET
     Write-Host "✅ Entity Check Result:" -ForegroundColor Green
     Write-Host "   Entity: $($checkResponse.entity)" -ForegroundColor Green
     Write-Host "   Country: $($checkResponse.country)" -ForegroundColor Green
@@ -44,7 +46,9 @@ try {
 # Test 4: Test Entity Screening - Potential OFAC Match
 Write-Host "`n4. Testing Entity Screening - Potential OFAC Match (Ali Mohammed)..." -ForegroundColor Yellow
 try {
-    $checkResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/check?name=Ali Mohammed&country=US" -Method GET
+    $name = [System.Web.HttpUtility]::UrlEncode("Ali Mohammed")
+    $country = [System.Web.HttpUtility]::UrlEncode("US")
+    $checkResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/check?name=$name&country=$country" -Method GET
     Write-Host "✅ Entity Check Result:" -ForegroundColor Green
     Write-Host "   Entity: $($checkResponse.entity)" -ForegroundColor Green
     Write-Host "   Country: $($checkResponse.country)" -ForegroundColor Green
@@ -56,7 +60,9 @@ try {
 # Test 5: Test Fuzzy Matching
 Write-Host "`n5. Testing Fuzzy Matching..." -ForegroundColor Yellow
 try {
-    $fuzzyResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/check-fuzzy?name=Ali Mohammad&threshold=0.8" -Method GET
+    $name = [System.Web.HttpUtility]::UrlEncode("Ali Mohammad")
+    $threshold = "0.8"
+    $fuzzyResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/check-fuzzy?name=$name&threshold=$threshold" -Method GET
     Write-Host "✅ Fuzzy Check Result:" -ForegroundColor Green
     Write-Host "   Entity: $($fuzzyResponse.entity)" -ForegroundColor Green
     Write-Host "   Threshold: $($fuzzyResponse.threshold)" -ForegroundColor Green
@@ -68,7 +74,8 @@ try {
 # Test 6: Search Sanctioned Entities
 Write-Host "`n6. Testing Entity Search..." -ForegroundColor Yellow
 try {
-    $searchResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/search?name=Ali" -Method GET
+    $searchName = [System.Web.HttpUtility]::UrlEncode("Ali")
+    $searchResponse = Invoke-RestMethod -Uri "$apiUrl/ofac/search?name=$searchName" -Method GET
     Write-Host "✅ Search Result:" -ForegroundColor Green
     Write-Host "   Found $($searchResponse.Count) entities with 'Ali'" -ForegroundColor Green
     if ($searchResponse.Count -gt 0) {

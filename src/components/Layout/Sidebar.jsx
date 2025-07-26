@@ -35,11 +35,16 @@ const Sidebar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // Safety check for user object
+  if (!user) {
+    return null; // Don't render sidebar if user is not loaded
+  }
+
   const menuItems = [
     {
       text: 'Dashboard',
       icon: <Dashboard />,
-      path: `/${user?.role?.toLowerCase().replace('role_', '')}/dashboard`,
+      path: `/${user?.role?.toLowerCase().replace('role_', '') || 'viewer'}/dashboard`,
     },
     (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'ANALYST' || user?.role === 'ROLE_ANALYST') && {
       text: 'Transaction Ingestion',

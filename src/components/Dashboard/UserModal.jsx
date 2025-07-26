@@ -75,7 +75,8 @@ const UserModal = ({ open, mode, user, onClose, setSnackbar }) => {
     setLoading(true);
     setError('');
     setSuccess('');
-    if (Object.keys(validation).length > 0) {
+    const safeValidation = validation || {};
+    if (Object.keys(safeValidation).length > 0) {
       setError('Please fix validation errors');
       setLoading(false);
       return;
@@ -184,7 +185,7 @@ const UserModal = ({ open, mode, user, onClose, setSnackbar }) => {
           type="submit"
           form="user-form"
           variant="contained"
-          disabled={loading || Object.keys(validation).length > 0}
+          disabled={loading || Object.keys(validation || {}).length > 0}
         >
           {loading ? <CircularProgress size={20} /> : 'Save'}
         </Button>

@@ -32,10 +32,12 @@ import { alertsService } from '../../services/alerts';
 import AdminUserCreateForm from './AdminUserCreateForm';
 import UserTable from './UserTable';
 import UserRolePieChart from './UserRolePieChart';
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  const navigate = useNavigate()
+  
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -125,7 +127,14 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetch('https://api.exchangerate.host/symbols')
       .then(res => res.json())
-      .then(data => setCurrencies(Object.keys(data.symbols)));
+      .then(data => {
+        const symbols = data?.symbols || {};
+        setCurrencies(Object.keys(symbols));
+      })
+      .catch(err => {
+        console.error('Failed to fetch currencies:', err);
+        setCurrencies([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -344,7 +353,11 @@ const AdminDashboard = () => {
             </List>
             )}
             <Box sx={{ mt: 2 }}>
-              <Button variant="outlined" color="primary">
+              <Button 
+                variant="outlined" 
+                color="primary"
+                onClick={() => navigate('/alerts')}
+              >
                 View All Alerts
               </Button>
             </Box>
@@ -362,6 +375,7 @@ const AdminDashboard = () => {
                 startIcon={<Assessment />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/reports')}
               >
                 Generate Report
               </Button>
@@ -370,6 +384,7 @@ const AdminDashboard = () => {
                 startIcon={<Security />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/settings')}
               >
                 System Settings
               </Button>
@@ -378,6 +393,7 @@ const AdminDashboard = () => {
                 startIcon={<People />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/admin/users')}
               >
                 User Management
               </Button>

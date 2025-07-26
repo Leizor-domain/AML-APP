@@ -94,7 +94,7 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Redirecting to /login')).toBeInTheDocument();
   });
 
-  it('renders children for authenticated users with correct role', () => {
+  it('renders children for authenticated users with correct permission', () => {
     const store = mockStore({ 
       auth: { 
         isAuthenticated: true, 
@@ -107,7 +107,7 @@ describe('ProtectedRoute', () => {
     render(
       <Provider store={store}>
         <MemoryRouter initialEntries={['/admin/dashboard']}>
-          <ProtectedRoute requiredRole="ADMIN">
+          <ProtectedRoute requiredRole="view_dashboard">
             <DummyComponent />
           </ProtectedRoute>
         </MemoryRouter>
@@ -121,7 +121,7 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByTestId('navigate')).not.toBeInTheDocument();
   });
 
-  it('redirects users with wrong role', () => {
+  it('redirects users without required permission', () => {
     const store = mockStore({ 
       auth: { 
         isAuthenticated: true, 
@@ -134,7 +134,7 @@ describe('ProtectedRoute', () => {
     render(
       <Provider store={store}>
         <MemoryRouter initialEntries={['/admin/dashboard']}>
-          <ProtectedRoute requiredRole="ADMIN">
+          <ProtectedRoute requiredRole="create_user">
             <DummyComponent />
           </ProtectedRoute>
         </MemoryRouter>
@@ -202,5 +202,87 @@ describe('ProtectedRoute', () => {
     
     // Should not show redirect
     expect(screen.queryByTestId('navigate')).not.toBeInTheDocument();
+  });
+
+  it('allows admin to access admin-only permissions', () => {
+    const store = mockStore({ 
+      auth: { 
+        isAuthenticated: true, 
+        user: { role: 'ROLE_ADMIN' }, 
+        loading: false, 
+        token: 'valid-token' 
+      } 
+    });
+    
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/admin/users']}>
+          <ProtectedRoute requiredRole="create_user">
+            <DummyComponent />
+          </ProtectedRoute>
+        </MemoryRouter>
+      </Provider>
+    );
+    
+    // Should render protected content
+    expect(screen.getByText('Protected Content')).toBeInTheDocument();
+    
+    // Should not show redirect
+    expect(screen.queryByTestId('navigate')).not.toBeInTheDocument();
+  });
+
+  it('allows analyst to access upload transactions permission', () => {
+    const store = mockStore({ 
+      auth: { 
+        isAuthenticated: true, 
+        user: { role: 'ROLE_ANALYST' }, 
+        loading: false, 
+        token: 'valid-token' 
+      } 
+    });
+    
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/ingest']}>
+          <ProtectedRoute requiredRole="upload_transactions">
+            <DummyComponent />
+          </ProtectedRoute>
+        </MemoryRouter>
+      </Provider>
+    );
+    
+    // Should render protected content
+    expect(screen.getByText('Protected Content')).toBeInTheDocument();
+    
+    // Should not show redirect
+    expect(screen.queryByTestId('navigate')).not.toBeInTheDocument();
+  });
+
+  it('prevents viewer from accessing admin-only permissions', () => {
+    const store = mockStore({ 
+      auth: { 
+        isAuthenticated: true, 
+        user: { role: 'ROLE_VIEWER' }, 
+        loading: false, 
+        token: 'valid-token' 
+      } 
+    });
+    
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/admin/users']}>
+          <ProtectedRoute requiredRole="create_user">
+            <DummyComponent />
+          </ProtectedRoute>
+        </MemoryRouter>
+      </Provider>
+    );
+    
+    // Should not render protected content
+    expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
+    
+    // Should show redirect to user's dashboard
+    expect(screen.getByTestId('navigate')).toBeInTheDocument();
+    expect(screen.getByText('Redirecting to /viewer/dashboard')).toBeInTheDocument();
   });
 }); 

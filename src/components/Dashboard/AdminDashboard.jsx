@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material'
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useSelector } from 'react-redux'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import CircularProgress from '@mui/material/CircularProgress';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
@@ -272,7 +272,7 @@ const AdminDashboard = () => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
             <YAxis />
-            <Tooltip />
+            <RechartsTooltip />
             <Bar dataKey="alerts" fill="#1976d2" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

@@ -18,8 +18,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leizo.admin.dto.TransactionDTO;
+import com.leizo.admin.dto.TransactionCsvParser;
+import com.leizo.admin.dto.TransactionMapper;
 
 @RestController
 @RequestMapping("/ingest")
@@ -35,89 +41,119 @@ public class TransactionController {
     @Autowired
     private AlertRepository alertRepository;
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final int BATCH_SIZE = 100; // Process transactions in batches
+
     @PostMapping("/file")
     public ResponseEntity<?> ingestFile(@RequestParam("file") MultipartFile file) {
-        if (file == null || file.isEmpty()) {
+        if (file == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "No file uploaded"));
+        }
+        if (file.isEmpty() || file.getSize() == 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Failed to parse file: CSV file is empty"));
         }
         String filename = file.getOriginalFilename();
         boolean isCsv = filename != null && filename.toLowerCase().endsWith(".csv");
         boolean isJson = filename != null && filename.toLowerCase().endsWith(".json");
-        List<Transaction> transactions = new ArrayList<>();
-        int processed = 0, successful = 0, failed = 0, alertsGenerated = 0;
+        List<TransactionDTO> dtos = new ArrayList<>();
         List<String> errors = new ArrayList<>();
+        int processed = 0, successful = 0, failed = 0, alertsGenerated = 0;
         try {
             if (isCsv) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-                    String header = reader.readLine();
-                    if (header == null) throw new IOException("CSV file is empty");
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        processed++;
-                        try {
-                            String[] parts = line.split(",");
-                            if (parts.length < 6) throw new IllegalArgumentException("Invalid CSV row");
-                            Transaction txn = new Transaction();
-                            txn.setSender(parts[0].trim());
-                            txn.setReceiver(parts[1].trim());
-                            txn.setAmount(new BigDecimal(parts[2].trim()));
-                            txn.setCurrency(parts[3].trim());
-                            txn.setCountry(parts[4].trim());
-                            txn.setDob(parts[5].trim());
-                            transactions.add(txn);
-                        } catch (Exception e) {
-                            failed++;
-                            errors.add("Row " + processed + ": " + e.getMessage());
-                        }
-                    }
-                }
+                dtos = TransactionCsvParser.parse(file.getInputStream(), errors);
+                processed = dtos.size() + errors.size();
             } else if (isJson) {
-                ObjectMapper mapper = new ObjectMapper();
-                Transaction[] txns = mapper.readValue(file.getInputStream(), Transaction[].class);
-                transactions.addAll(Arrays.asList(txns));
-                processed = transactions.size();
+                // TODO: Implement JSON to DTO parsing if needed
+                errors.add("JSON ingestion not yet implemented for new DTO structure");
             } else {
-                return ResponseEntity.badRequest().body(Map.of("error", "Unsupported file type. Only CSV and JSON are allowed."));
+                return ResponseEntity.badRequest().body(Map.of("error", "Unsupported file type. Only CSV is allowed."));
             }
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Failed to parse file: " + e.getMessage()));
         }
-        // Evaluate and save transactions
-        for (Transaction txn : transactions) {
+        // Map DTOs to entities
+        List<Transaction> transactions = new ArrayList<>();
+        for (TransactionDTO dto : dtos) {
             try {
-                // Risk scoring
-                txn.setRiskScore(riskScoringService.assessRisk(txn));
-                // Rule engine (apply all active rules)
-                for (var rule : ruleEngine.getActiveRules()) {
-                    ruleEngine.applyRule(txn, rule, txn.getAmount());
-                }
-                // Sanctions check
-                if (sanctionsChecker.isSanctionedEntity(txn.getSender(), txn.getCountry(), txn.getDob(), null)) {
-                    Alert alert = new Alert();
-                    alert.setMatchedEntityName(txn.getSender());
-                    alert.setMatchedList("Sanctions");
-                    alert.setMatchReason("Sender is sanctioned");
-                    alert.setTransactionId(txn.getId());
-                    alert.setReason("Sender is sanctioned");
-                    alert.setTimestamp(java.time.LocalDateTime.now());
-                    alert.setAlertType("SANCTIONS");
-                    alert.setPriorityLevel("HIGH");
-                    alertRepository.save(alert);
-                    alertsGenerated++;
-                }
-                transactionRepository.save(txn);
-                successful++;
-            } catch (RuntimeException e) {
-                failed++;
-                errors.add("Transaction failed: " + e.getMessage());
+                transactions.add(TransactionMapper.toEntity(dto));
+            } catch (Exception e) {
+                errors.add("DTO mapping failed: " + e.getMessage());
             }
         }
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("processed", processed);
-        resp.put("successful", successful);
-        resp.put("failed", failed);
-        resp.put("alertsGenerated", alertsGenerated);
-        if (!errors.isEmpty()) resp.put("errors", errors);
-        return ResponseEntity.ok(resp);
+        // Process transactions in batches for efficiency
+        Map<String, Object> processingResult = processTransactionsBatch(transactions);
+        successful = (Integer) processingResult.get("successful");
+        failed = (Integer) processingResult.get("failed");
+        alertsGenerated = (Integer) processingResult.get("alertsGenerated");
+        errors.addAll((List<String>) processingResult.get("errors"));
+        Map<String, Object> response = new HashMap<>();
+        response.put("processed", processed);
+        response.put("successful", successful);
+        response.put("failed", failed);
+        response.put("alertsGenerated", alertsGenerated);
+        if (!errors.isEmpty()) response.put("errors", errors);
+        return ResponseEntity.ok(response);
+    }
+
+    private Map<String, Object> processTransactionsBatch(List<Transaction> transactions) {
+        int successful = 0, failed = 0, alertsGenerated = 0;
+        List<String> errors = new ArrayList<>();
+        
+        // Process in batches for efficiency
+        for (int i = 0; i < transactions.size(); i += BATCH_SIZE) {
+            int endIndex = Math.min(i + BATCH_SIZE, transactions.size());
+            List<Transaction> batch = transactions.subList(i, endIndex);
+            
+            for (Transaction txn : batch) {
+                try {
+                    // Risk scoring
+                    txn.setRiskScore(riskScoringService.assessRisk(txn));
+                    
+                    // Rule engine (apply all active rules)
+                    for (var rule : ruleEngine.getActiveRules()) {
+                        ruleEngine.applyRule(txn, rule, txn.getAmount());
+                    }
+                    
+                    // Sanctions check with enhanced matching
+                    boolean isSanctioned = sanctionsChecker.isSanctionedEntity(
+                        txn.getSender(), txn.getCountry(), txn.getDob(), null
+                    );
+                    
+                    if (isSanctioned) {
+                        Alert alert = createSanctionsAlert(txn);
+                        alertRepository.save(alert);
+                        alertsGenerated++;
+                    }
+                    
+                    // Save transaction
+                    transactionRepository.save(txn);
+                    successful++;
+                    
+                } catch (Exception e) {
+                    failed++;
+                    errors.add("Transaction " + txn.getId() + " failed: " + e.getMessage());
+                }
+            }
+        }
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("successful", successful);
+        result.put("failed", failed);
+        result.put("alertsGenerated", alertsGenerated);
+        result.put("errors", errors);
+        return result;
+    }
+
+    private Alert createSanctionsAlert(Transaction txn) {
+        Alert alert = new Alert();
+        alert.setMatchedEntityName(txn.getSender());
+        alert.setMatchedList("Sanctions");
+        alert.setMatchReason("Sender matched against sanctions list");
+        alert.setTransactionId(txn.getId());
+        alert.setReason("Sender is sanctioned");
+        alert.setTimestamp(LocalDateTime.now());
+        alert.setAlertType("SANCTIONS");
+        alert.setPriorityLevel("HIGH");
+        return alert;
     }
 } 

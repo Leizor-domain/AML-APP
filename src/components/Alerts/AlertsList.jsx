@@ -41,7 +41,6 @@ import Avatar from '@mui/material/Avatar';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { unparse } from 'papaparse';
 import { useSelector } from 'react-redux';
-import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const AlertsList = () => {
   const navigate = useNavigate()
@@ -211,31 +210,12 @@ const AlertsList = () => {
   };
 
   const { user } = useSelector((state) => state.auth);
-  const normRole = normalizeRole(user?.role);
-  
-  // Debug logging
-  console.log('📋 AlertsList - User:', user);
-  console.log('📋 AlertsList - Normalized role:', normRole);
-  console.log('📋 AlertsList - Can access EXPORT_ALERTS:', canAccess(normRole, 'EXPORT_ALERTS'));
   
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
         Alerts Management
       </Typography>
-
-      {/* Test button to verify UI functionality */}
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={() => {
-          console.log('🧪 Test button clicked!');
-          setSnackbar({ open: true, message: 'Test button works!', severity: 'success' });
-        }}
-        sx={{ mb: 2 }}
-      >
-        🧪 Test Button (Should Always Work)
-      </Button>
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -244,28 +224,10 @@ const AlertsList = () => {
             <FilterList />
             <Typography variant="h6">Filters</Typography>
           </Box>
-          {canAccess(normRole, 'EXPORT_ALERTS') ? (
-            <Button 
-              variant="outlined" 
-              onClick={handleExportCsv} 
-              sx={{ minWidth: 140 }}
-              onMouseEnter={() => console.log('📋 AlertsList - Export button hovered')}
-            >
+          {(user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'SUPERVISOR' || user?.role === 'ROLE_SUPERVISOR') && (
+            <Button variant="outlined" onClick={handleExportCsv} sx={{ minWidth: 140 }}>
               Export CSV
             </Button>
-          ) : (
-            <Tooltip title="Only Admins and Supervisors can perform this action.">
-              <span>
-                <Button 
-                  variant="outlined" 
-                  disabled 
-                  sx={{ minWidth: 140 }}
-                  onMouseEnter={() => console.log('📋 AlertsList - Disabled export button hovered')}
-                >
-                  Export CSV
-                </Button>
-              </span>
-            </Tooltip>
           )}
         </Box>
         <Box display="flex" gap={2} flexWrap="wrap">

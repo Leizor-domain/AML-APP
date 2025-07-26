@@ -21,8 +21,6 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import { useSelector } from 'react-redux';
-import { canAccess, normalizeRole } from '../../utils/permissions';
-import Tooltip from '@mui/material/Tooltip';
 
 const IngestForm = () => {
   const [loading, setLoading] = useState(false)
@@ -363,7 +361,7 @@ const IngestForm = () => {
 
                   {/* Submit Button */}
                   <Grid item xs={12}>
-                    {canAccess(normalizeRole(user?.role), 'UPLOAD_TRANSACTIONS') ? (
+                    {user?.role === 'ADMIN' || user?.role === 'ANALYST' ? (
                       <Button
                         type="submit"
                         variant="contained"
@@ -375,19 +373,9 @@ const IngestForm = () => {
                         {loading ? 'Processing...' : 'Submit Transaction'}
                       </Button>
                     ) : (
-                      <Tooltip title="Only Admins and Analysts can perform this action.">
-                        <span>
-                          <Button
-                            variant="contained"
-                            size="large"
-                            startIcon={<Upload />}
-                            disabled
-                            fullWidth
-                          >
-                            Submit Transaction
-                          </Button>
-                        </span>
-                      </Tooltip>
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        Only Admins and Analysts can perform this action.
+                      </Alert>
                     )}
                   </Grid>
                 </Grid>

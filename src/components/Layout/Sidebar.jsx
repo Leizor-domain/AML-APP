@@ -24,7 +24,6 @@ import {
   Security,
   Menu as MenuIcon,
 } from '@mui/icons-material'
-import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const drawerWidth = 240
 
@@ -36,29 +35,28 @@ const Sidebar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const normRole = normalizeRole(user?.role);
   const menuItems = [
-    canAccess(normRole, 'VIEW_DASHBOARD') && {
+    {
       text: 'Dashboard',
       icon: <Dashboard />,
-      path: `/${normRole?.toLowerCase().replace('role_', '')}/dashboard`,
+      path: `/${user?.role?.toLowerCase().replace('role_', '')}/dashboard`,
     },
-    canAccess(normRole, 'UPLOAD_TRANSACTIONS') && {
+    (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'ANALYST' || user?.role === 'ROLE_ANALYST') && {
       text: 'Transaction Ingestion',
       icon: <Upload />,
       path: '/ingest',
     },
-    canAccess(normRole, 'VIEW_ALERTS') && {
+    {
       text: 'Alerts',
       icon: <Notifications />,
       path: '/alerts',
     },
-    normRole === 'ROLE_ADMIN' && {
+    (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN') && {
       text: 'Reports',
       icon: <Assessment />,
       path: '/reports',
     },
-    normRole === 'ROLE_ADMIN' && {
+    (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN') && {
       text: 'Settings',
       icon: <Settings />,
       path: '/settings',

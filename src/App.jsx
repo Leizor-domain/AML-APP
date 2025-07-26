@@ -13,31 +13,25 @@ import ViewerDashboard from './components/Dashboard/ViewerDashboard.jsx'
 import IngestPage from './pages/IngestPage.jsx'
 import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
-import { canAccess, normalizeRole } from './utils/permissions';
 
 function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
-  
-  // Debug logging
-  console.log('🚀 App.jsx - Auth state:', { isAuthenticated, user });
-  console.log('🚀 App.jsx - User role:', user?.role);
-  console.log('🚀 App.jsx - Normalized role:', normalizeRole(user?.role));
 
   const getDashboardComponent = (role) => {
-    const normalizedRole = normalizeRole(role);
-    console.log('🏠 getDashboardComponent - role:', role, 'normalized:', normalizedRole);
-    
-    switch (normalizedRole) {
+    switch (role?.toUpperCase()) {
+      case 'ADMIN':
       case 'ROLE_ADMIN':
         return <AdminDashboard />;
+      case 'ANALYST':
       case 'ROLE_ANALYST':
         return <AnalystDashboard />;
+      case 'SUPERVISOR':
       case 'ROLE_SUPERVISOR':
         return <SupervisorDashboard />;
+      case 'VIEWER':
       case 'ROLE_VIEWER':
         return <ViewerDashboard />;
       default:
-        console.log('⚠️ getDashboardComponent - defaulting to ViewerDashboard for role:', normalizedRole);
         return <ViewerDashboard />;
     }
   }

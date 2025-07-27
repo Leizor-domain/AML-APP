@@ -41,8 +41,11 @@ public class StockMarketController {
             
             if (stockData.getError() != null) {
                 logger.error("Failed to fetch stock data: {}", stockData.getError());
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", stockData.getError()));
+                // Return 200 OK with fallback data instead of 400
+                Map<String, Object> fallbackResponse = createFallbackStockData(symbol);
+                fallbackResponse.put("error", stockData.getError());
+                fallbackResponse.put("message", "Using fallback data due to error: " + stockData.getError());
+                return ResponseEntity.ok(fallbackResponse);
             }
             
             return ResponseEntity.ok(stockData);

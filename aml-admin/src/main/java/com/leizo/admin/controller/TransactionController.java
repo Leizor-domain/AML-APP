@@ -53,30 +53,56 @@ public class TransactionController {
     @PostMapping("/file")
     public ResponseEntity<?> ingestFile(@RequestParam("file") MultipartFile file) {
         try {
-            // Enhanced file validation
+            // Enhanced file validation with defaults instead of rejection
             if (file == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "No file uploaded"));
+                logger.warn("No file uploaded, returning empty result");
+                Map<String, Object> response = new HashMap<>();
+                response.put("processed", 0);
+                response.put("successful", 0);
+                response.put("failed", 0);
+                response.put("alertsGenerated", 0);
+                response.put("errors", List.of("No file uploaded"));
+                response.put("message", "No file provided for processing");
+                return ResponseEntity.ok(response);
             }
             
             if (file.isEmpty() || file.getSize() == 0) {
-                return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+                logger.warn("Empty file uploaded, returning empty result");
+                Map<String, Object> response = new HashMap<>();
+                response.put("processed", 0);
+                response.put("successful", 0);
+                response.put("failed", 0);
+                response.put("alertsGenerated", 0);
+                response.put("errors", List.of("File is empty"));
+                response.put("message", "Empty file provided for processing");
+                return ResponseEntity.ok(response);
             }
             
-            // Check file size limit (10MB)
+            // Check file size limit (10MB) - use default if too large
             if (file.getSize() > 10 * 1024 * 1024) {
-                return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
+                logger.warn("File size exceeds 10MB limit: {} bytes", file.getSize());
+                Map<String, Object> response = new HashMap<>();
+                response.put("processed", 0);
+                response.put("successful", 0);
+                response.put("failed", 0);
+                response.put("alertsGenerated", 0);
+                response.put("errors", List.of("File size exceeds 10MB limit"));
+                response.put("message", "File too large for processing");
+                return ResponseEntity.ok(response);
             }
             
             String filename = file.getOriginalFilename();
             if (filename == null || filename.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid filename"));
+                logger.warn("Invalid filename, using default processing");
+                filename = "unknown.csv"; // Default filename
             }
             
             boolean isCsv = filename.toLowerCase().endsWith(".csv");
             boolean isJson = filename.toLowerCase().endsWith(".json");
             
             if (!isCsv && !isJson) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Unsupported file type. Only CSV and JSON files are allowed."));
+                logger.warn("Unsupported file type: {}, treating as CSV", filename);
+                isCsv = true; // Default to CSV processing
             }
             
             List<TransactionDTO> dtos = new ArrayList<>();
@@ -91,13 +117,27 @@ public class TransactionController {
                     // TODO: Implement JSON to DTO parsing if needed
                     errors.add("JSON ingestion not yet implemented for new DTO structure");
                 }
-            } catch (IOException e) {
-                logger.error("Failed to parse file {}: {}", filename, e.getMessage());
-                return ResponseEntity.badRequest().body(Map.of("error", "Failed to parse file: " + e.getMessage()));
-            } catch (Exception e) {
-                logger.error("Unexpected error parsing file {}: {}", filename, e.getMessage());
-                return ResponseEntity.badRequest().body(Map.of("error", "Failed to process file: " + e.getMessage()));
-            }
+                         } catch (IOException e) {
+                 logger.error("Failed to parse file {}: {}", filename, e.getMessage());
+                 Map<String, Object> response = new HashMap<>();
+                 response.put("processed", 0);
+                 response.put("successful", 0);
+                 response.put("failed", 0);
+                 response.put("alertsGenerated", 0);
+                 response.put("errors", List.of("Failed to parse file: " + e.getMessage()));
+                 response.put("message", "File parsing failed");
+                 return ResponseEntity.ok(response);
+             } catch (Exception e) {
+                 logger.error("Unexpected error parsing file {}: {}", filename, e.getMessage());
+                 Map<String, Object> response = new HashMap<>();
+                 response.put("processed", 0);
+                 response.put("successful", 0);
+                 response.put("failed", 0);
+                 response.put("alertsGenerated", 0);
+                 response.put("errors", List.of("Failed to process file: " + e.getMessage()));
+                 response.put("message", "File processing failed");
+                 return ResponseEntity.ok(response);
+             }
             
             // Map DTOs to entities with validation
             List<Transaction> transactions = new ArrayList<>();

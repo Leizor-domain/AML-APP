@@ -2,7 +2,7 @@
 
 A comprehensive Anti-Money Laundering (AML) Engine application with Spring Boot backend and React frontend.
 
-## 🏗️ Architecture
+## Architecture
 
 This project consists of multiple modules:
 
@@ -17,7 +17,7 @@ This project consists of multiple modules:
 
 ---
 
-## 🚀 Backend - AML Engine
+## Backend - AML Engine
 
 The `aml-engine` module houses the core logic of the AML system. It evaluates transactions using rule-based checks, applies risk scoring, checks for sanctions, and generates alerts when suspicious activity is detected.
 
@@ -80,7 +80,7 @@ aml-engine/
 
 ---
 
-## 🎨 Frontend - React Application
+## Frontend - React Application
 
 A comprehensive React frontend application for Anti-Money Laundering (AML) Engine built with Material UI, Redux, and modern React practices.
 
@@ -92,7 +92,7 @@ A comprehensive React frontend application for Anti-Money Laundering (AML) Engin
 - **Protected Routes**: Automatic redirection based on user roles and authentication status
 - **Logout Functionality**: Secure token removal and session cleanup
 
-#### 🔍 Transaction Management
+#### Transaction Management
 - **Transaction Ingestion**: Comprehensive form for submitting new transactions
 - **Real-time Processing**: Immediate feedback on transaction status and risk assessment
 - **Transaction History**: Filterable and paginated transaction history with detailed views
@@ -105,7 +105,7 @@ A comprehensive React frontend application for Anti-Money Laundering (AML) Engin
 - **Admin Actions**: Dismiss alerts and mark as false positives with reason tracking
 - **Sanction Flags**: Display of OFAC, UN, and other sanction list matches
 
-#### ⚙️ Technical Features
+#### Technical Features
 - **Material UI**: Professional, responsive design with consistent theming
 - **Redux State Management**: Centralized state management for authentication and app data
 - **Axios Integration**: Robust API communication with automatic JWT token handling
@@ -255,7 +255,7 @@ The frontend is designed to work with dual Spring Boot backends:
 
 ---
 
-## 🔒 Security Features
+## Security Features
 
 - **JWT Token Management**: Automatic token handling with expiration checks
 - **Role-based Access Control**: Route protection based on user roles
@@ -265,7 +265,7 @@ The frontend is designed to work with dual Spring Boot backends:
 
 ---
 
-## 🎨 Customization
+## Customization
 
 ### Theming
 The application uses Material UI theming. Customize colors and styles in `src/main.jsx`:
@@ -285,7 +285,7 @@ const theme = createTheme({
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Backend Setup
 1. Ensure Java 17+ and Maven are installed
@@ -394,7 +394,7 @@ Submit a transaction with a known sanctioned individual:
 ### Frontend Real-Time Feedback
 - When a transaction is flagged, the backend returns alert details.
 - The frontend should display a red warning banner or modal:
-  - `⚠️ Transaction flagged! Sender "Viktor Yanukovych" is on OpenSanctions list.`
+  - `Transaction flagged! Sender "Viktor Yanukovych" is on OpenSanctions list.`
   - Show details: name, country, DOB, matched list, reason, and a link to the OpenSanctions profile if available.
 - If no match, show a "Clear" or "Not Sanctioned" status.
 

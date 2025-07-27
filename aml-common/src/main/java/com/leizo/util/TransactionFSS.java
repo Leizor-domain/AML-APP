@@ -8,7 +8,7 @@ import java.util.List;
 
 public class TransactionFSS {
 
-    // ✅ Filter by sender, country, min/max amount
+    // Filter by sender, country, min/max amount
     public static List<Transaction> filter(List<Transaction> transactions,
                                            String sender,
                                            String country,
@@ -25,7 +25,7 @@ public class TransactionFSS {
         return result;
     }
 
-    // ✅ Search by receiver name
+    // Search by receiver name
     public static List<Transaction> searchByReceiver(List<Transaction> transactions, String receiver) {
         List<Transaction> result = new ArrayList<>();
         for (Transaction t : transactions) {
@@ -36,14 +36,14 @@ public class TransactionFSS {
         return result;
     }
 
-    // ✅ Sort by amount
+    // Sort by amount
     public static Transaction[] sortByAmount(List<Transaction> transactions, boolean descending) {
         Transaction[] arr = transactions.toArray(new Transaction[0]);
         mergeSortAmount(arr, 0, arr.length - 1, descending);
         return arr;
     }
 
-    // ✅ Sort by risk score
+    // Sort by risk score
     public static Transaction[] sortByRiskScore(List<Transaction> transactions, boolean descending) {
         Transaction[] arr = transactions.toArray(new Transaction[0]);
         mergeSortRisk(arr, 0, arr.length - 1, descending);

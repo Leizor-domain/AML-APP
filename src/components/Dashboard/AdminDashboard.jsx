@@ -32,7 +32,8 @@ import { alertsService } from '../../services/alerts';
 import AdminUserCreateForm from './AdminUserCreateForm';
 import UserTable from './UserTable';
 import UserRolePieChart from './UserRolePieChart';
-import CurrencyExchangeWidget from './CurrencyExchangeWidget';
+import CurrencyConverterWidget from '../CurrencyConverter/CurrencyConverterWidget';
+import StockChart from '../StockMarket/StockChart';
 import { Navigate, useNavigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
@@ -247,8 +248,11 @@ const AdminDashboard = () => {
         )}
       </Card>
 
-      {/* Live Currency Exchange Widget */}
-      <CurrencyExchangeWidget />
+                  {/* Live Currency Converter Widget */}
+            <CurrencyConverterWidget title="Admin Currency Converter" />
+
+      {/* Live Stock Market Data */}
+      <StockChart />
 
       {/* Recent Alerts and Quick Actions */}
       <Grid container spacing={3}>

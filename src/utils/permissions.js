@@ -8,7 +8,7 @@ export const PERMISSIONS = {
   view_dashboard: ['ROLE_ADMIN', 'ROLE_ANALYST', 'ROLE_SUPERVISOR', 'ROLE_VIEWER'],
   generate_report: ['ROLE_ADMIN'],
   system_settings: ['ROLE_ADMIN'],
-  user_management: ['ROLE_ADMIN'],
+  manage_users: ['ROLE_ADMIN'],
 };
 
 export function normalizeRole(role) {

@@ -13,6 +13,9 @@ import ViewerDashboard from './components/Dashboard/ViewerDashboard.jsx'
 import IngestPage from './pages/IngestPage.jsx'
 import AlertsPage from './pages/AlertsPage.jsx'
 import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
+import ReportsPage from './pages/ReportsPage.jsx'
+import SettingsPage from './pages/SettingsPage.jsx'
+import UserManagementPage from './pages/UserManagementPage.jsx'
 import { canAccess, normalizeRole } from './utils/permissions';
 
 function App() {
@@ -123,6 +126,36 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="view_alerts">
                   <AlertDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Reports Route */}
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute requiredRole="generate_report">
+                  <ReportsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Settings Route */}
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute requiredRole="system_settings">
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* User Management Route */}
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute requiredRole="manage_users">
+                  <UserManagementPage />
                 </ProtectedRoute>
               }
             />

@@ -1,94 +1,78 @@
-# Comprehensive Application Test Script
-Write-Host "=== AML Application Test Suite ===" -ForegroundColor Cyan
-Write-Host ""
+# Test AML Application Script
+Write-Host "Testing AML Application..." -ForegroundColor Green
 
-# Check if application is running
-Write-Host "1. Checking if application is running on port 8080..." -ForegroundColor Yellow
-$listening = netstat -ano | findstr "LISTENING" | findstr ":8080"
-if ($listening) {
-    Write-Host "✅ Application is running on port 8080" -ForegroundColor Green
+# Test 1: Check if application is running
+$portCheck = netstat -an | findstr :8080
+if ($portCheck) {
+    Write-Host "Application is running on port 8080" -ForegroundColor Green
+    Write-Host $portCheck
 } else {
-    Write-Host "❌ Application is not running on port 8080" -ForegroundColor Red
-    Write-Host "Please start the application first: cd aml-admin; mvn spring-boot:run" -ForegroundColor Yellow
+    Write-Host "Application is not running on port 8080" -ForegroundColor Red
     exit 1
 }
 
-Write-Host ""
-
-# Test Database Health
-Write-Host "2. Testing Database Health Endpoint..." -ForegroundColor Yellow
+# Test 2: Test database health endpoint
+Write-Host "`nTesting database health..." -ForegroundColor Yellow
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/public/db/health" -Method GET -UseBasicParsing
-    Write-Host "✅ Database Health: $($response.StatusCode)" -ForegroundColor Green
-    Write-Host "Response: $($response.Content)" -ForegroundColor Gray
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/admin/db-health" -Method GET
+    Write-Host "Database Health: $($response.StatusCode)" -ForegroundColor Green
+    Write-Host "Content: $($response.Content)"
 } catch {
-    Write-Host "❌ Database Health Failed: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Database health check failed: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-Write-Host ""
-
-# Test Tables Endpoint
-Write-Host "3. Testing Tables Endpoint..." -ForegroundColor Yellow
+# Test 3: Test tables info endpoint
+Write-Host "`nTesting tables info..." -ForegroundColor Yellow
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/public/db/tables" -Method GET -UseBasicParsing
-    Write-Host "✅ Tables Info: $($response.StatusCode)" -ForegroundColor Green
-    Write-Host "Response: $($response.Content)" -ForegroundColor Gray
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/admin/tables" -Method GET
+    Write-Host "Tables Info: $($response.StatusCode)" -ForegroundColor Green
+    Write-Host "Content: $($response.Content)"
 } catch {
-    Write-Host "❌ Tables Info Failed: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Tables info check failed: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-Write-Host ""
-
-# Test User Registration
-Write-Host "4. Testing User Registration..." -ForegroundColor Yellow
-$testUser = @{
-    username = "testuser_$(Get-Date -Format 'HHmmss')"
-    password = "password123"
-    role = "USER"
-} | ConvertTo-Json
-
+# Test 4: Test user registration endpoint
+Write-Host "`nTesting user registration..." -ForegroundColor Yellow
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/users/register" -Method POST -Body $testUser -ContentType "application/json" -UseBasicParsing
-    Write-Host "✅ User Registration: $($response.StatusCode)" -ForegroundColor Green
-    Write-Host "Response: $($response.Content)" -ForegroundColor Gray
-} catch {
-    Write-Host "❌ User Registration Failed: $($_.Exception.Message)" -ForegroundColor Red
-    if ($_.Exception.Response) {
-        Write-Host "Status Code: $($_.Exception.Response.StatusCode)" -ForegroundColor Red
+    $userData = @{
+        username = "testuser"
+        email = "test@example.com"
+        password = "testpassword123"
+        role = "ANALYST"
     }
+    
+    $jsonData = $userData | ConvertTo-Json
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/auth/register" -Method POST -Body $jsonData -ContentType "application/json"
+    Write-Host "User Registration: $($response.StatusCode)" -ForegroundColor Green
+    Write-Host "Content: $($response.Content)"
+} catch {
+    Write-Host "User registration failed: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-Write-Host ""
-
-# Test User Login
-Write-Host "5. Testing User Login..." -ForegroundColor Yellow
-$loginData = @{
-    username = "testuser_$(Get-Date -Format 'HHmmss')"
-    password = "password123"
-} | ConvertTo-Json
-
+# Test 5: Test user login endpoint
+Write-Host "`nTesting user login..." -ForegroundColor Yellow
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/users/login" -Method POST -Body $loginData -ContentType "application/json" -UseBasicParsing
-    Write-Host "✅ User Login: $($response.StatusCode)" -ForegroundColor Green
-    Write-Host "Response: $($response.Content)" -ForegroundColor Gray
-} catch {
-    Write-Host "❌ User Login Failed: $($_.Exception.Message)" -ForegroundColor Red
-    if ($_.Exception.Response) {
-        Write-Host "Status Code: $($_.Exception.Response.StatusCode)" -ForegroundColor Red
+    $loginData = @{
+        username = "testuser"
+        password = "testpassword123"
     }
-}
-
-Write-Host ""
-
-# Test Admin Health
-Write-Host "6. Testing Admin Health Endpoint..." -ForegroundColor Yellow
-try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/admin/health" -Method GET -UseBasicParsing
-    Write-Host "✅ Admin Health: $($response.StatusCode)" -ForegroundColor Green
-    Write-Host "Response: $($response.Content)" -ForegroundColor Gray
+    
+    $jsonData = $loginData | ConvertTo-Json
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/auth/login" -Method POST -Body $jsonData -ContentType "application/json"
+    Write-Host "User Login: $($response.StatusCode)" -ForegroundColor Green
+    Write-Host "Content: $($response.Content)"
 } catch {
-    Write-Host "❌ Admin Health Failed: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "User login failed: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-Write-Host ""
-Write-Host "=== Test Complete ===" -ForegroundColor Cyan 
+# Test 6: Test admin health endpoint
+Write-Host "`nTesting admin health..." -ForegroundColor Yellow
+try {
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/admin/health" -Method GET
+    Write-Host "Admin Health: $($response.StatusCode)" -ForegroundColor Green
+    Write-Host "Content: $($response.Content)"
+} catch {
+    Write-Host "Admin health check failed: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+Write-Host "`nAll application tests completed." -ForegroundColor Green 

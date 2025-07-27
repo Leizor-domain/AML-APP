@@ -28,7 +28,8 @@ import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, L
 import Tooltip from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
-import CurrencyExchangeWidget from './CurrencyExchangeWidget';
+import CurrencyConverterWidget from '../CurrencyConverter/CurrencyConverterWidget';
+import StockChart from '../StockMarket/StockChart';
 import { Navigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
@@ -250,8 +251,11 @@ const ViewerDashboard = () => {
         )}
       </Card>
 
-      {/* Live Currency Exchange Widget */}
-      <CurrencyExchangeWidget title="Viewer Currency Exchange" />
+                  {/* Live Currency Converter Widget */}
+            <CurrencyConverterWidget title="Viewer Currency Converter" />
+
+      {/* Live Stock Market Data */}
+      <StockChart title="Market Overview" />
 
       {/* Recent Alerts and Quick Actions */}
       <Grid container spacing={3}>

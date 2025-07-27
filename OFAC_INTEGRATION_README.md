@@ -11,7 +11,7 @@ This document describes the integration of real-time sanctions screening using t
 - **Update Frequency**: Daily (automatically refreshed every 24 hours)
 - **Authentication**: None required (public feed)
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Components
 
@@ -27,7 +27,7 @@ This document describes the integration of real-time sanctions screening using t
 - **Alert Generation**: Creates alerts for sanctioned entity matches
 - **Audit Trail**: Logs all sanctions screening activities
 
-## 🚀 Features
+## Features
 
 ### 1. Real-time XML Parsing
 - Fetches and parses official OFAC SDN XML feed
@@ -51,7 +51,7 @@ This document describes the integration of real-time sanctions screening using t
 - Match details and confidence scores
 - Error logging with fallback mechanisms
 
-## 📊 API Endpoints
+## API Endpoints
 
 ### Health Check
 ```
@@ -89,7 +89,7 @@ POST /api/ofac/refresh
 ```
 Manually refreshes OFAC data from the source.
 
-## 🔧 Configuration
+## Configuration
 
 ### Default Settings
 - **Refresh Interval**: 24 hours
@@ -105,7 +105,7 @@ private static final long REFRESH_INTERVAL_HOURS = 24;
 private static final double DEFAULT_FUZZY_THRESHOLD = 0.8;
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Unit Tests
 - `OfacXmlSanctionsApiClientImplTest.java` - Comprehensive test coverage
@@ -119,7 +119,7 @@ private static final double DEFAULT_FUZZY_THRESHOLD = 0.8;
 - `sample_transactions_ofac_test.csv` - Test transactions with OFAC names
 - Includes both neutral names and potential OFAC matches
 
-## 📈 Performance
+## Performance
 
 ### Benchmarks
 - **Initial Load**: ~5-10 seconds (depending on network)
@@ -133,7 +133,7 @@ private static final double DEFAULT_FUZZY_THRESHOLD = 0.8;
 - Efficient XML parsing with DOM
 - Minimal memory footprint
 
-## 🔒 Security
+## Security
 
 ### Data Protection
 - No sensitive data stored
@@ -162,7 +162,7 @@ private static final double DEFAULT_FUZZY_THRESHOLD = 0.8;
 - **MEDIUM**: Fuzzy matches
 - **LOW**: Local list matches
 
-## 🔄 Migration from OpenSanctions
+## Migration from OpenSanctions
 
 ### Changes Made
 1. **Replaced OpenSanctionsService** with OfacXmlSanctionsApiClient
@@ -175,7 +175,7 @@ private static final double DEFAULT_FUZZY_THRESHOLD = 0.8;
 - Same API interfaces maintained
 - Existing alerts and workflows preserved
 
-## 📋 Monitoring
+## Monitoring
 
 ### Key Metrics
 - Total OFAC entities loaded
@@ -189,7 +189,7 @@ private static final double DEFAULT_FUZZY_THRESHOLD = 0.8;
 - Entity count validation
 - XML parsing success rate
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 

@@ -22,6 +22,7 @@ import {
   Assessment,
   Settings,
   Security,
+  People,
   Menu as MenuIcon,
 } from '@mui/icons-material'
 import { canAccess, normalizeRole } from '../../utils/permissions';
@@ -67,6 +68,11 @@ const Sidebar = () => {
       text: 'Settings',
       icon: <Settings />,
       path: '/settings',
+    },
+    canAccess(normRole, 'manage_users') && {
+      text: 'User Management',
+      icon: <People />,
+      path: '/admin/users',
     },
   ].filter(Boolean);
 

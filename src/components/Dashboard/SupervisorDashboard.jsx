@@ -29,7 +29,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveCo
 import Tooltip from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
-import CurrencyExchangeWidget from './CurrencyExchangeWidget';
+import CurrencyConverterWidget from '../CurrencyConverter/CurrencyConverterWidget';
+import StockChart from '../StockMarket/StockChart';
 import { Navigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
@@ -251,8 +252,11 @@ const SupervisorDashboard = () => {
         )}
       </Card>
 
-      {/* Live Currency Exchange Widget */}
-      <CurrencyExchangeWidget title="Team Currency Exchange" />
+                  {/* Live Currency Converter Widget */}
+            <CurrencyConverterWidget title="Supervisor Currency Converter" />
+
+      {/* Live Stock Market Data */}
+      <StockChart title="Team Stock Market Data" />
 
       {/* Team Alerts and Quick Actions */}
       <Grid container spacing={3}>

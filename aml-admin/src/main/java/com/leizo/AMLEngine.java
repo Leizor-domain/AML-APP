@@ -37,7 +37,7 @@ public class AMLEngine {
     private final RuleEngine ruleEngine;
     private final SanctionsChecker sanctionsChecker;
     private final AlertService alertService;
-    private final ExchangeRateService exchangeRateService;
+    // ExchangeRateService removed - will be replaced with new CurrencyConversionService
     private final CaseManager caseManager;
     private final LoggerService loggerService;
     private final RiskScoringService riskScoringService;
@@ -52,7 +52,7 @@ public class AMLEngine {
                      RuleEngine ruleEngine,
                      SanctionsChecker sanctionsChecker,
                      AlertService alertService,
-                     ExchangeRateService exchangeRateService,
+                     // ExchangeRateService parameter removed - will be replaced with new CurrencyConversionService
                      CaseManager caseManager,
                      LoggerService loggerService,
                      RiskScoringService riskScoringService,
@@ -66,7 +66,7 @@ public class AMLEngine {
         this.ruleEngine = ruleEngine;
         this.sanctionsChecker = sanctionsChecker;
         this.alertService = alertService;
-        this.exchangeRateService = exchangeRateService;
+        // this.exchangeRateService = exchangeRateService; // Removed - will be replaced with new CurrencyConversionService
         this.caseManager = caseManager;
         this.loggerService = loggerService;
         this.riskScoringService = Objects.requireNonNull(riskScoringService);
@@ -297,7 +297,11 @@ public class AMLEngine {
     // Converts transaction amount to EUR
     private BigDecimal normalizeAmount(Transaction txn) {
         try {
-            return exchangeRateService.convert(txn.getCurrency(), "EUR", txn.getAmount());
+            // TODO: Replace with new CurrencyConversionService when implemented
+            // For now, return the original amount to avoid breaking existing functionality
+            logEvent("CURRENCY_CONVERSION_WARNING", "SYSTEM",
+                    "Currency conversion temporarily disabled - using original amount");
+            return txn.getAmount();
         } catch (Exception e) {
             logEvent("CURRENCY_CONVERSION_ERROR", "SYSTEM",
                     "Failed to convert amount: " + e.getMessage());

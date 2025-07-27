@@ -5,11 +5,11 @@ services:
     dockerfilePath: Dockerfile.admin
     plan: starter
     envVars:
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         value: ${DATABASE_URL}
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DATABASE_USER
         value: ${DATABASE_USER}
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DATABASE_PASSWORD
         value: ${DATABASE_PASSWORD}
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -21,11 +21,11 @@ services:
     dockerfilePath: Dockerfile.portal
     plan: starter
     envVars:
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         value: ${DATABASE_URL}
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DATABASE_USER
         value: ${DATABASE_USER}
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DATABASE_PASSWORD
         value: ${DATABASE_PASSWORD}
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -37,11 +37,11 @@ services:
     dockerfilePath: Dockerfile.engine
     plan: starter
     envVars:
-      - key: SPRING_DATASOURCE_URL
+      - key: DATABASE_URL
         value: ${DATABASE_URL}
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: DATABASE_USER
         value: ${DATABASE_USER}
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DATABASE_PASSWORD
         value: ${DATABASE_PASSWORD}
       - key: SPRING_PROFILES_ACTIVE
         value: prod

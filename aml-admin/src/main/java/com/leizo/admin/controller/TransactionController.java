@@ -50,15 +50,37 @@ public class TransactionController {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final int BATCH_SIZE = 100; // Process transactions in batches
 
+    // Helper for mapping CSV fields to TransactionDTO (for ingestion)
+    private static TransactionDTO mapFieldsToDTO(String[] fields) {
+        TransactionDTO dto = new TransactionDTO();
+        dto.setTransactionId(fields[0]);
+        dto.setTimestamp(fields[1]);
+        dto.setAmount(new java.math.BigDecimal(fields[2]));
+        dto.setCurrency(fields[3]);
+        dto.setSenderName(fields[4]);
+        dto.setReceiverName(fields[5]);
+        dto.setSenderAccount(fields[6]);
+        dto.setReceiverAccount(fields[7]);
+        dto.setCountry(fields[8]);
+        dto.setManualFlag(Boolean.parseBoolean(fields[9]));
+        dto.setDescription(fields[10]);
+        return dto;
+    }
+
     @PostMapping("/file")
     public ResponseEntity<?> ingestFile(@RequestParam("file") MultipartFile file) {
         List<Map<String, Object>> errors = new ArrayList<>();
         int processed = 0, success = 0, failed = 0;
+        final List<String> requiredHeaders = List.of("transactionId", "timestamp", "amount", "currency", "senderName", "receiverName", "senderAccount", "receiverAccount", "country", "manualFlag", "description");
         try {
-            // Validate file
             if (file == null || file.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "processed", 0, "success", 0, "failed", 0, "errors", List.of(Map.of("transactionId", null, "error", "No file uploaded"))
+                return ResponseEntity.ok(Map.of(
+                    "processed", 0, "successful", 0, "failed", 0, "errors", List.of("No file uploaded")
+                ));
+            }
+            if (file.getSize() > 10 * 1024 * 1024) {
+                return ResponseEntity.ok(Map.of(
+                    "processed", 0, "successful", 0, "failed", 0, "errors", List.of("File size exceeds 10MB limit")
                 ));
             }
             String filename = file.getOriginalFilename();
@@ -66,48 +88,90 @@ public class TransactionController {
             boolean isJson = filename != null && filename.toLowerCase().endsWith(".json");
             List<TransactionDTO> dtos = new ArrayList<>();
             if (isCsv) {
-                dtos = TransactionCsvParser.parse(file.getInputStream(), new ArrayList<>());
-            } else if (isJson) {
-                // TODO: Implement JSON parsing
-                return ResponseEntity.badRequest().body(Map.of(
-                    "processed", 0, "success", 0, "failed", 0, "errors", List.of(Map.of("transactionId", null, "error", "JSON ingestion not implemented"))
-                ));
-            } else {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "processed", 0, "success", 0, "failed", 0, "errors", List.of(Map.of("transactionId", null, "error", "Unsupported file type"))
-                ));
-            }
-            processed = dtos.size();
-            for (TransactionDTO dto : dtos) {
-                try {
-                    if (dto == null) throw new IllegalArgumentException("Null DTO");
-                    Transaction entity = TransactionMapper.toEntity(dto);
-                    if (entity.getSender() == null || entity.getSender().isEmpty())
-                        throw new IllegalArgumentException("Sender field missing");
-                    if (entity.getAmount() == null || entity.getAmount().compareTo(BigDecimal.ZERO) <= 0)
-                        throw new IllegalArgumentException("Amount format invalid");
-                    transactionRepository.save(entity);
-                    success++;
-                } catch (Exception e) {
-                    failed++;
-                    errors.add(Map.of(
-                        "transactionId", dto != null ? dto.getTransactionId() : null,
-                        "error", e.getMessage()
+                // Read header row
+                BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
+                String headerLine = reader.readLine();
+                if (headerLine == null) {
+                    return ResponseEntity.ok(Map.of(
+                        "processed", 0, "successful", 0, "failed", 0, "errors", List.of("Empty file")
                     ));
                 }
+                List<String> headers = Arrays.asList(headerLine.split(","));
+                if (!headers.equals(requiredHeaders)) {
+                    return ResponseEntity.ok(Map.of(
+                        "processed", 0, "successful", 0, "failed", 0, "errors", List.of("Header mismatch. Required: " + requiredHeaders)
+                    ));
+                }
+                // Parse rest of file
+                String line;
+                int rowNum = 1;
+                while ((line = reader.readLine()) != null) {
+                    rowNum++;
+                    String[] fields = line.split(",");
+                    if (fields.length != requiredHeaders.size()) {
+                        failed++;
+                        errors.add(Map.of("row", rowNum, "error", "Column count mismatch"));
+                        continue;
+                    }
+                    try {
+                        // Map fields to DTO (implement this mapping as needed)
+                        TransactionDTO dto = mapFieldsToDTO(fields);
+                        // Validate fields (implement as needed)
+                        if (dto == null) throw new IllegalArgumentException("Null DTO");
+                        if (dto.getTransactionId() == null || dto.getTransactionId().trim().isEmpty())
+                            throw new IllegalArgumentException("Transaction ID missing");
+                        if (dto.getTimestamp() == null || dto.getTimestamp().trim().isEmpty())
+                            throw new IllegalArgumentException("Timestamp missing");
+                        if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0)
+                            throw new IllegalArgumentException("Amount format invalid");
+                        if (dto.getCurrency() == null || dto.getCurrency().trim().isEmpty())
+                            throw new IllegalArgumentException("Currency missing");
+                        if (dto.getSenderName() == null || dto.getSenderName().trim().isEmpty())
+                            throw new IllegalArgumentException("Sender name missing");
+                        if (dto.getReceiverName() == null || dto.getReceiverName().trim().isEmpty())
+                            throw new IllegalArgumentException("Receiver name missing");
+                        if (dto.getSenderAccount() == null || dto.getSenderAccount().trim().isEmpty())
+                            throw new IllegalArgumentException("Sender account missing");
+                        if (dto.getReceiverAccount() == null || dto.getReceiverAccount().trim().isEmpty())
+                            throw new IllegalArgumentException("Receiver account missing");
+                        if (dto.getCountry() == null || dto.getCountry().trim().isEmpty())
+                            throw new IllegalArgumentException("Country missing");
+                        if (dto.getManualFlag() == null)
+                            throw new IllegalArgumentException("Manual flag missing");
+                        if (dto.getDescription() == null || dto.getDescription().trim().isEmpty())
+                            throw new IllegalArgumentException("Description missing");
+                        
+                        // Save transaction
+                        transactionRepository.save(TransactionMapper.toEntity(dto));
+                        success++;
+                    } catch (Exception e) {
+                        failed++;
+                        errors.add(Map.of("row", rowNum, "error", e.getMessage()));
+                    }
+                    processed++;
+                }
+            } else if (isJson) {
+                // TODO: Implement JSON parsing and header validation
+                return ResponseEntity.ok(Map.of(
+                    "processed", 0, "successful", 0, "failed", 0, "errors", List.of("JSON ingestion not implemented")
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of(
+                    "processed", 0, "successful", 0, "failed", 0, "errors", List.of("Unsupported file type")
+                ));
             }
             return ResponseEntity.ok(Map.of(
                 "processed", processed,
-                "success", success,
+                "successful", success,
                 "failed", failed,
                 "errors", errors
             ));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
+            return ResponseEntity.ok(Map.of(
                 "processed", processed,
-                "success", success,
+                "successful", success,
                 "failed", failed,
-                "errors", List.of(Map.of("transactionId", null, "error", e.getMessage()))
+                "errors", List.of(e.getMessage())
             ));
         }
     }

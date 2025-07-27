@@ -27,65 +27,38 @@ public class CurrencyConversionController {
      */
     @GetMapping
     public ResponseEntity<?> getLatestRates(
-            @RequestParam(defaultValue = "USD") String base,
+            @RequestParam(required = false) String base,
             @RequestParam(required = false) String symbols) {
-        
-        try {
-            logger.info("Fetching exchange rates for base: {}, symbols: {}", base, symbols);
-            
-            // Fallback if service is not available
-            if (currencyService == null) {
-                logger.warn("CurrencyConversionService not available, returning fallback data");
-                Map<String, Object> fallbackResponse = new HashMap<>();
-                fallbackResponse.put("base", base);
-                fallbackResponse.put("date", java.time.LocalDate.now().toString());
-                fallbackResponse.put("rates", Map.of(
-                    "EUR", 0.85,
-                    "GBP", 0.73,
-                    "JPY", 110.0,
-                    "CAD", 1.25
-                ));
-                fallbackResponse.put("message", "Using fallback rates - external service unavailable");
-                return ResponseEntity.ok(fallbackResponse);
-            }
-            
-            CurrencyConversionService.CurrencyRateDTO rates = currencyService.getLatestRates(base, symbols);
-            
-            if (rates.getError() != null) {
-                logger.error("Failed to fetch rates: {}", rates.getError());
-                // Return 200 OK with error status instead of 400
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("base", base);
-                errorResponse.put("date", java.time.LocalDate.now().toString());
-                errorResponse.put("rates", Map.of(
-                    "EUR", 0.85,
-                    "GBP", 0.73,
-                    "JPY", 110.0,
-                    "CAD", 1.25
-                ));
-                errorResponse.put("error", rates.getError());
-                errorResponse.put("message", "Using fallback rates due to error");
-                return ResponseEntity.ok(errorResponse);
-            }
-            
-            return ResponseEntity.ok(rates);
-            
-        } catch (Exception e) {
-            logger.error("Unexpected error in getLatestRates: {}", e.getMessage(), e);
-            
-            // Return fallback data instead of error
-            Map<String, Object> fallbackResponse = new HashMap<>();
-            fallbackResponse.put("base", base);
-            fallbackResponse.put("date", java.time.LocalDate.now().toString());
-            fallbackResponse.put("rates", Map.of(
-                "EUR", 0.85,
-                "GBP", 0.73,
-                "JPY", 110.0,
-                "CAD", 1.25
+        base = (base == null || base.isBlank()) ? "USD" : base.trim().toUpperCase();
+        if (base.isBlank()) {
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", "Missing base currency",
+                "rates", Map.of()
             ));
-            fallbackResponse.put("message", "Service temporarily unavailable - using fallback rates");
-            return ResponseEntity.ok(fallbackResponse);
         }
+        if (symbols != null && !symbols.isBlank() && !symbols.matches("^[A-Z,]+$")) {
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", "Invalid symbols format. Must be comma-separated uppercase codes.",
+                "rates", Map.of()
+            ));
+        }
+        // If symbols is missing, return all supported currencies
+        CurrencyConversionService.CurrencyRateDTO rates = currencyService.getLatestRates(base, symbols);
+        if (rates.getError() != null) {
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", rates.getError(),
+                "rates", rates.getRates() != null ? rates.getRates() : Map.of()
+            ));
+        }
+        return ResponseEntity.ok(Map.of(
+            "base", rates.getBase(),
+            "date", rates.getDate(),
+            "rates", rates.getRates(),
+            "error", false
+        ));
     }
     
     /**
@@ -94,79 +67,40 @@ public class CurrencyConversionController {
      */
     @GetMapping("/convert")
     public ResponseEntity<?> convertCurrency(
-            @RequestParam String from,
-            @RequestParam String to,
-            @RequestParam BigDecimal amount) {
-        
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(required = false) BigDecimal amount) {
+        from = (from == null || from.isBlank()) ? "USD" : from.trim().toUpperCase();
+        to = (to == null || to.isBlank()) ? "EUR" : to.trim().toUpperCase();
+        if (!from.matches("^[A-Z]{3}$") || !to.matches("^[A-Z]{3}$")) {
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", "Invalid currency code. Must be 3 uppercase letters.",
+                "convertedAmount", null
+            ));
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", "Amount must be a positive number.",
+                "convertedAmount", null
+            ));
+        }
         try {
-            logger.info("Converting {} {} to {}", amount, from, to);
-            
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                logger.warn("Invalid amount: {}, using default amount of 1", amount);
-                amount = BigDecimal.ONE; // Use default amount instead of rejecting
-            }
-            
-            // Fallback if service is not available
-            if (currencyService == null) {
-                logger.warn("CurrencyConversionService not available, using fallback conversion");
-                BigDecimal fallbackRate = getFallbackRate(from, to);
-                BigDecimal convertedAmount = amount.multiply(fallbackRate);
-                
-                Map<String, Object> response = Map.of(
-                    "from", from,
-                    "to", to,
-                    "amount", amount,
-                    "convertedAmount", convertedAmount,
-                    "rate", fallbackRate,
-                    "message", "Using fallback rate - external service unavailable"
-                );
-                return ResponseEntity.ok(response);
-            }
-            
             BigDecimal convertedAmount = currencyService.convertCurrency(from, to, amount);
-            
-            Map<String, Object> response = Map.of(
+            return ResponseEntity.ok(Map.of(
                 "from", from,
                 "to", to,
                 "amount", amount,
                 "convertedAmount", convertedAmount,
-                "rate", convertedAmount.divide(amount, 6, BigDecimal.ROUND_HALF_UP)
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid conversion request: {}", e.getMessage());
-            // Return fallback conversion instead of 400 error
-            BigDecimal fallbackRate = getFallbackRate(from, to);
-            BigDecimal convertedAmount = amount.multiply(fallbackRate);
-            
-            Map<String, Object> response = Map.of(
-                "from", from,
-                "to", to,
-                "amount", amount,
-                "convertedAmount", convertedAmount,
-                "rate", fallbackRate,
-                "error", e.getMessage(),
-                "message", "Using fallback rate due to validation error"
-            );
-            return ResponseEntity.ok(response);
+                "error", false
+            ));
         } catch (Exception e) {
-            logger.error("Unexpected error in convertCurrency: {}", e.getMessage(), e);
-            
-            // Return fallback conversion instead of error
-            BigDecimal fallbackRate = getFallbackRate(from, to);
-            BigDecimal convertedAmount = amount.multiply(fallbackRate);
-            
-            Map<String, Object> response = Map.of(
-                "from", from,
-                "to", to,
-                "amount", amount,
-                "convertedAmount", convertedAmount,
-                "rate", fallbackRate,
-                "message", "Service temporarily unavailable - using fallback rate"
-            );
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", e.getMessage(),
+                "convertedAmount", null
+            ));
         }
     }
     

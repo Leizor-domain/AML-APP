@@ -28,33 +28,33 @@ public class StockMarketController {
      */
     @GetMapping("/{symbol}")
     public ResponseEntity<?> getStockData(@PathVariable String symbol) {
+        if (symbol == null || !symbol.matches("^[A-Z0-9.]{1,10}$")) {
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", "Invalid stock symbol. Must be 1-10 alphanumeric characters.",
+                "data", List.of()
+            ));
+        }
         try {
-            logger.info("Fetching stock data for symbol: {}", symbol);
-            
-            // Fallback if service is not available
-            if (stockService == null) {
-                logger.warn("TwelveDataStockService not available, returning fallback data");
-                return ResponseEntity.ok(createFallbackStockData(symbol));
-            }
-            
             TwelveDataStockService.StockDataDTO stockData = stockService.getStockData(symbol);
-            
             if (stockData.getError() != null) {
-                logger.error("Failed to fetch stock data: {}", stockData.getError());
-                // Return 200 OK with fallback data instead of 400
-                Map<String, Object> fallbackResponse = createFallbackStockData(symbol);
-                fallbackResponse.put("error", stockData.getError());
-                fallbackResponse.put("message", "Using fallback data due to error: " + stockData.getError());
-                return ResponseEntity.ok(fallbackResponse);
+                return ResponseEntity.ok(Map.of(
+                    "error", true,
+                    "message", stockData.getError(),
+                    "data", stockData.getData() != null ? stockData.getData() : List.of()
+                ));
             }
-            
-            return ResponseEntity.ok(stockData);
-            
+            return ResponseEntity.ok(Map.of(
+                "symbol", stockData.getSymbol(),
+                "data", stockData.getData(),
+                "error", false
+            ));
         } catch (Exception e) {
-            logger.error("Unexpected error in getStockData: {}", e.getMessage(), e);
-            
-            // Return fallback data instead of error
-            return ResponseEntity.ok(createFallbackStockData(symbol));
+            return ResponseEntity.ok(Map.of(
+                "error", true,
+                "message", e.getMessage(),
+                "data", List.of()
+            ));
         }
     }
     

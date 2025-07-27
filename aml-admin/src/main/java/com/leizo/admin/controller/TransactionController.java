@@ -52,158 +52,63 @@ public class TransactionController {
 
     @PostMapping("/file")
     public ResponseEntity<?> ingestFile(@RequestParam("file") MultipartFile file) {
+        List<Map<String, Object>> errors = new ArrayList<>();
+        int processed = 0, success = 0, failed = 0;
         try {
-            // Enhanced file validation with defaults instead of rejection
-            if (file == null) {
-                logger.warn("No file uploaded, returning empty result");
-                Map<String, Object> response = new HashMap<>();
-                response.put("processed", 0);
-                response.put("successful", 0);
-                response.put("failed", 0);
-                response.put("alertsGenerated", 0);
-                response.put("errors", List.of("No file uploaded"));
-                response.put("message", "No file provided for processing");
-                return ResponseEntity.ok(response);
+            // Validate file
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "processed", 0, "success", 0, "failed", 0, "errors", List.of(Map.of("transactionId", null, "error", "No file uploaded"))
+                ));
             }
-            
-            if (file.isEmpty() || file.getSize() == 0) {
-                logger.warn("Empty file uploaded, returning empty result");
-                Map<String, Object> response = new HashMap<>();
-                response.put("processed", 0);
-                response.put("successful", 0);
-                response.put("failed", 0);
-                response.put("alertsGenerated", 0);
-                response.put("errors", List.of("File is empty"));
-                response.put("message", "Empty file provided for processing");
-                return ResponseEntity.ok(response);
-            }
-            
-            // Check file size limit (10MB) - use default if too large
-            if (file.getSize() > 10 * 1024 * 1024) {
-                logger.warn("File size exceeds 10MB limit: {} bytes", file.getSize());
-                Map<String, Object> response = new HashMap<>();
-                response.put("processed", 0);
-                response.put("successful", 0);
-                response.put("failed", 0);
-                response.put("alertsGenerated", 0);
-                response.put("errors", List.of("File size exceeds 10MB limit"));
-                response.put("message", "File too large for processing");
-                return ResponseEntity.ok(response);
-            }
-            
             String filename = file.getOriginalFilename();
-            if (filename == null || filename.trim().isEmpty()) {
-                logger.warn("Invalid filename, using default processing");
-                filename = "unknown.csv"; // Default filename
-            }
-            
-            boolean isCsv = filename.toLowerCase().endsWith(".csv");
-            boolean isJson = filename.toLowerCase().endsWith(".json");
-            
-            if (!isCsv && !isJson) {
-                logger.warn("Unsupported file type: {}, treating as CSV", filename);
-                isCsv = true; // Default to CSV processing
-            }
-            
+            boolean isCsv = filename != null && filename.toLowerCase().endsWith(".csv");
+            boolean isJson = filename != null && filename.toLowerCase().endsWith(".json");
             List<TransactionDTO> dtos = new ArrayList<>();
-            List<String> errors = new ArrayList<>();
-            int processed = 0, successful = 0, failed = 0, alertsGenerated = 0;
-            
-            try {
-                if (isCsv) {
-                    dtos = TransactionCsvParser.parse(file.getInputStream(), errors);
-                    processed = dtos.size() + errors.size();
-                } else if (isJson) {
-                    // TODO: Implement JSON to DTO parsing if needed
-                    errors.add("JSON ingestion not yet implemented for new DTO structure");
-                }
-            } catch (IOException e) {
-                logger.error("Failed to parse file {}: {}", filename, e.getMessage());
-                Map<String, Object> response = new HashMap<>();
-                response.put("processed", 0);
-                response.put("successful", 0);
-                response.put("failed", 0);
-                response.put("alertsGenerated", 0);
-                response.put("errors", List.of("Failed to parse file: " + e.getMessage()));
-                response.put("message", "File parsing failed");
-                return ResponseEntity.ok(response);
-            } catch (Exception e) {
-                logger.error("Unexpected error parsing file {}: {}", filename, e.getMessage());
-                Map<String, Object> response = new HashMap<>();
-                response.put("processed", 0);
-                response.put("successful", 0);
-                response.put("failed", 0);
-                response.put("alertsGenerated", 0);
-                response.put("errors", List.of("Failed to process file: " + e.getMessage()));
-                response.put("message", "File processing failed");
-                return ResponseEntity.ok(response);
+            if (isCsv) {
+                dtos = TransactionCsvParser.parse(file.getInputStream(), new ArrayList<>());
+            } else if (isJson) {
+                // TODO: Implement JSON parsing
+                return ResponseEntity.badRequest().body(Map.of(
+                    "processed", 0, "success", 0, "failed", 0, "errors", List.of(Map.of("transactionId", null, "error", "JSON ingestion not implemented"))
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "processed", 0, "success", 0, "failed", 0, "errors", List.of(Map.of("transactionId", null, "error", "Unsupported file type"))
+                ));
             }
-            
-            // Map DTOs to entities with validation
-            List<Transaction> transactions = new ArrayList<>();
+            processed = dtos.size();
             for (TransactionDTO dto : dtos) {
                 try {
-                    // Validate DTO before mapping
-                    if (dto == null) {
-                        errors.add("Null DTO encountered during mapping");
-                        continue;
-                    }
-                    
+                    if (dto == null) throw new IllegalArgumentException("Null DTO");
                     Transaction entity = TransactionMapper.toEntity(dto);
-                    
-                    // Validate entity after mapping
-                    if (entity.getSender() == null || entity.getSender().trim().isEmpty()) {
-                        errors.add("Transaction missing sender: " + (dto.getTransactionId() != null ? dto.getTransactionId() : "unknown"));
-                        continue;
-                    }
-                    
-                    if (entity.getAmount() == null || entity.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                        errors.add("Transaction has invalid amount: " + (dto.getTransactionId() != null ? dto.getTransactionId() : "unknown"));
-                        continue;
-                    }
-                    
-                    transactions.add(entity);
+                    if (entity.getSender() == null || entity.getSender().isEmpty())
+                        throw new IllegalArgumentException("Sender field missing");
+                    if (entity.getAmount() == null || entity.getAmount().compareTo(BigDecimal.ZERO) <= 0)
+                        throw new IllegalArgumentException("Amount format invalid");
+                    transactionRepository.save(entity);
+                    success++;
                 } catch (Exception e) {
-                    String transactionId = dto != null ? dto.getTransactionId() : "unknown";
-                    errors.add("DTO mapping failed for transaction " + transactionId + ": " + e.getMessage());
-                    logger.warn("DTO mapping failed for transaction {}: {}", transactionId, e.getMessage());
+                    failed++;
+                    errors.add(Map.of(
+                        "transactionId", dto != null ? dto.getTransactionId() : null,
+                        "error", e.getMessage()
+                    ));
                 }
             }
-            
-            // Process transactions in batches for efficiency
-            Map<String, Object> processingResult = processTransactionsBatch(transactions);
-            successful = (Integer) processingResult.get("successful");
-            failed = (Integer) processingResult.get("failed");
-            alertsGenerated = (Integer) processingResult.get("alertsGenerated");
-            errors.addAll((List<String>) processingResult.get("errors"));
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("processed", processed);
-            response.put("successful", successful);
-            response.put("failed", failed);
-            response.put("alertsGenerated", alertsGenerated);
-            if (!errors.isEmpty()) {
-                response.put("errors", errors);
-            }
-            
-            logger.info("File ingestion completed: processed={}, successful={}, failed={}, alerts={}", 
-                processed, successful, failed, alertsGenerated);
-            
-            return ResponseEntity.ok(response);
-            
+            return ResponseEntity.ok(Map.of(
+                "processed", processed,
+                "success", success,
+                "failed", failed,
+                "errors", errors
+            ));
         } catch (Exception e) {
-            logger.error("Unexpected error in file ingestion: {}", e.getMessage(), e);
-            // Return 200 OK with error status instead of 500
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "ERROR");
-            response.put("message", "File processing failed: " + e.getMessage());
-            response.put("processed", 0);
-            response.put("successful", 0);
-            response.put("failed", 0);
-            response.put("alertsGenerated", 0);
-            response.put("errors", List.of("Internal server error during file processing"));
-            
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(500).body(Map.of(
+                "processed", processed,
+                "success", success,
+                "failed", failed,
+                "errors", List.of(Map.of("transactionId", null, "error", e.getMessage()))
+            ));
         }
     }
 

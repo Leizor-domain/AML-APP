@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -93,90 +94,83 @@ public class CurrencyConversionService {
                 return cached.getRates();
             }
             
-            // Build URL with parameters
-            StringBuilder urlBuilder = new StringBuilder(BASE_URL);
-            urlBuilder.append("?base=").append(base);
-            if (symbols != null && !symbols.trim().isEmpty()) {
-                urlBuilder.append("&symbols=").append(symbols);
+            // Build API URL
+            String apiUrl = "https://api.exchangerate.host/latest?base=" + base;
+            if (symbols != null && !symbols.isEmpty()) {
+                apiUrl += "&symbols=" + symbols;
             }
-            
-            String url = urlBuilder.toString();
-            logger.info("Fetching exchange rates from: {}", url);
-            
-            String response = restTemplate.getForObject(url, String.class);
-            
-            if (response == null || response.trim().isEmpty()) {
-                logger.error("Received null or empty response from exchange rate API");
-                return createErrorResponse(base, "No response from API");
+            ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                // Parse and return real data
+                JsonNode rootNode;
+                try {
+                    rootNode = objectMapper.readTree(response.getBody());
+                } catch (Exception e) {
+                    logger.error("Failed to parse JSON response: {}", e.getMessage());
+                    return createErrorResponse(base, "Invalid response format from API");
+                }
+                
+                // Check if the response contains an error
+                if (rootNode.has("error") && rootNode.get("error").asBoolean()) {
+                    String errorMessage = rootNode.has("message") ? rootNode.get("message").asText() : "Unknown API error";
+                    logger.error("API Error: {}", errorMessage);
+                    return createErrorResponse(base, errorMessage);
+                }
+                
+                // Validate required fields
+                if (!rootNode.has("base") || !rootNode.has("date") || !rootNode.has("rates")) {
+                    logger.error("Missing required fields in API response");
+                    return createErrorResponse(base, "Invalid response format from API");
+                }
+                
+                CurrencyRateDTO parsedDto = new CurrencyRateDTO();
+                parsedDto.setBase(rootNode.get("base").asText());
+                
+                try {
+                    parsedDto.setDate(LocalDate.parse(rootNode.get("date").asText()));
+                } catch (Exception e) {
+                    logger.error("Failed to parse date from API response: {}", e.getMessage());
+                    parsedDto.setDate(LocalDate.now());
+                }
+                
+                Map<String, BigDecimal> rates = new HashMap<>();
+                JsonNode ratesNode = rootNode.get("rates");
+                
+                if (ratesNode != null && ratesNode.isObject()) {
+                    ratesNode.fields().forEachRemaining(entry -> {
+                        try {
+                            String currency = entry.getKey();
+                            BigDecimal rate = new BigDecimal(entry.getValue().asText());
+                            rates.put(currency, rate);
+                        } catch (NumberFormatException e) {
+                            logger.warn("Invalid rate value for currency {}: {}", entry.getKey(), entry.getValue().asText());
+                        }
+                    });
+                }
+                
+                parsedDto.setRates(rates);
+                
+                // Cache the result
+                ratesCache.put(cacheKey, new CachedRates(parsedDto));
+                
+                logger.info("Successfully fetched {} exchange rates for base: {}", rates.size(), base);
+                return parsedDto;
+            } else {
+                logger.error("Currency API returned non-2xx: {}", response.getStatusCode());
+                return createFallbackRates(base, symbols, "API returned non-2xx");
             }
-            
-            JsonNode rootNode;
-            try {
-                rootNode = objectMapper.readTree(response);
-            } catch (Exception e) {
-                logger.error("Failed to parse JSON response: {}", e.getMessage());
-                return createErrorResponse(base, "Invalid response format from API");
-            }
-            
-            // Check if the response contains an error
-            if (rootNode.has("error") && rootNode.get("error").asBoolean()) {
-                String errorMessage = rootNode.has("message") ? rootNode.get("message").asText() : "Unknown API error";
-                logger.error("API Error: {}", errorMessage);
-                return createErrorResponse(base, errorMessage);
-            }
-            
-            // Validate required fields
-            if (!rootNode.has("base") || !rootNode.has("date") || !rootNode.has("rates")) {
-                logger.error("Missing required fields in API response");
-                return createErrorResponse(base, "Invalid response format from API");
-            }
-            
-            // Parse successful response
-            CurrencyRateDTO result = new CurrencyRateDTO();
-            result.setBase(rootNode.get("base").asText());
-            
-            try {
-                result.setDate(LocalDate.parse(rootNode.get("date").asText()));
-            } catch (Exception e) {
-                logger.error("Failed to parse date from API response: {}", e.getMessage());
-                result.setDate(LocalDate.now());
-            }
-            
-            Map<String, BigDecimal> rates = new HashMap<>();
-            JsonNode ratesNode = rootNode.get("rates");
-            
-            if (ratesNode != null && ratesNode.isObject()) {
-                ratesNode.fields().forEachRemaining(entry -> {
-                    try {
-                        String currency = entry.getKey();
-                        BigDecimal rate = new BigDecimal(entry.getValue().asText());
-                        rates.put(currency, rate);
-                    } catch (NumberFormatException e) {
-                        logger.warn("Invalid rate value for currency {}: {}", entry.getKey(), entry.getValue().asText());
-                    }
-                });
-            }
-            
-            result.setRates(rates);
-            
-            // Cache the result
-            ratesCache.put(cacheKey, new CachedRates(result));
-            
-            logger.info("Successfully fetched {} exchange rates for base: {}", rates.size(), base);
-            return result;
-            
         } catch (ResourceAccessException e) {
             logger.error("Network error while fetching exchange rates: {}", e.getMessage());
-            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
+            return createFallbackRates(base, symbols, "Service temporarily unavailable. Please try again later.");
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             logger.error("HTTP error while fetching exchange rates: {} - {}", e.getStatusCode(), e.getMessage());
-            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
+            return createFallbackRates(base, symbols, "Service temporarily unavailable. Please try again later.");
         } catch (org.springframework.web.client.HttpServerErrorException e) {
             logger.error("Server error while fetching exchange rates: {} - {}", e.getStatusCode(), e.getMessage());
-            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
+            return createFallbackRates(base, symbols, "Service temporarily unavailable. Please try again later.");
         } catch (Exception e) {
             logger.error("Unexpected error while fetching exchange rates: {}", e.getMessage(), e);
-            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
+            return createFallbackRates(base, symbols, "Service temporarily unavailable. Please try again later.");
         }
     }
     
@@ -256,6 +250,16 @@ public class CurrencyConversionService {
         errorResponse.setRates(new HashMap<>());
         errorResponse.setError(errorMessage);
         return errorResponse;
+    }
+
+    private CurrencyRateDTO createFallbackRates(String base, String symbols, String errorMessage) {
+        logger.warn("Using fallback rates for base: {}, symbols: {}, due to: {}", base, symbols, errorMessage);
+        CurrencyRateDTO fallback = new CurrencyRateDTO();
+        fallback.setBase(base);
+        fallback.setDate(LocalDate.now());
+        fallback.setError(errorMessage);
+        fallback.setRates(new HashMap<>()); // Return empty rates as a fallback
+        return fallback;
     }
     
     /**

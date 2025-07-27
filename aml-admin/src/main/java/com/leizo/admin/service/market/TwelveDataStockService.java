@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,103 +46,77 @@ public class TwelveDataStockService {
     
     public StockDataDTO getStockData(String symbol) {
         try {
-            // Input validation
-            if (symbol == null || symbol.trim().isEmpty()) {
-                logger.error("Stock symbol is null or empty");
-                return createErrorResponse("", "Stock symbol cannot be null or empty");
-            }
-            
-            // Normalize symbol
-            symbol = symbol.trim().toUpperCase();
-            
-            // Validate symbol format (more lenient - allow common stock symbols)
-            if (!symbol.matches("^[A-Z0-9.]{1,10}$")) {
-                logger.warn("Invalid stock symbol format: {}, using AAPL as fallback", symbol);
-                symbol = "AAPL"; // Use AAPL as fallback
-            }
-            
-            // Check if API key is available
-            if (apiKey == null || apiKey.trim().isEmpty()) {
-                logger.error("API key is not configured");
-                return createErrorResponse(symbol, "API key not configured");
-            }
-            
-            String url = String.format("%s?symbol=%s&interval=1min&apikey=%s", 
-                BASE_URL, symbol, apiKey);
-            
-            logger.info("Fetching stock data for symbol: {}", symbol);
-            
-            String response = restTemplate.getForObject(url, String.class);
-            
-            if (response == null || response.trim().isEmpty()) {
-                logger.error("Received null or empty response from Twelve Data API for symbol: {}", symbol);
-                return createErrorResponse(symbol, "No response from API");
-            }
-            
-            JsonNode rootNode;
-            try {
-                rootNode = objectMapper.readTree(response);
-            } catch (Exception e) {
-                logger.error("Failed to parse JSON response for symbol {}: {}", symbol, e.getMessage());
-                return createErrorResponse(symbol, "Invalid response format from API");
-            }
-            
-            // Check if the response contains an error
-            if (rootNode.has("code") && rootNode.has("message")) {
-                String errorMessage = rootNode.get("message").asText();
-                logger.error("API Error for symbol {}: {}", symbol, errorMessage);
-                return createErrorResponse(symbol, errorMessage);
-            }
-            
-            // Check if we have values array
-            if (!rootNode.has("values") || !rootNode.get("values").isArray()) {
-                logger.error("Invalid response format for symbol {}: missing or invalid values array", symbol);
-                return createErrorResponse(symbol, "Invalid response format");
-            }
-            
-            List<StockDataDTO.PricePoint> pricePoints = new ArrayList<>();
-            JsonNode valuesNode = rootNode.get("values");
-            
-            for (JsonNode valueNode : valuesNode) {
+            String apiUrl = "https://api.twelvedata.com/time_series?symbol=" + symbol + "&interval=1min&apikey=" + apiKey;
+            ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                // Parse and return real data
+                JsonNode rootNode;
                 try {
-                    if (valueNode.has("datetime") && valueNode.has("close")) {
-                        StockDataDTO.PricePoint point = new StockDataDTO.PricePoint();
-                        point.setDatetime(valueNode.get("datetime").asText());
-                        
-                        String closeStr = valueNode.get("close").asText();
-                        if (closeStr != null && !closeStr.trim().isEmpty()) {
-                            try {
-                                point.setClose(Double.parseDouble(closeStr));
-                                pricePoints.add(point);
-                            } catch (NumberFormatException e) {
-                                logger.warn("Invalid close price for symbol {}: {}", symbol, closeStr);
+                    rootNode = objectMapper.readTree(response.getBody());
+                } catch (Exception e) {
+                    logger.error("Failed to parse JSON response for symbol {}: {}", symbol, e.getMessage());
+                    return createErrorResponse(symbol, "Invalid response format from API");
+                }
+                
+                // Check if the response contains an error
+                if (rootNode.has("code") && rootNode.has("message")) {
+                    String errorMessage = rootNode.get("message").asText();
+                    logger.error("API Error for symbol {}: {}", symbol, errorMessage);
+                    return createErrorResponse(symbol, errorMessage);
+                }
+                
+                // Check if we have values array
+                if (!rootNode.has("values") || !rootNode.get("values").isArray()) {
+                    logger.error("Invalid response format for symbol {}: missing or invalid values array", symbol);
+                    return createErrorResponse(symbol, "Invalid response format");
+                }
+                
+                List<StockDataDTO.PricePoint> pricePoints = new ArrayList<>();
+                JsonNode valuesNode = rootNode.get("values");
+                
+                for (JsonNode valueNode : valuesNode) {
+                    try {
+                        if (valueNode.has("datetime") && valueNode.has("close")) {
+                            StockDataDTO.PricePoint point = new StockDataDTO.PricePoint();
+                            point.setDatetime(valueNode.get("datetime").asText());
+                            
+                            String closeStr = valueNode.get("close").asText();
+                            if (closeStr != null && !closeStr.trim().isEmpty()) {
+                                try {
+                                    point.setClose(Double.parseDouble(closeStr));
+                                    pricePoints.add(point);
+                                } catch (NumberFormatException e) {
+                                    logger.warn("Invalid close price for symbol {}: {}", symbol, closeStr);
+                                }
                             }
                         }
+                    } catch (Exception e) {
+                        logger.warn("Failed to parse price point for symbol {}: {}", symbol, e.getMessage());
                     }
-                } catch (Exception e) {
-                    logger.warn("Failed to parse price point for symbol {}: {}", symbol, e.getMessage());
                 }
+                
+                StockDataDTO result = new StockDataDTO();
+                result.setSymbol(symbol);
+                result.setData(pricePoints);
+                
+                logger.info("Successfully fetched {} price points for symbol: {}", pricePoints.size(), symbol);
+                return result;
+            } else {
+                logger.error("Stock API returned non-2xx: {}", response.getStatusCode());
+                return createFallbackStockData(symbol, "API returned non-2xx");
             }
-            
-            StockDataDTO result = new StockDataDTO();
-            result.setSymbol(symbol);
-            result.setData(pricePoints);
-            
-            logger.info("Successfully fetched {} price points for symbol: {}", pricePoints.size(), symbol);
-            return result;
-            
         } catch (ResourceAccessException e) {
             logger.error("Network error while fetching stock data for symbol {}: {}", symbol, e.getMessage());
-            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
+            return createFallbackStockData(symbol, "Service temporarily unavailable. Please try again later.");
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             logger.error("HTTP error while fetching stock data for symbol {}: {} - {}", symbol, e.getStatusCode(), e.getMessage());
-            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
+            return createFallbackStockData(symbol, "Service temporarily unavailable. Please try again later.");
         } catch (org.springframework.web.client.HttpServerErrorException e) {
             logger.error("Server error while fetching stock data for symbol {}: {} - {}", symbol, e.getStatusCode(), e.getMessage());
-            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
+            return createFallbackStockData(symbol, "Service temporarily unavailable. Please try again later.");
         } catch (Exception e) {
-            logger.error("Unexpected error while fetching stock data for symbol {}: {}", symbol, e.getMessage(), e);
-            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
+            logger.error("Stock API call failed: {}", e.getMessage());
+            return createFallbackStockData(symbol, e.getMessage());
         }
     }
     
@@ -151,6 +126,15 @@ public class TwelveDataStockService {
         errorResponse.setData(new ArrayList<>());
         errorResponse.setError(errorMessage);
         return errorResponse;
+    }
+
+    private StockDataDTO createFallbackStockData(String symbol, String errorMessage) {
+        logger.warn("Using fallback data for symbol: {}", symbol);
+        StockDataDTO fallback = new StockDataDTO();
+        fallback.setSymbol(symbol);
+        fallback.setData(new ArrayList<>()); // Return empty data as a fallback
+        fallback.setError(errorMessage);
+        return fallback;
     }
     
     public static class StockDataDTO {

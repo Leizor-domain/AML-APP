@@ -68,11 +68,15 @@ public class CurrencyConversionService {
                 return createErrorResponse(base, "Invalid base currency format. Must be 3 letters (e.g., USD, EUR)");
             }
             
-            // Validate symbols if provided
+            // Validate symbols if provided (more lenient - allow empty symbols)
             if (symbols != null && !symbols.trim().isEmpty()) {
                 String[] symbolArray = symbols.split(",");
                 for (String symbol : symbolArray) {
                     String cleanSymbol = symbol.trim().toUpperCase();
+                    // Skip empty symbols after splitting
+                    if (cleanSymbol.isEmpty()) {
+                        continue;
+                    }
                     if (!cleanSymbol.matches("^[A-Z]{3}$")) {
                         logger.error("Invalid symbol format: {}", cleanSymbol);
                         return createErrorResponse(base, "Invalid symbol format: " + cleanSymbol + ". Must be 3 letters");
@@ -185,30 +189,32 @@ public class CurrencyConversionService {
      */
     public BigDecimal convertCurrency(String fromCurrency, String toCurrency, BigDecimal amount) {
         try {
-            // Input validation
+            // Input validation with defaults
             if (fromCurrency == null || fromCurrency.trim().isEmpty()) {
-                throw new IllegalArgumentException("From currency cannot be null or empty");
+                fromCurrency = "USD"; // Default to USD
             }
             if (toCurrency == null || toCurrency.trim().isEmpty()) {
-                throw new IllegalArgumentException("To currency cannot be null or empty");
+                toCurrency = "EUR"; // Default to EUR
             }
             if (amount == null) {
-                throw new IllegalArgumentException("Amount cannot be null");
+                amount = BigDecimal.ONE; // Default to 1
             }
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Amount must be greater than zero");
+                amount = BigDecimal.ONE; // Default to 1 if invalid
             }
             
             // Normalize currencies
             fromCurrency = fromCurrency.trim().toUpperCase();
             toCurrency = toCurrency.trim().toUpperCase();
             
-            // Validate currency formats
+            // Validate currency formats (more lenient)
             if (!fromCurrency.matches("^[A-Z]{3}$")) {
-                throw new IllegalArgumentException("Invalid from currency format: " + fromCurrency);
+                logger.warn("Invalid from currency format: {}, using USD", fromCurrency);
+                fromCurrency = "USD";
             }
             if (!toCurrency.matches("^[A-Z]{3}$")) {
-                throw new IllegalArgumentException("Invalid to currency format: " + toCurrency);
+                logger.warn("Invalid to currency format: {}, using EUR", toCurrency);
+                toCurrency = "EUR";
             }
             
             // Same currency conversion

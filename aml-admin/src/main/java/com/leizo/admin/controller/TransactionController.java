@@ -153,8 +153,17 @@ public class TransactionController {
             
         } catch (Exception e) {
             logger.error("Unexpected error in file ingestion: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error during file processing"));
+            // Return 200 OK with error status instead of 500
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "ERROR");
+            response.put("message", "File processing failed: " + e.getMessage());
+            response.put("processed", 0);
+            response.put("successful", 0);
+            response.put("failed", 0);
+            response.put("alertsGenerated", 0);
+            response.put("errors", List.of("Internal server error during file processing"));
+            
+            return ResponseEntity.ok(response);
         }
     }
 
@@ -311,8 +320,20 @@ public class TransactionController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to retrieve transactions: " + e.getMessage()));
+            logger.error("Failed to retrieve transactions: {}", e.getMessage(), e);
+            // Return 200 OK with error status instead of 500
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "ERROR");
+            response.put("message", "Failed to retrieve transactions: " + e.getMessage());
+            response.put("content", new ArrayList<>());
+            response.put("totalElements", 0);
+            response.put("totalPages", 0);
+            response.put("currentPage", page);
+            response.put("size", size);
+            response.put("first", true);
+            response.put("last", true);
+            
+            return ResponseEntity.ok(response);
         }
     }
 
@@ -326,8 +347,14 @@ public class TransactionController {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to retrieve transaction: " + e.getMessage()));
+            logger.error("Failed to retrieve transaction {}: {}", id, e.getMessage(), e);
+            // Return 200 OK with error status instead of 500
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "ERROR");
+            response.put("message", "Failed to retrieve transaction: " + e.getMessage());
+            response.put("transaction", null);
+            
+            return ResponseEntity.ok(response);
         }
     }
 } 

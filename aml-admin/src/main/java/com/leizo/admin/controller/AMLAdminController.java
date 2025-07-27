@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/admin")
+@CrossOrigin(origins = "*")
 public class AMLAdminController {
 
     @Autowired
@@ -59,6 +60,75 @@ public class AMLAdminController {
             response.put("users", new ArrayList<>());
             
             return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    // Enhanced User Management endpoints for the User Management page
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@RequestBody Map<String, Object> userRequest) {
+        try {
+            Users user = new Users();
+            user.setUsername((String) userRequest.get("email")); // Using email as username
+            user.setRole((String) userRequest.get("role"));
+            user.setEnabled("ACTIVE".equals(userRequest.get("status")));
+            user.setCreatedAt(java.time.LocalDateTime.now());
+            
+            Users savedUser = userRepository.save(user);
+            return ResponseEntity.status(201).body(savedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Failed to create user: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody Map<String, Object> userRequest) {
+        try {
+            Users user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            user.setUsername((String) userRequest.get("email"));
+            user.setRole((String) userRequest.get("role"));
+            user.setEnabled("ACTIVE".equals(userRequest.get("status")));
+            
+            Users savedUser = userRepository.save(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Failed to update user: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+        try {
+            if (!userRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            userRepository.deleteById(id);
+            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Failed to delete user: " + e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/users/{id}/status")
+    public ResponseEntity<?> updateUserStatus(@PathVariable Integer id, @RequestBody Map<String, String> statusRequest) {
+        try {
+            Users user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            user.setEnabled("ACTIVE".equals(statusRequest.get("status")));
+            Users savedUser = userRepository.save(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "Failed to update user status: " + e.getMessage()));
         }
     }
 

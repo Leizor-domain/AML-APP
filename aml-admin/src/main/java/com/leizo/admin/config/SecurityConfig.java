@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .csrf(customizer -> customizer.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**", "/users/login", "/error").permitAll()
+                        .requestMatchers("/public/**", "/users/login", "/error", "/api/currency/**", "/api/stocks/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(session ->

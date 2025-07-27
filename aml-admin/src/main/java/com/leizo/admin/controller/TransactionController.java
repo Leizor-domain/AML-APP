@@ -117,27 +117,27 @@ public class TransactionController {
                     // TODO: Implement JSON to DTO parsing if needed
                     errors.add("JSON ingestion not yet implemented for new DTO structure");
                 }
-                         } catch (IOException e) {
-                 logger.error("Failed to parse file {}: {}", filename, e.getMessage());
-                 Map<String, Object> response = new HashMap<>();
-                 response.put("processed", 0);
-                 response.put("successful", 0);
-                 response.put("failed", 0);
-                 response.put("alertsGenerated", 0);
-                 response.put("errors", List.of("Failed to parse file: " + e.getMessage()));
-                 response.put("message", "File parsing failed");
-                 return ResponseEntity.ok(response);
-             } catch (Exception e) {
-                 logger.error("Unexpected error parsing file {}: {}", filename, e.getMessage());
-                 Map<String, Object> response = new HashMap<>();
-                 response.put("processed", 0);
-                 response.put("successful", 0);
-                 response.put("failed", 0);
-                 response.put("alertsGenerated", 0);
-                 response.put("errors", List.of("Failed to process file: " + e.getMessage()));
-                 response.put("message", "File processing failed");
-                 return ResponseEntity.ok(response);
-             }
+            } catch (IOException e) {
+                logger.error("Failed to parse file {}: {}", filename, e.getMessage());
+                Map<String, Object> response = new HashMap<>();
+                response.put("processed", 0);
+                response.put("successful", 0);
+                response.put("failed", 0);
+                response.put("alertsGenerated", 0);
+                response.put("errors", List.of("Failed to parse file: " + e.getMessage()));
+                response.put("message", "File parsing failed");
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                logger.error("Unexpected error parsing file {}: {}", filename, e.getMessage());
+                Map<String, Object> response = new HashMap<>();
+                response.put("processed", 0);
+                response.put("successful", 0);
+                response.put("failed", 0);
+                response.put("alertsGenerated", 0);
+                response.put("errors", List.of("Failed to process file: " + e.getMessage()));
+                response.put("message", "File processing failed");
+                return ResponseEntity.ok(response);
+            }
             
             // Map DTOs to entities with validation
             List<Transaction> transactions = new ArrayList<>();

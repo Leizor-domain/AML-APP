@@ -26,8 +26,21 @@ public class TwelveDataStockService {
     private final ObjectMapper objectMapper;
     
     public TwelveDataStockService() {
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = createRestTemplateWithTimeouts();
         this.objectMapper = new ObjectMapper();
+    }
+    
+    private RestTemplate createRestTemplateWithTimeouts() {
+        RestTemplate template = new RestTemplate();
+        
+        // Configure timeout settings
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory = 
+            new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000); // 5 seconds
+        factory.setReadTimeout(10000);   // 10 seconds
+        
+        template.setRequestFactory(factory);
+        return template;
     }
     
     public StockDataDTO getStockData(String symbol) {
@@ -80,10 +93,16 @@ public class TwelveDataStockService {
             
         } catch (ResourceAccessException e) {
             logger.error("Network error while fetching stock data for symbol {}: {}", symbol, e.getMessage());
-            return createErrorResponse(symbol, "Network error: " + e.getMessage());
+            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            logger.error("HTTP error while fetching stock data for symbol {}: {} - {}", symbol, e.getStatusCode(), e.getMessage());
+            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            logger.error("Server error while fetching stock data for symbol {}: {} - {}", symbol, e.getStatusCode(), e.getMessage());
+            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
         } catch (Exception e) {
             logger.error("Unexpected error while fetching stock data for symbol {}: {}", symbol, e.getMessage(), e);
-            return createErrorResponse(symbol, "Unexpected error: " + e.getMessage());
+            return createErrorResponse(symbol, "Service temporarily unavailable. Please try again later.");
         }
     }
     

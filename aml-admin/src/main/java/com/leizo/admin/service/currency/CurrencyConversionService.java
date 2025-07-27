@@ -27,9 +27,22 @@ public class CurrencyConversionService {
     private final Map<String, CachedRates> ratesCache;
     
     public CurrencyConversionService() {
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = createRestTemplateWithTimeouts();
         this.objectMapper = new ObjectMapper();
         this.ratesCache = new ConcurrentHashMap<>();
+    }
+    
+    private RestTemplate createRestTemplateWithTimeouts() {
+        RestTemplate template = new RestTemplate();
+        
+        // Configure timeout settings
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory = 
+            new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000); // 5 seconds
+        factory.setReadTimeout(10000);   // 10 seconds
+        
+        template.setRequestFactory(factory);
+        return template;
     }
     
     /**
@@ -101,10 +114,16 @@ public class CurrencyConversionService {
             
         } catch (ResourceAccessException e) {
             logger.error("Network error while fetching exchange rates: {}", e.getMessage());
-            return createErrorResponse(base, "Network error: " + e.getMessage());
+            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            logger.error("HTTP error while fetching exchange rates: {} - {}", e.getStatusCode(), e.getMessage());
+            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            logger.error("Server error while fetching exchange rates: {} - {}", e.getStatusCode(), e.getMessage());
+            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
         } catch (Exception e) {
             logger.error("Unexpected error while fetching exchange rates: {}", e.getMessage(), e);
-            return createErrorResponse(base, "Unexpected error: " + e.getMessage());
+            return createErrorResponse(base, "Service temporarily unavailable. Please try again later.");
         }
     }
     

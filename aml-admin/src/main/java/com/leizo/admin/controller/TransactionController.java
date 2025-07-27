@@ -27,11 +27,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leizo.admin.dto.TransactionDTO;
 import com.leizo.admin.dto.TransactionCsvParser;
 import com.leizo.admin.dto.TransactionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/ingest")
 @CrossOrigin(origins = "*")
 public class TransactionController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
     @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
@@ -108,32 +112,73 @@ public class TransactionController {
             
             for (Transaction txn : batch) {
                 try {
-                    // Risk scoring
-                    txn.setRiskScore(riskScoringService.assessRisk(txn));
-                    
-                    // Rule engine (apply all active rules)
-                    for (var rule : ruleEngine.getActiveRules()) {
-                        ruleEngine.applyRule(txn, rule, txn.getAmount());
+                    // Validate transaction data before processing
+                    if (txn.getSender() == null || txn.getSender().trim().isEmpty()) {
+                        throw new IllegalArgumentException("Sender name cannot be null or empty");
+                    }
+                    if (txn.getAmount() == null || txn.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new IllegalArgumentException("Amount must be greater than zero");
                     }
                     
-                    // Sanctions check with enhanced matching
-                    boolean isSanctioned = sanctionsChecker.isSanctionedEntity(
-                        txn.getSender(), txn.getCountry(), txn.getDob(), null
-                    );
+                    // Risk scoring with error handling
+                    try {
+                        txn.setRiskScore(riskScoringService.assessRisk(txn));
+                    } catch (Exception e) {
+                        logger.warn("Risk scoring failed for transaction {}: {}", txn.getId(), e.getMessage());
+                        txn.setRiskScore(com.leizo.enums.RiskScore.MEDIUM); // Default fallback
+                    }
+                    
+                    // Rule engine (apply all active rules) with error handling
+                    try {
+                        for (var rule : ruleEngine.getActiveRules()) {
+                            ruleEngine.applyRule(txn, rule, txn.getAmount());
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Rule engine failed for transaction {}: {}", txn.getId(), e.getMessage());
+                        // Continue processing even if rule engine fails
+                    }
+                    
+                    // Sanctions check with enhanced matching and error handling
+                    boolean isSanctioned = false;
+                    try {
+                        isSanctioned = sanctionsChecker.isSanctionedEntity(
+                            txn.getSender(), txn.getCountry(), txn.getDob(), null
+                        );
+                    } catch (Exception e) {
+                        logger.warn("Sanctions check failed for transaction {}: {}", txn.getId(), e.getMessage());
+                        // Continue processing even if sanctions check fails
+                    }
                     
                     if (isSanctioned) {
-                        Alert alert = createSanctionsAlert(txn);
-                        alertRepository.save(alert);
-                        alertsGenerated++;
+                        try {
+                            Alert alert = createSanctionsAlert(txn);
+                            alertRepository.save(alert);
+                            alertsGenerated++;
+                        } catch (Exception e) {
+                            logger.error("Failed to create sanctions alert for transaction {}: {}", txn.getId(), e.getMessage());
+                            // Continue processing even if alert creation fails
+                        }
                     }
                     
-                    // Save transaction
-                    transactionRepository.save(txn);
-                    successful++;
+                    // Save transaction with validation
+                    try {
+                        // Ensure required fields are set
+                        if (txn.getCurrency() == null || txn.getCurrency().trim().isEmpty()) {
+                            txn.setCurrency("USD"); // Default currency
+                        }
+                        
+                        transactionRepository.save(txn);
+                        successful++;
+                    } catch (DataAccessException e) {
+                        logger.error("Database error saving transaction {}: {}", txn.getId(), e.getMessage());
+                        throw new RuntimeException("Database error: " + e.getMessage());
+                    }
                     
                 } catch (Exception e) {
                     failed++;
-                    errors.add("Transaction " + txn.getId() + " failed: " + e.getMessage());
+                    String errorMsg = "Transaction " + (txn.getId() != null ? txn.getId() : "unknown") + " failed: " + e.getMessage();
+                    errors.add(errorMsg);
+                    logger.error(errorMsg, e);
                 }
             }
         }

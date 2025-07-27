@@ -13,7 +13,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/currency")
-@CrossOrigin(origins = "*")
 public class CurrencyConversionController {
     
     private static final Logger logger = LoggerFactory.getLogger(CurrencyConversionController.class);

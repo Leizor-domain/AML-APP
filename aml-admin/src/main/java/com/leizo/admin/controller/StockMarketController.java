@@ -14,7 +14,6 @@ import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/stocks")
-@CrossOrigin(origins = "*")
 public class StockMarketController {
     
     private static final Logger logger = LoggerFactory.getLogger(StockMarketController.class);

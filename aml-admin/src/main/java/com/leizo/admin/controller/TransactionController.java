@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/ingest")
-@CrossOrigin(origins = "*")
 public class TransactionController {
     
     private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);

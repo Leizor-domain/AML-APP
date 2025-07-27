@@ -15,7 +15,6 @@ import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = "*")
 public class AMLAdminController {
 
     @Autowired(required = false)

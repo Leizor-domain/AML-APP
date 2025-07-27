@@ -53,6 +53,33 @@ public class CurrencyConversionService {
      */
     public CurrencyRateDTO getLatestRates(String base, String symbols) {
         try {
+            // Input validation
+            if (base == null || base.trim().isEmpty()) {
+                logger.warn("Base currency is null or empty, using USD as default");
+                base = "USD";
+            }
+            
+            // Normalize base currency
+            base = base.trim().toUpperCase();
+            
+            // Validate base currency format (3 letters)
+            if (!base.matches("^[A-Z]{3}$")) {
+                logger.error("Invalid base currency format: {}", base);
+                return createErrorResponse(base, "Invalid base currency format. Must be 3 letters (e.g., USD, EUR)");
+            }
+            
+            // Validate symbols if provided
+            if (symbols != null && !symbols.trim().isEmpty()) {
+                String[] symbolArray = symbols.split(",");
+                for (String symbol : symbolArray) {
+                    String cleanSymbol = symbol.trim().toUpperCase();
+                    if (!cleanSymbol.matches("^[A-Z]{3}$")) {
+                        logger.error("Invalid symbol format: {}", cleanSymbol);
+                        return createErrorResponse(base, "Invalid symbol format: " + cleanSymbol + ". Must be 3 letters");
+                    }
+                }
+            }
+            
             String cacheKey = base + "_" + (symbols != null ? symbols : "ALL");
             CachedRates cached = ratesCache.get(cacheKey);
             
@@ -74,33 +101,55 @@ public class CurrencyConversionService {
             
             String response = restTemplate.getForObject(url, String.class);
             
-            if (response == null) {
-                logger.error("Received null response from exchange rate API");
+            if (response == null || response.trim().isEmpty()) {
+                logger.error("Received null or empty response from exchange rate API");
                 return createErrorResponse(base, "No response from API");
             }
             
-            JsonNode rootNode = objectMapper.readTree(response);
+            JsonNode rootNode;
+            try {
+                rootNode = objectMapper.readTree(response);
+            } catch (Exception e) {
+                logger.error("Failed to parse JSON response: {}", e.getMessage());
+                return createErrorResponse(base, "Invalid response format from API");
+            }
             
             // Check if the response contains an error
             if (rootNode.has("error") && rootNode.get("error").asBoolean()) {
-                String errorMessage = rootNode.get("message").asText();
+                String errorMessage = rootNode.has("message") ? rootNode.get("message").asText() : "Unknown API error";
                 logger.error("API Error: {}", errorMessage);
                 return createErrorResponse(base, errorMessage);
+            }
+            
+            // Validate required fields
+            if (!rootNode.has("base") || !rootNode.has("date") || !rootNode.has("rates")) {
+                logger.error("Missing required fields in API response");
+                return createErrorResponse(base, "Invalid response format from API");
             }
             
             // Parse successful response
             CurrencyRateDTO result = new CurrencyRateDTO();
             result.setBase(rootNode.get("base").asText());
-            result.setDate(LocalDate.parse(rootNode.get("date").asText()));
+            
+            try {
+                result.setDate(LocalDate.parse(rootNode.get("date").asText()));
+            } catch (Exception e) {
+                logger.error("Failed to parse date from API response: {}", e.getMessage());
+                result.setDate(LocalDate.now());
+            }
             
             Map<String, BigDecimal> rates = new HashMap<>();
             JsonNode ratesNode = rootNode.get("rates");
             
             if (ratesNode != null && ratesNode.isObject()) {
                 ratesNode.fields().forEachRemaining(entry -> {
-                    String currency = entry.getKey();
-                    BigDecimal rate = new BigDecimal(entry.getValue().asText());
-                    rates.put(currency, rate);
+                    try {
+                        String currency = entry.getKey();
+                        BigDecimal rate = new BigDecimal(entry.getValue().asText());
+                        rates.put(currency, rate);
+                    } catch (NumberFormatException e) {
+                        logger.warn("Invalid rate value for currency {}: {}", entry.getKey(), entry.getValue().asText());
+                    }
                 });
             }
             
@@ -136,6 +185,37 @@ public class CurrencyConversionService {
      */
     public BigDecimal convertCurrency(String fromCurrency, String toCurrency, BigDecimal amount) {
         try {
+            // Input validation
+            if (fromCurrency == null || fromCurrency.trim().isEmpty()) {
+                throw new IllegalArgumentException("From currency cannot be null or empty");
+            }
+            if (toCurrency == null || toCurrency.trim().isEmpty()) {
+                throw new IllegalArgumentException("To currency cannot be null or empty");
+            }
+            if (amount == null) {
+                throw new IllegalArgumentException("Amount cannot be null");
+            }
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Amount must be greater than zero");
+            }
+            
+            // Normalize currencies
+            fromCurrency = fromCurrency.trim().toUpperCase();
+            toCurrency = toCurrency.trim().toUpperCase();
+            
+            // Validate currency formats
+            if (!fromCurrency.matches("^[A-Z]{3}$")) {
+                throw new IllegalArgumentException("Invalid from currency format: " + fromCurrency);
+            }
+            if (!toCurrency.matches("^[A-Z]{3}$")) {
+                throw new IllegalArgumentException("Invalid to currency format: " + toCurrency);
+            }
+            
+            // Same currency conversion
+            if (fromCurrency.equals(toCurrency)) {
+                return amount;
+            }
+            
             CurrencyRateDTO rates = getLatestRates(fromCurrency, toCurrency);
             
             if (rates.getError() != null) {
@@ -143,13 +223,21 @@ public class CurrencyConversionService {
                 throw new RuntimeException("Failed to get exchange rates: " + rates.getError());
             }
             
-            BigDecimal rate = rates.getRates().get(toCurrency);
+            Map<String, BigDecimal> ratesMap = rates.getRates();
+            if (ratesMap == null || ratesMap.isEmpty()) {
+                throw new RuntimeException("No exchange rates available");
+            }
+            
+            BigDecimal rate = ratesMap.get(toCurrency);
             if (rate == null) {
                 throw new IllegalArgumentException("Rate not found for currency: " + toCurrency);
             }
             
             return amount.multiply(rate);
             
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid conversion request: {}", e.getMessage());
+            throw e; // Re-throw validation errors
         } catch (Exception e) {
             logger.error("Currency conversion failed: {}", e.getMessage());
             throw new RuntimeException("Currency conversion failed: " + e.getMessage());
@@ -158,7 +246,7 @@ public class CurrencyConversionService {
     
     private CurrencyRateDTO createErrorResponse(String base, String errorMessage) {
         CurrencyRateDTO errorResponse = new CurrencyRateDTO();
-        errorResponse.setBase(base);
+        errorResponse.setBase(base != null ? base : "USD");
         errorResponse.setRates(new HashMap<>());
         errorResponse.setError(errorMessage);
         return errorResponse;
@@ -224,9 +312,6 @@ public class CurrencyConversionService {
         }
     }
     
-    /**
-     * Internal class for caching rates with expiration
-     */
     private static class CachedRates {
         private final CurrencyRateDTO rates;
         private final LocalDateTime cachedAt;

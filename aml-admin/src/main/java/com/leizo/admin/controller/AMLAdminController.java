@@ -96,13 +96,15 @@ public class AMLAdminController {
                 return ResponseEntity.ok(response);
             }
         } catch (Exception e) {
+            // Return 200 OK with error status instead of 500
             Map<String, Object> response = new HashMap<>();
-            response.put("status", "ERROR");
+            response.put("status", "DOWN");
             response.put("message", "Database connection failed: " + e.getMessage());
             response.put("userCount", 0);
             response.put("users", new ArrayList<>());
+            response.put("reason", e.getMessage());
             
-            return ResponseEntity.status(500).body(response);
+            return ResponseEntity.ok(response);
         }
     }
 

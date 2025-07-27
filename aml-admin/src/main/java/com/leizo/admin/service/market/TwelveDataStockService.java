@@ -45,6 +45,27 @@ public class TwelveDataStockService {
     
     public StockDataDTO getStockData(String symbol) {
         try {
+            // Input validation
+            if (symbol == null || symbol.trim().isEmpty()) {
+                logger.error("Stock symbol is null or empty");
+                return createErrorResponse("", "Stock symbol cannot be null or empty");
+            }
+            
+            // Normalize symbol
+            symbol = symbol.trim().toUpperCase();
+            
+            // Validate symbol format (basic validation for stock symbols)
+            if (!symbol.matches("^[A-Z0-9.]{1,10}$")) {
+                logger.error("Invalid stock symbol format: {}", symbol);
+                return createErrorResponse(symbol, "Invalid stock symbol format. Must be 1-10 alphanumeric characters");
+            }
+            
+            // Check if API key is available
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                logger.error("API key is not configured");
+                return createErrorResponse(symbol, "API key not configured");
+            }
+            
             String url = String.format("%s?symbol=%s&interval=1min&apikey=%s", 
                 BASE_URL, symbol, apiKey);
             
@@ -52,12 +73,18 @@ public class TwelveDataStockService {
             
             String response = restTemplate.getForObject(url, String.class);
             
-            if (response == null) {
-                logger.error("Received null response from Twelve Data API for symbol: {}", symbol);
+            if (response == null || response.trim().isEmpty()) {
+                logger.error("Received null or empty response from Twelve Data API for symbol: {}", symbol);
                 return createErrorResponse(symbol, "No response from API");
             }
             
-            JsonNode rootNode = objectMapper.readTree(response);
+            JsonNode rootNode;
+            try {
+                rootNode = objectMapper.readTree(response);
+            } catch (Exception e) {
+                logger.error("Failed to parse JSON response for symbol {}: {}", symbol, e.getMessage());
+                return createErrorResponse(symbol, "Invalid response format from API");
+            }
             
             // Check if the response contains an error
             if (rootNode.has("code") && rootNode.has("message")) {
@@ -76,11 +103,23 @@ public class TwelveDataStockService {
             JsonNode valuesNode = rootNode.get("values");
             
             for (JsonNode valueNode : valuesNode) {
-                if (valueNode.has("datetime") && valueNode.has("close")) {
-                    StockDataDTO.PricePoint point = new StockDataDTO.PricePoint();
-                    point.setDatetime(valueNode.get("datetime").asText());
-                    point.setClose(Double.parseDouble(valueNode.get("close").asText()));
-                    pricePoints.add(point);
+                try {
+                    if (valueNode.has("datetime") && valueNode.has("close")) {
+                        StockDataDTO.PricePoint point = new StockDataDTO.PricePoint();
+                        point.setDatetime(valueNode.get("datetime").asText());
+                        
+                        String closeStr = valueNode.get("close").asText();
+                        if (closeStr != null && !closeStr.trim().isEmpty()) {
+                            try {
+                                point.setClose(Double.parseDouble(closeStr));
+                                pricePoints.add(point);
+                            } catch (NumberFormatException e) {
+                                logger.warn("Invalid close price for symbol {}: {}", symbol, closeStr);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to parse price point for symbol {}: {}", symbol, e.getMessage());
                 }
             }
             
@@ -108,7 +147,7 @@ public class TwelveDataStockService {
     
     private StockDataDTO createErrorResponse(String symbol, String errorMessage) {
         StockDataDTO errorResponse = new StockDataDTO();
-        errorResponse.setSymbol(symbol);
+        errorResponse.setSymbol(symbol != null ? symbol : "UNKNOWN");
         errorResponse.setData(new ArrayList<>());
         errorResponse.setError(errorMessage);
         return errorResponse;

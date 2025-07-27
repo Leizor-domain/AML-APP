@@ -52,53 +52,110 @@ public class TransactionController {
 
     @PostMapping("/file")
     public ResponseEntity<?> ingestFile(@RequestParam("file") MultipartFile file) {
-        if (file == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No file uploaded"));
-        }
-        if (file.isEmpty() || file.getSize() == 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Failed to parse file: CSV file is empty"));
-        }
-        String filename = file.getOriginalFilename();
-        boolean isCsv = filename != null && filename.toLowerCase().endsWith(".csv");
-        boolean isJson = filename != null && filename.toLowerCase().endsWith(".json");
-        List<TransactionDTO> dtos = new ArrayList<>();
-        List<String> errors = new ArrayList<>();
-        int processed = 0, successful = 0, failed = 0, alertsGenerated = 0;
         try {
-            if (isCsv) {
-                dtos = TransactionCsvParser.parse(file.getInputStream(), errors);
-                processed = dtos.size() + errors.size();
-            } else if (isJson) {
-                // TODO: Implement JSON to DTO parsing if needed
-                errors.add("JSON ingestion not yet implemented for new DTO structure");
-            } else {
-                return ResponseEntity.badRequest().body(Map.of("error", "Unsupported file type. Only CSV is allowed."));
+            // Enhanced file validation
+            if (file == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No file uploaded"));
             }
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Failed to parse file: " + e.getMessage()));
-        }
-        // Map DTOs to entities
-        List<Transaction> transactions = new ArrayList<>();
-        for (TransactionDTO dto : dtos) {
+            
+            if (file.isEmpty() || file.getSize() == 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+            }
+            
+            // Check file size limit (10MB)
+            if (file.getSize() > 10 * 1024 * 1024) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 10MB limit"));
+            }
+            
+            String filename = file.getOriginalFilename();
+            if (filename == null || filename.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid filename"));
+            }
+            
+            boolean isCsv = filename.toLowerCase().endsWith(".csv");
+            boolean isJson = filename.toLowerCase().endsWith(".json");
+            
+            if (!isCsv && !isJson) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Unsupported file type. Only CSV and JSON files are allowed."));
+            }
+            
+            List<TransactionDTO> dtos = new ArrayList<>();
+            List<String> errors = new ArrayList<>();
+            int processed = 0, successful = 0, failed = 0, alertsGenerated = 0;
+            
             try {
-                transactions.add(TransactionMapper.toEntity(dto));
+                if (isCsv) {
+                    dtos = TransactionCsvParser.parse(file.getInputStream(), errors);
+                    processed = dtos.size() + errors.size();
+                } else if (isJson) {
+                    // TODO: Implement JSON to DTO parsing if needed
+                    errors.add("JSON ingestion not yet implemented for new DTO structure");
+                }
+            } catch (IOException e) {
+                logger.error("Failed to parse file {}: {}", filename, e.getMessage());
+                return ResponseEntity.badRequest().body(Map.of("error", "Failed to parse file: " + e.getMessage()));
             } catch (Exception e) {
-                errors.add("DTO mapping failed: " + e.getMessage());
+                logger.error("Unexpected error parsing file {}: {}", filename, e.getMessage());
+                return ResponseEntity.badRequest().body(Map.of("error", "Failed to process file: " + e.getMessage()));
             }
+            
+            // Map DTOs to entities with validation
+            List<Transaction> transactions = new ArrayList<>();
+            for (TransactionDTO dto : dtos) {
+                try {
+                    // Validate DTO before mapping
+                    if (dto == null) {
+                        errors.add("Null DTO encountered during mapping");
+                        continue;
+                    }
+                    
+                    Transaction entity = TransactionMapper.toEntity(dto);
+                    
+                    // Validate entity after mapping
+                    if (entity.getSender() == null || entity.getSender().trim().isEmpty()) {
+                        errors.add("Transaction missing sender: " + (dto.getTransactionId() != null ? dto.getTransactionId() : "unknown"));
+                        continue;
+                    }
+                    
+                    if (entity.getAmount() == null || entity.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                        errors.add("Transaction has invalid amount: " + (dto.getTransactionId() != null ? dto.getTransactionId() : "unknown"));
+                        continue;
+                    }
+                    
+                    transactions.add(entity);
+                } catch (Exception e) {
+                    String transactionId = dto != null ? dto.getTransactionId() : "unknown";
+                    errors.add("DTO mapping failed for transaction " + transactionId + ": " + e.getMessage());
+                    logger.warn("DTO mapping failed for transaction {}: {}", transactionId, e.getMessage());
+                }
+            }
+            
+            // Process transactions in batches for efficiency
+            Map<String, Object> processingResult = processTransactionsBatch(transactions);
+            successful = (Integer) processingResult.get("successful");
+            failed = (Integer) processingResult.get("failed");
+            alertsGenerated = (Integer) processingResult.get("alertsGenerated");
+            errors.addAll((List<String>) processingResult.get("errors"));
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("processed", processed);
+            response.put("successful", successful);
+            response.put("failed", failed);
+            response.put("alertsGenerated", alertsGenerated);
+            if (!errors.isEmpty()) {
+                response.put("errors", errors);
+            }
+            
+            logger.info("File ingestion completed: processed={}, successful={}, failed={}, alerts={}", 
+                processed, successful, failed, alertsGenerated);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Unexpected error in file ingestion: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error during file processing"));
         }
-        // Process transactions in batches for efficiency
-        Map<String, Object> processingResult = processTransactionsBatch(transactions);
-        successful = (Integer) processingResult.get("successful");
-        failed = (Integer) processingResult.get("failed");
-        alertsGenerated = (Integer) processingResult.get("alertsGenerated");
-        errors.addAll((List<String>) processingResult.get("errors"));
-        Map<String, Object> response = new HashMap<>();
-        response.put("processed", processed);
-        response.put("successful", successful);
-        response.put("failed", failed);
-        response.put("alertsGenerated", alertsGenerated);
-        if (!errors.isEmpty()) response.put("errors", errors);
-        return ResponseEntity.ok(response);
     }
 
     private Map<String, Object> processTransactionsBatch(List<Transaction> transactions) {

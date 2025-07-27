@@ -32,6 +32,7 @@ import { alertsService } from '../../services/alerts';
 import AdminUserCreateForm from './AdminUserCreateForm';
 import UserTable from './UserTable';
 import UserRolePieChart from './UserRolePieChart';
+import CurrencyExchangeWidget from './CurrencyExchangeWidget';
 import { Navigate, useNavigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     setLoadingStats(true)
     setErrorStats(null)
-    adminApi.get('/public/db/health')
+    adminApi.get('/admin/db-health')
       .then(res => {
         const d = res.data.data || {}
         setStats({
@@ -117,37 +118,7 @@ const AdminDashboard = () => {
     }
   }
 
-  // --- Currency Exchange Widget ---
-  const [currencies, setCurrencies] = useState([]);
-  const [from, setFrom] = useState('USD');
-  const [to, setTo] = useState('EUR');
-  const [amount, setAmount] = useState(1);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetch('https://api.exchangerate.host/symbols')
-      .then(res => res.json())
-      .then(data => {
-        const symbols = data?.symbols || {};
-        setCurrencies(Object.keys(symbols));
-      })
-      .catch(err => {
-        console.error('Failed to fetch currencies:', err);
-        setCurrencies([]);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!from || !to || !amount) return;
-    setLoading(true);
-    fetch(`https://api.exchangerate.host/convert?from=${from}&to=${to}&amount=${amount}`)
-      .then(res => res.json())
-      .then(data => {
-        setResult(data.result);
-        setLoading(false);
-      });
-  }, [from, to, amount]);
 
   const normRole = normalizeRole(user?.role);
 
@@ -277,52 +248,7 @@ const AdminDashboard = () => {
       </Card>
 
       {/* Live Currency Exchange Widget */}
-      <Card sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-          Live Currency Exchange
-        </Typography>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
-            <Autocomplete
-              options={currencies}
-              value={from}
-              onChange={(_, v) => setFrom(v)}
-              renderInput={(params) => <TextField {...params} label="From" variant="outlined" />}
-              disableClearable
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Autocomplete
-              options={currencies}
-              value={to}
-              onChange={(_, v) => setTo(v)}
-              renderInput={(params) => <TextField {...params} label="To" variant="outlined" />}
-              disableClearable
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Amount"
-              type="number"
-              value={amount}
-              onChange={e => setAmount(Number(e.target.value))}
-              fullWidth
-              size="small"
-              inputProps={{ min: 0 }}
-            />
-          </Grid>
-        </Grid>
-        <Box sx={{ mt: 2 }}>
-          {loading ? <CircularProgress size={24} /> :
-            result !== null && (
-              <Typography variant="subtitle1">
-                {amount} {from} = <b>{result?.toLocaleString(undefined, { maximumFractionDigits: 4 })} {to}</b>
-              </Typography>
-            )}
-        </Box>
-      </Card>
+      <CurrencyExchangeWidget />
 
       {/* Recent Alerts and Quick Actions */}
       <Grid container spacing={3}>

@@ -8,12 +8,12 @@ export const transactionService = {
   },
 
   getTransactionHistory: async (params = {}) => {
-    const response = await portalApi.get('/transactions', { params })
+    const response = await adminApi.get('/ingest/transactions', { params })
     return response.data
   },
 
   getTransactionById: async (id) => {
-    const response = await portalApi.get(`/transactions/${id}`)
+    const response = await adminApi.get(`/ingest/transactions/${id}`)
     return response.data
   },
 

@@ -29,6 +29,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveCo
 import Tooltip from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
+import CurrencyExchangeWidget from './CurrencyExchangeWidget';
 import { Navigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
@@ -53,7 +54,7 @@ const SupervisorDashboard = () => {
   useEffect(() => {
     setLoadingStats(true)
     setErrorStats(null)
-    adminApi.get('/public/db/health')
+    adminApi.get('/admin/db-health')
       .then(res => {
         const d = res.data.data || {}
         setStats({
@@ -249,6 +250,9 @@ const SupervisorDashboard = () => {
         </ResponsiveContainer>
         )}
       </Card>
+
+      {/* Live Currency Exchange Widget */}
+      <CurrencyExchangeWidget title="Team Currency Exchange" />
 
       {/* Team Alerts and Quick Actions */}
       <Grid container spacing={3}>

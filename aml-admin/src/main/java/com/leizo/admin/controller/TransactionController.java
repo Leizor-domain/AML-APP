@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leizo.admin.dto.TransactionDTO;
 import com.leizo.admin.dto.TransactionCsvParser;
@@ -29,6 +30,7 @@ import com.leizo.admin.dto.TransactionMapper;
 
 @RestController
 @RequestMapping("/ingest")
+@CrossOrigin(origins = "*")
 public class TransactionController {
     @Autowired
     private TransactionRepository transactionRepository;
@@ -155,5 +157,75 @@ public class TransactionController {
         alert.setAlertType("SANCTIONS");
         alert.setPriorityLevel("HIGH");
         return alert;
+    }
+
+    // GET endpoints for transaction history
+    @GetMapping("/transactions")
+    public ResponseEntity<?> getTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String transactionType,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo) {
+        
+        try {
+            List<Transaction> allTransactions = transactionRepository.findAll();
+            
+            // Apply filters
+            List<Transaction> filteredTransactions = allTransactions;
+            
+            if (status != null && !status.isEmpty()) {
+                filteredTransactions = filteredTransactions.stream()
+                    .filter(t -> status.equalsIgnoreCase(t.getRiskScore().toString()))
+                    .collect(Collectors.toList());
+            }
+            
+            if (transactionType != null && !transactionType.isEmpty()) {
+                filteredTransactions = filteredTransactions.stream()
+                    .filter(t -> transactionType.equalsIgnoreCase(t.getCurrency()))
+                    .collect(Collectors.toList());
+            }
+            
+            // Note: Date filtering removed as Transaction entity doesn't have timestamp field
+            
+            // Apply pagination
+            int totalElements = filteredTransactions.size();
+            int totalPages = (int) Math.ceil((double) totalElements / size);
+            int startIndex = page * size;
+            int endIndex = Math.min(startIndex + size, totalElements);
+            
+            List<Transaction> pagedTransactions = filteredTransactions.subList(startIndex, endIndex);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", pagedTransactions);
+            response.put("totalElements", totalElements);
+            response.put("totalPages", totalPages);
+            response.put("currentPage", page);
+            response.put("size", size);
+            response.put("first", page == 0);
+            response.put("last", page >= totalPages - 1);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to retrieve transactions: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/transactions/{id}")
+    public ResponseEntity<?> getTransactionById(@PathVariable Integer id) {
+        try {
+            Optional<Transaction> transaction = transactionRepository.findById(id);
+            if (transaction.isPresent()) {
+                return ResponseEntity.ok(transaction.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to retrieve transaction: " + e.getMessage()));
+        }
     }
 } 

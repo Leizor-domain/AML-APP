@@ -28,6 +28,7 @@ import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, L
 import Tooltip from '@mui/material/Tooltip';
 import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
+import CurrencyExchangeWidget from './CurrencyExchangeWidget';
 import { Navigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
@@ -52,7 +53,7 @@ const ViewerDashboard = () => {
   useEffect(() => {
     setLoadingStats(true)
     setErrorStats(null)
-    adminApi.get('/public/db/health')
+    adminApi.get('/admin/db-health')
       .then(res => {
         const d = res.data.data || {}
         setStats({
@@ -248,6 +249,9 @@ const ViewerDashboard = () => {
         </ResponsiveContainer>
         )}
       </Card>
+
+      {/* Live Currency Exchange Widget */}
+      <CurrencyExchangeWidget title="Viewer Currency Exchange" />
 
       {/* Recent Alerts and Quick Actions */}
       <Grid container spacing={3}>

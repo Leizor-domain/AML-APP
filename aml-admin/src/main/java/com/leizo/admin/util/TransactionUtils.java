@@ -15,10 +15,32 @@ public class TransactionUtils {
      * @return true if the transaction has a manual flag, false otherwise
      */
     public static boolean hasManualFlag(Transaction transaction) {
-        return transaction.getMetadata() != null && 
-               transaction.getMetadata() instanceof Map &&
-               ((Map<?,?>) transaction.getMetadata()).keySet().stream()
-                   .anyMatch(k -> k.toString().equalsIgnoreCase("flagged"));
+        if (transaction.getMetadata() == null) {
+            System.out.println("[TransactionUtils] hasManualFlag: metadata is null for transaction [" + transaction.getSender() + "]");
+            return false;
+        }
+        
+        Map<String, String> metadata = (Map<String, String>) transaction.getMetadata();
+        System.out.println("[TransactionUtils] hasManualFlag: checking metadata for [" + transaction.getSender() + "]: " + metadata);
+        
+        // Check for "manualFlag" key (from CSV parsing)
+        if (metadata.containsKey("manualFlag")) {
+            String manualFlagValue = metadata.get("manualFlag");
+            boolean result = "true".equalsIgnoreCase(manualFlagValue);
+            System.out.println("[TransactionUtils] hasManualFlag: found manualFlag key with value [" + manualFlagValue + "], result: " + result);
+            return result;
+        }
+        
+        // Also check for "flagged" key (legacy)
+        if (metadata.containsKey("flagged")) {
+            String flaggedValue = metadata.get("flagged");
+            boolean result = "true".equalsIgnoreCase(flaggedValue);
+            System.out.println("[TransactionUtils] hasManualFlag: found flagged key with value [" + flaggedValue + "], result: " + result);
+            return result;
+        }
+        
+        System.out.println("[TransactionUtils] hasManualFlag: no manual flag found for [" + transaction.getSender() + "]");
+        return false;
     }
     
     /**

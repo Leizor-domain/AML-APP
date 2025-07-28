@@ -82,9 +82,12 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
      * Initialize both hardcoded and JSON-based rules
      */
     private void initializeRules() {
+        logger.info("INITIALIZING RULES: Starting rule initialization...");
         initializeHardcodedRules();
         loadJsonRules();
         registerAllRules();
+        logger.info("INITIALIZING RULES: Completed. Total rules: [{}] (Hardcoded: [{}], JSON: [{}])", 
+                   ruleRegistry.size(), hardcodedRules.size(), jsonRules.size());
     }
     
     /**
@@ -149,7 +152,11 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
             manualFlagRule, frequentSenderRule, currencyRiskRule
         ));
         
-        logger.info("Initialized {} hardcoded rules", hardcodedRules.size());
+        logger.info("INITIALIZING HARDCODED RULES: Initialized [{}] hardcoded rules", hardcodedRules.size());
+        
+        // Log each hardcoded rule
+        hardcodedRules.forEach(rule -> 
+            logger.info("LOADED HARDCODED RULE: [{}] - [{}]", rule.getDescription(), rule.getSensitivity()));
     }
     
     /**
@@ -157,12 +164,19 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
      */
     private void loadJsonRules() {
         try {
+            logger.info("LOADING JSON RULES: Attempting to load rules from classpath:rules.json");
             // Load rules from JSON file
             ruleLoader.loadFromJson("classpath:rules.json");
-            jsonRules.addAll(ruleLoader.getRules());
-            logger.info("Loaded {} JSON-based rules", jsonRules.size());
+            List<Rule> loadedRules = ruleLoader.getRules();
+            jsonRules.addAll(loadedRules);
+            logger.info("LOADING JSON RULES: Successfully loaded [{}] JSON-based rules", jsonRules.size());
+            
+            // Log each loaded rule
+            loadedRules.forEach(rule -> 
+                logger.info("LOADED JSON RULE: [{}] - [{}]", rule.getDescription(), rule.getSensitivity()));
+                
         } catch (Exception e) {
-            logger.warn("Failed to load JSON rules: {}", e.getMessage());
+            logger.error("LOADING JSON RULES: Failed to load JSON rules: {}", e.getMessage(), e);
         }
     }
     
@@ -250,7 +264,11 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
         
         // Check for rule matches
         List<Rule> matchedRules = findMatchingRules(transaction);
+        logger.info("RULE EVALUATION RESULT: Found [{}] matching rules for [{}]", 
+                   matchedRules.size(), transaction.getSender());
+        
         if (matchedRules.isEmpty()) {
+            logger.info("NO RULE MATCHES: No rules matched for transaction [{}]", transaction.getSender());
             return AlertDecisionResult.noAlert(transaction, calculateRiskScore(transaction));
         }
         
@@ -282,6 +300,8 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
         
         // Create rule alert
         Alert alert = createRuleAlert(transaction, selectedRule, ruleReason, priorityScore);
+        logger.warn("ALERT CREATED: Rule alert created for [{}] with rule [{}], priority score: [{}]", 
+                   transaction.getSender(), selectedRule.getDescription(), priorityScore);
         
         // Register cooldown
         alertService.registerCooldown(sender, ruleId);
@@ -289,6 +309,7 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
         // Update rule match statistics
         ruleMatchCounts.merge(selectedRule.getDescription(), 1L, Long::sum);
         
+        logger.warn("ALERT DECISION: Returning rule alert for [{}]", transaction.getSender());
         return AlertDecisionResult.ruleAlert(
             transaction, alert, selectedRule, ruleReason, 
             riskScore, priorityScore, 
@@ -369,6 +390,10 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
         List<Rule> allRules = new ArrayList<>();
         allRules.addAll(hardcodedRules);
         allRules.addAll(jsonRules);
+        
+        logger.debug("GET ACTIVE RULES: Returning [{}] total rules (Hardcoded: [{}], JSON: [{}])", 
+                    allRules.size(), hardcodedRules.size(), jsonRules.size());
+        
         return allRules;
     }
     
@@ -413,9 +438,25 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
     
     private List<Rule> findMatchingRules(Transaction transaction) {
         BigDecimal normalizedAmount = normalizeAmount(transaction);
-        return getActiveRules().stream()
+        List<Rule> activeRules = getActiveRules();
+        
+        logger.info("RULE EVALUATION: Transaction [{}] from [{}], amount: [{}], active rules: [{}]", 
+                   transaction.getSender(), transaction.getCountry(), normalizedAmount, activeRules.size());
+        
+        List<Rule> matchedRules = activeRules.stream()
             .filter(rule -> rule != null && rule.appliesTo(transaction, normalizedAmount))
             .collect(Collectors.toList());
+        
+        logger.info("RULE MATCHES: Found [{}] matching rules for transaction [{}]", 
+                   matchedRules.size(), transaction.getSender());
+        
+        if (!matchedRules.isEmpty()) {
+            matchedRules.forEach(rule -> 
+                logger.warn("RULE MATCH: [{}] matched for transaction [{}]", 
+                           rule.getDescription(), transaction.getSender()));
+        }
+        
+        return matchedRules;
     }
     
     private BigDecimal normalizeAmount(Transaction transaction) {

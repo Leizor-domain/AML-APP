@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
     "com.leizo.common.security",
     "com.leizo.common.repository",
     "com.leizo.common.entity",
+    "com.leizo.pojo.entity",
     "com.leizo.service",
     "com.leizo.admin.repository"
 })
@@ -22,7 +23,7 @@ import org.springframework.context.annotation.ComponentScan;
 })
 @EntityScan(basePackages = {
     "com.leizo.common.entity",
-    "com.leizo.admin.entity"
+    "com.leizo.pojo.entity"
 })
 public class AMLAdminApplication {
     public static void main(String[] args) {

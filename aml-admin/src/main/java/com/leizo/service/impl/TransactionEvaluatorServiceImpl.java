@@ -221,18 +221,25 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
     
     @Override
     public AlertDecisionResult evaluateForAlert(Transaction transaction) {
+        logger.info("ALERT EVALUATION: Starting evaluation for transaction [{}] from [{}]", 
+                   transaction.getSender(), transaction.getCountry());
+        
         // Check for sanctions first (highest priority)
         SanctionsMatchResult sanctionsResult = checkSanctions(transaction);
         if (sanctionsResult.isSanctioned()) {
+            logger.warn("ALERT TRIGGERED: Sanctions alert for [{}] - {}", 
+                       transaction.getSender(), sanctionsResult.getFormattedReason());
             totalSanctionsMatches.incrementAndGet();
             
             // Check for duplicate sanctions alert
             if (alertService.isDuplicateAlert(transaction, sanctionsResult.getFormattedReason())) {
+                logger.info("ALERT DUPLICATE: Duplicate sanctions alert for [{}]", transaction.getSender());
                 return AlertDecisionResult.duplicateAlert(transaction, "Duplicate sanctions alert");
             }
             
             // Create sanctions alert
             Alert alert = createSanctionsAlert(transaction, sanctionsResult);
+            logger.warn("ALERT CREATED: Sanctions alert created for [{}]", transaction.getSender());
             return AlertDecisionResult.sanctionsAlert(transaction, alert, sanctionsResult);
         }
         
@@ -292,10 +299,15 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
     @Override
     public SanctionsMatchResult checkSanctions(Transaction transaction) {
         try {
+            logger.info("SANCTIONS CHECK: Checking transaction sender: [{}], country: [{}]", 
+                       transaction.getSender(), transaction.getCountry());
+            
             // Check OFAC SDN list first
             if (sanctionsChecker.isSanctionedEntity(transaction.getSender(), 
                                                    transaction.getCountry(), 
                                                    transaction.getDob(), "Any")) {
+                logger.warn("SANCTIONS MATCH: OFAC SDN match for [{}] from [{}]", 
+                           transaction.getSender(), transaction.getCountry());
                 return SanctionsMatchResult.ofacMatch(
                     transaction.getSender(), 
                     transaction.getCountry(), 
@@ -306,6 +318,8 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
             
             // Check country sanctions
             if (sanctionsChecker.checkCountry(transaction.getCountry())) {
+                logger.warn("SANCTIONS MATCH: Country sanctions match for [{}]", 
+                           transaction.getCountry());
                 return SanctionsMatchResult.countryMatch(
                     transaction.getCountry(), 
                     "Country is under sanctions"
@@ -314,6 +328,8 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
             
             // Check name-based sanctions
             if (sanctionsChecker.checkName(transaction.getSender())) {
+                logger.warn("SANCTIONS MATCH: Name match for [{}] in local sanctions list", 
+                           transaction.getSender());
                 return SanctionsMatchResult.localMatch(
                     transaction.getSender(), 
                     transaction.getCountry(), 
@@ -324,6 +340,8 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
             
             // Check partial name matches
             if (sanctionsChecker.checkPartialName(transaction.getSender())) {
+                logger.warn("SANCTIONS MATCH: Partial name match for [{}] in local sanctions list", 
+                           transaction.getSender());
                 return SanctionsMatchResult.localMatch(
                     transaction.getSender(), 
                     transaction.getCountry(), 
@@ -332,6 +350,7 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
                 );
             }
             
+            logger.info("SANCTIONS CHECK: No sanctions match found for [{}]", transaction.getSender());
             return SanctionsMatchResult.noMatch();
             
         } catch (Exception e) {

@@ -1,0 +1,86 @@
+transactionId,timestamp,amount,currency,senderName,receiverName,senderAccount,receiverAccount,country,manualFlag,description
+6001,2024-07-01T09:00:00,50000,USD,Vladimir Putin,Receiver 1,ACC601,ACC701,Russia,FALSE,Test transaction from OFAC sanctioned entity
+6002,2024-07-01T09:30:00,75000,USD,Ali Khamenei,Receiver 2,ACC602,ACC702,Iran,FALSE,Test transaction from OFAC sanctioned entity
+6003,2024-07-01T10:00:00,100000,USD,Kim Jong-un,Receiver 3,ACC603,ACC703,North Korea,FALSE,Test transaction from OFAC sanctioned entity
+6004,2024-07-01T10:30:00,25000,USD,Bashar al-Assad,Receiver 4,ACC604,ACC704,Syria,FALSE,Test transaction from OFAC sanctioned entity
+6005,2024-07-01T11:00:00,35000,USD,Nicolas Maduro,Receiver 5,ACC605,ACC705,Venezuela,FALSE,Test transaction from OFAC sanctioned entity
+6006,2024-07-01T11:30:00,45000,USD,Alexander Lukashenko,Receiver 6,ACC606,ACC706,Belarus,FALSE,Test transaction from OFAC sanctioned entity
+6007,2024-07-01T12:00:00,30000,USD,Emmerson Mnangagwa,Receiver 7,ACC607,ACC707,Zimbabwe,FALSE,Test transaction from OFAC sanctioned entity
+6008,2024-07-01T12:30:00,40000,USD,Abdel Fattah al-Burhan,Receiver 8,ACC608,ACC708,Sudan,FALSE,Test transaction from OFAC sanctioned entity
+6009,2024-07-01T13:00:00,55000,USD,Khalifa Haftar,Receiver 9,ACC609,ACC709,Libya,FALSE,Test transaction from OFAC sanctioned entity
+6010,2024-07-01T13:30:00,20000,USD,Mohamed Abdullahi Mohamed,Receiver 10,ACC610,ACC710,Somalia,FALSE,Test transaction from OFAC sanctioned entity
+6011,2024-07-01T14:00:00,80000,USD,Osama bin Laden,Receiver 11,ACC611,ACC711,Saudi Arabia,FALSE,Test transaction from UN sanctioned entity
+6012,2024-07-01T14:30:00,65000,USD,Ayman al-Zawahiri,Receiver 12,ACC612,ACC712,Egypt,FALSE,Test transaction from UN sanctioned entity
+6013,2024-07-01T15:00:00,90000,USD,Abu Bakr al-Baghdadi,Receiver 13,ACC613,ACC713,Iraq,FALSE,Test transaction from UN sanctioned entity
+6014,2024-07-01T15:30:00,70000,USD,Hassan Nasrallah,Receiver 14,ACC614,ACC714,Lebanon,FALSE,Test transaction from UN sanctioned entity
+6015,2024-07-01T16:00:00,85000,USD,Ismail Haniyeh,Receiver 15,ACC615,ACC715,Palestine,FALSE,Test transaction from UN sanctioned entity
+6016,2024-07-01T16:30:00,95000,USD,Yahya Sinwar,Receiver 16,ACC616,ACC716,Palestine,FALSE,Test transaction from UN sanctioned entity
+6017,2024-07-01T17:00:00,60000,USD,Mohammed Deif,Receiver 17,ACC617,ACC717,Palestine,FALSE,Test transaction from UN sanctioned entity
+6018,2024-07-01T17:30:00,75000,USD,Saleh al-Arouri,Receiver 18,ACC618,ACC718,Palestine,FALSE,Test transaction from UN sanctioned entity
+6019,2024-07-01T18:00:00,80000,USD,Khaled Mashal,Receiver 19,ACC619,ACC719,Palestine,FALSE,Test transaction from UN sanctioned entity
+6020,2024-07-01T18:30:00,65000,USD,Musa Abu Marzouk,Receiver 20,ACC620,ACC720,Palestine,FALSE,Test transaction from UN sanctioned entity
+6021,2024-07-01T19:00:00,120000,USD,Joaquin Guzman,Receiver 21,ACC621,ACC721,Mexico,FALSE,Test transaction from narcotics trafficker
+6022,2024-07-01T19:30:00,110000,USD,Ismael Zambada Garcia,Receiver 22,ACC622,ACC722,Mexico,FALSE,Test transaction from narcotics trafficker
+6023,2024-07-01T20:00:00,95000,USD,Ovidio Guzman Lopez,Receiver 23,ACC623,ACC723,Mexico,FALSE,Test transaction from narcotics trafficker
+6024,2024-07-01T20:30:00,85000,USD,Ivan Archivaldo Guzman Salazar,Receiver 24,ACC624,ACC724,Mexico,FALSE,Test transaction from narcotics trafficker
+6025,2024-07-01T21:00:00,90000,USD,Jesus Alfredo Guzman Salazar,Receiver 25,ACC625,ACC725,Mexico,FALSE,Test transaction from narcotics trafficker
+6026,2024-07-01T21:30:00,75000,USD,Damaso Lopez Nunez,Receiver 26,ACC626,ACC726,Mexico,FALSE,Test transaction from narcotics trafficker
+6027,2024-07-01T22:00:00,80000,USD,Damaso Lopez Serrano,Receiver 27,ACC627,ACC727,Mexico,FALSE,Test transaction from narcotics trafficker
+6028,2024-07-01T22:30:00,100000,USD,Rafael Caro Quintero,Receiver 28,ACC628,ACC728,Mexico,FALSE,Test transaction from narcotics trafficker
+6029,2024-07-01T23:00:00,95000,USD,Miguel Angel Felix Gallardo,Receiver 29,ACC629,ACC729,Mexico,FALSE,Test transaction from narcotics trafficker
+6030,2024-07-01T23:30:00,85000,USD,Hector Palma Salazar,Receiver 30,ACC630,ACC730,Mexico,FALSE,Test transaction from narcotics trafficker
+6031,2024-07-02T09:00:00,150000,USD,Evgeniy Bogachev,Receiver 31,ACC631,ACC731,Russia,FALSE,Test transaction from cybercriminal
+6032,2024-07-02T09:30:00,125000,USD,Maksim Yakubets,Receiver 32,ACC632,ACC732,Russia,FALSE,Test transaction from cybercriminal
+6033,2024-07-02T10:00:00,110000,USD,Igor Turashev,Receiver 33,ACC633,ACC733,Russia,FALSE,Test transaction from cybercriminal
+6034,2024-07-02T10:30:00,95000,USD,Dmitry Badin,Receiver 34,ACC634,ACC734,Russia,FALSE,Test transaction from cybercriminal
+6035,2024-07-02T11:00:00,135000,USD,Alexey Belan,Receiver 35,ACC635,ACC735,Russia,FALSE,Test transaction from cybercriminal
+6036,2024-07-02T11:30:00,115000,USD,Yevgeniy Nikulin,Receiver 36,ACC636,ACC736,Russia,FALSE,Test transaction from cybercriminal
+6037,2024-07-02T12:00:00,100000,USD,Roman Seleznev,Receiver 37,ACC637,ACC737,Russia,FALSE,Test transaction from cybercriminal
+6038,2024-07-02T12:30:00,120000,USD,Peter Levashov,Receiver 38,ACC638,ACC738,Russia,FALSE,Test transaction from cybercriminal
+6039,2024-07-02T13:00:00,140000,USD,Alexander Vinnik,Receiver 39,ACC639,ACC739,Russia,FALSE,Test transaction from cybercriminal
+6040,2024-07-02T13:30:00,105000,USD,Denis Klyuev,Receiver 40,ACC640,ACC740,Russia,FALSE,Test transaction from cybercriminal
+6041,2024-07-02T14:00:00,200000,USD,Teodoro Obiang Nguema,Receiver 41,ACC641,ACC741,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6042,2024-07-02T14:30:00,180000,USD,Teodoro Nguema Obiang Mangue,Receiver 42,ACC642,ACC742,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6043,2024-07-02T15:00:00,160000,USD,Gabriel Nguema Lima,Receiver 43,ACC643,ACC743,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6044,2024-07-02T15:30:00,170000,USD,Armengol Ondo Nguema,Receiver 44,ACC644,ACC744,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6045,2024-07-02T16:00:00,190000,USD,Cristobal Manana Ela,Receiver 45,ACC645,ACC745,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6046,2024-07-02T16:30:00,175000,USD,Jose Amado Riche,Receiver 46,ACC646,ACC746,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6047,2024-07-02T17:00:00,165000,USD,Antonio Javier Ndong,Receiver 47,ACC647,ACC747,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6048,2024-07-02T17:30:00,185000,USD,Agustin Nze Nfumu,Receiver 48,ACC648,ACC748,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6049,2024-07-02T18:00:00,155000,USD,Fortunato Ofa Mbo,Receiver 49,ACC649,ACC749,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6050,2024-07-02T18:30:00,195000,USD,Lucas Abaga Nchama,Receiver 50,ACC650,ACC750,Equatorial Guinea,FALSE,Test transaction from corrupt official
+6051,2024-07-02T19:00:00,250000,USD,Jho Low,Receiver 51,ACC651,ACC751,Malaysia,FALSE,Test transaction from money launderer
+6052,2024-07-02T19:30:00,220000,USD,Riza Aziz,Receiver 52,ACC652,ACC752,Malaysia,FALSE,Test transaction from money launderer
+6053,2024-07-02T20:00:00,230000,USD,Roger Ng,Receiver 53,ACC653,ACC753,Malaysia,FALSE,Test transaction from money launderer
+6054,2024-07-02T20:30:00,210000,USD,Tim Leissner,Receiver 54,ACC654,ACC754,Germany,FALSE,Test transaction from money launderer
+6055,2024-07-02T21:00:00,240000,USD,Andreas Voutsinas,Receiver 55,ACC655,ACC755,Greece,FALSE,Test transaction from money launderer
+6056,2024-07-02T21:30:00,200000,USD,Casey Tang,Receiver 56,ACC656,ACC756,Malaysia,FALSE,Test transaction from money launderer
+6057,2024-07-02T22:00:00,235000,USD,Jasmine Loo,Receiver 57,ACC657,ACC757,Malaysia,FALSE,Test transaction from money launderer
+6058,2024-07-02T22:30:00,215000,USD,Nik Faisal Ariff Kamil,Receiver 58,ACC658,ACC758,Malaysia,FALSE,Test transaction from money launderer
+6059,2024-07-02T23:00:00,225000,USD,Yak Yew Chee,Receiver 59,ACC659,ACC759,Singapore,FALSE,Test transaction from money launderer
+6060,2024-07-02T23:30:00,205000,USD,Kee Kok Thiam,Receiver 60,ACC660,ACC760,Malaysia,FALSE,Test transaction from money launderer
+6061,2024-07-03T09:00:00,300000,USD,Viktor Bout,Receiver 61,ACC661,ACC761,Russia,FALSE,Test transaction from arms dealer
+6062,2024-07-03T09:30:00,280000,USD,Monzer al-Kassar,Receiver 62,ACC662,ACC762,Syria,FALSE,Test transaction from arms dealer
+6063,2024-07-03T10:00:00,290000,USD,Sarkis Soghanalian,Receiver 63,ACC663,ACC763,Lebanon,FALSE,Test transaction from arms dealer
+6064,2024-07-03T10:30:00,270000,USD,Adnan Khashoggi,Receiver 64,ACC664,ACC764,Saudi Arabia,FALSE,Test transaction from arms dealer
+6065,2024-07-03T11:00:00,310000,USD,Manuel Noriega,Receiver 65,ACC665,ACC765,Panama,FALSE,Test transaction from arms dealer
+6066,2024-07-03T11:30:00,260000,USD,Charles Taylor,Receiver 66,ACC666,ACC766,Liberia,FALSE,Test transaction from arms dealer
+6067,2024-07-03T12:00:00,285000,USD,Jean-Pierre Bemba,Receiver 67,ACC667,ACC767,DRC,FALSE,Test transaction from arms dealer
+6068,2024-07-03T12:30:00,295000,USD,Bosco Ntaganda,Receiver 68,ACC668,ACC768,DRC,FALSE,Test transaction from arms dealer
+6069,2024-07-03T13:00:00,275000,USD,Thomas Lubanga,Receiver 69,ACC669,ACC769,DRC,FALSE,Test transaction from arms dealer
+6070,2024-07-03T13:30:00,305000,USD,Germain Katanga,Receiver 70,ACC670,ACC770,DRC,FALSE,Test transaction from arms dealer
+6071,2024-07-03T14:00:00,350000,USD,Omar al-Bashir,Receiver 71,ACC671,ACC771,Sudan,FALSE,Test transaction from human rights violator
+6072,2024-07-03T14:30:00,330000,USD,Ahmad Harun,Receiver 72,ACC672,ACC772,Sudan,FALSE,Test transaction from human rights violator
+6073,2024-07-03T15:00:00,340000,USD,Ali Kushayb,Receiver 73,ACC673,ACC773,Sudan,FALSE,Test transaction from human rights violator
+6074,2024-07-03T15:30:00,320000,USD,Abdallah Banda,Receiver 74,ACC674,ACC774,Sudan,FALSE,Test transaction from human rights violator
+6075,2024-07-03T16:00:00,360000,USD,Saleh Jerbo,Receiver 75,ACC675,ACC775,Sudan,FALSE,Test transaction from human rights violator
+6076,2024-07-03T16:30:00,325000,USD,Muammar Gaddafi,Receiver 76,ACC676,ACC776,Libya,FALSE,Test transaction from human rights violator
+6077,2024-07-03T17:00:00,335000,USD,Saif al-Islam Gaddafi,Receiver 77,ACC677,ACC777,Libya,FALSE,Test transaction from human rights violator
+6078,2024-07-03T17:30:00,315000,USD,Abdullah al-Senussi,Receiver 78,ACC678,ACC778,Libya,FALSE,Test transaction from human rights violator
+6079,2024-07-03T18:00:00,345000,USD,Laurent Gbagbo,Receiver 79,ACC679,ACC779,Ivory Coast,FALSE,Test transaction from human rights violator
+6080,2024-07-03T18:30:00,355000,USD,Simone Gbagbo,Receiver 80,ACC680,ACC780,Ivory Coast,FALSE,Test transaction from human rights violator
+6081,2024-07-03T19:00:00,5000,USD,John Smith,Receiver 81,ACC681,ACC781,USA,FALSE,Test transaction from test entity
+6082,2024-07-03T19:30:00,7500,USD,Maria Garcia,Receiver 82,ACC682,ACC782,Spain,FALSE,Test transaction from test entity
+6083,2024-07-03T20:00:00,6000,USD,Ahmed Hassan,Receiver 83,ACC683,ACC783,Egypt,FALSE,Test transaction from test entity
+6084,2024-07-03T20:30:00,4000,USD,Test User,Receiver 84,ACC684,ACC784,Test Country,FALSE,Test transaction from test entity
+6085,2024-07-03T21:00:00,5500,USD,Demo Person,Receiver 85,ACC685,ACC785,Demo Country,FALSE,Test transaction from test entity 

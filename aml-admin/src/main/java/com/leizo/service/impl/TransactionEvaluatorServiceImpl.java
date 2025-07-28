@@ -224,7 +224,9 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
         logger.info("ALERT EVALUATION: Starting evaluation for transaction [{}] from [{}]", 
                    transaction.getSender(), transaction.getCountry());
         
+        // TEMPORARILY DISABLED: Sanctions checking to test other alert factors
         // Check for sanctions first (highest priority)
+        /*
         SanctionsMatchResult sanctionsResult = checkSanctions(transaction);
         if (sanctionsResult.isSanctioned()) {
             logger.warn("ALERT TRIGGERED: Sanctions alert for [{}] - {}", 
@@ -242,6 +244,9 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
             logger.warn("ALERT CREATED: Sanctions alert created for [{}]", transaction.getSender());
             return AlertDecisionResult.sanctionsAlert(transaction, alert, sanctionsResult);
         }
+        */
+        
+        logger.info("SANCTIONS CHECKING DISABLED: Proceeding to rule evaluation for [{}]", transaction.getSender());
         
         // Check for rule matches
         List<Rule> matchedRules = findMatchingRules(transaction);

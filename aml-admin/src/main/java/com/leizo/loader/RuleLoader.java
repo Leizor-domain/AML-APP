@@ -91,6 +91,45 @@ public class RuleLoader {
                 return country != null && (country.equalsIgnoreCase("Turkey") || country.equalsIgnoreCase("Mexico"));
             };
             case "low_value" -> (txn, amt) -> amt.compareTo(new BigDecimal("500")) < 0;
+            case "manual_flag" -> (txn, amt) -> com.leizo.admin.util.TransactionUtils.hasManualFlag(txn);
+            case "high_risk_country" -> (txn, amt) -> {
+                String country = txn.getCountry();
+                return country != null && (
+                    country.equalsIgnoreCase("Iran") || 
+                    country.equalsIgnoreCase("North Korea") || 
+                    country.equalsIgnoreCase("Syria") ||
+                    country.equalsIgnoreCase("Russia") ||
+                    country.equalsIgnoreCase("Venezuela") ||
+                    country.equalsIgnoreCase("Belarus") ||
+                    country.equalsIgnoreCase("Zimbabwe") ||
+                    country.equalsIgnoreCase("Sudan") ||
+                    country.equalsIgnoreCase("Libya") ||
+                    country.equalsIgnoreCase("Somalia")
+                );
+            };
+            case "fatf_grey_list" -> (txn, amt) -> {
+                String country = txn.getCountry();
+                return country != null && (
+                    country.equalsIgnoreCase("Panama") || 
+                    country.equalsIgnoreCase("Albania") || 
+                    country.equalsIgnoreCase("Barbados") ||
+                    country.equalsIgnoreCase("Cayman Islands") ||
+                    country.equalsIgnoreCase("Turkey") ||
+                    country.equalsIgnoreCase("Mexico")
+                );
+            };
+            case "money_laundering_risk" -> (txn, amt) -> {
+                String country = txn.getCountry();
+                return country != null && (
+                    country.equalsIgnoreCase("Cayman Islands") || 
+                    country.equalsIgnoreCase("Bahamas") || 
+                    country.equalsIgnoreCase("Bermuda") ||
+                    country.equalsIgnoreCase("Cyprus") ||
+                    country.equalsIgnoreCase("Liechtenstein") ||
+                    country.equalsIgnoreCase("San Marino")
+                );
+            };
+            case "always_true" -> (txn, amt) -> true;
             default -> null;
         };
     }

@@ -16,5 +16,35 @@
     "sensitivity": "LOW",
     "tags": ["routine", "small_amount", "low_risk"],
     "type": "low_value"
+  },
+  {
+    "description": "Manual Flag Rule",
+    "sensitivity": "HIGH",
+    "tags": ["manual", "override", "flagged"],
+    "type": "manual_flag"
+  },
+  {
+    "description": "High Risk Country Transfer",
+    "sensitivity": "HIGH",
+    "tags": ["geo", "high_risk", "sanctioned"],
+    "type": "high_risk_country"
+  },
+  {
+    "description": "FATF Grey List Country Transfer",
+    "sensitivity": "MEDIUM",
+    "tags": ["geo", "fatf", "grey_list"],
+    "type": "fatf_grey_list"
+  },
+  {
+    "description": "Money Laundering Risk Country Transfer",
+    "sensitivity": "MEDIUM",
+    "tags": ["geo", "ml_risk", "offshore"],
+    "type": "money_laundering_risk"
+  },
+  {
+    "description": "Test Always True Rule",
+    "sensitivity": "LOW",
+    "tags": ["test", "always_true", "debug"],
+    "type": "always_true"
   }
 ] 

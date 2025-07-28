@@ -46,13 +46,8 @@ public class SanctionListLoader {
             List<SanctionedEntity> sampleSanctions = fileImportService.importCsv(sampleSanctionsPath);
             consolidatedList.addAll(sampleSanctions);
             
-            // Add some high-risk countries for testing
-            highRiskCountries.add("Iran");
-            highRiskCountries.add("North Korea");
-            highRiskCountries.add("Syria");
-            highRiskCountries.add("Venezuela");
-            highRiskCountries.add("Cuba");
-            highRiskCountries.add("Russia");
+            // Load comprehensive worldwide high-risk countries list
+            loadComprehensiveHighRiskCountries();
             
             System.out.println("[SanctionListLoader] Loaded " + consolidatedList.size() + " sanctioned entities");
             System.out.println("[SanctionListLoader] Loaded " + highRiskCountries.size() + " high-risk countries");
@@ -62,6 +57,150 @@ public class SanctionListLoader {
             // Load minimal test data if file loading fails
             loadMinimalTestData();
         }
+    }
+
+    /**
+     * Loads a comprehensive list of high-risk countries worldwide based on:
+     * - FATF (Financial Action Task Force) high-risk jurisdictions
+     * - OFAC (Office of Foreign Assets Control) sanctioned countries
+     * - EU high-risk third countries
+     * - UN Security Council sanctions
+     * - Global corruption indices
+     * - Money laundering risk assessments
+     */
+    private void loadComprehensiveHighRiskCountries() {
+        // FATF High-Risk Jurisdictions (2024)
+        highRiskCountries.add("Myanmar");
+        highRiskCountries.add("Democratic People's Republic of Korea");
+        highRiskCountries.add("Iran");
+        
+        // FATF Jurisdictions Under Increased Monitoring
+        highRiskCountries.add("Albania");
+        highRiskCountries.add("Barbados");
+        highRiskCountries.add("Burkina Faso");
+        highRiskCountries.add("Cameroon");
+        highRiskCountries.add("Cayman Islands");
+        highRiskCountries.add("Croatia");
+        highRiskCountries.add("Democratic Republic of the Congo");
+        highRiskCountries.add("Gibraltar");
+        highRiskCountries.add("Haiti");
+        highRiskCountries.add("Jamaica");
+        highRiskCountries.add("Jordan");
+        highRiskCountries.add("Mali");
+        highRiskCountries.add("Mozambique");
+        highRiskCountries.add("Nigeria");
+        highRiskCountries.add("Panama");
+        highRiskCountries.add("Philippines");
+        highRiskCountries.add("Senegal");
+        highRiskCountries.add("South Africa");
+        highRiskCountries.add("South Sudan");
+        highRiskCountries.add("Syria");
+        highRiskCountries.add("Tanzania");
+        highRiskCountries.add("Turkey");
+        highRiskCountries.add("Uganda");
+        highRiskCountries.add("United Arab Emirates");
+        highRiskCountries.add("Yemen");
+        
+        // OFAC Sanctioned Countries
+        highRiskCountries.add("Cuba");
+        highRiskCountries.add("Venezuela");
+        highRiskCountries.add("Russia");
+        highRiskCountries.add("Belarus");
+        highRiskCountries.add("Zimbabwe");
+        highRiskCountries.add("Sudan");
+        highRiskCountries.add("Libya");
+        highRiskCountries.add("Somalia");
+        highRiskCountries.add("Central African Republic");
+        highRiskCountries.add("Burundi");
+        highRiskCountries.add("Eritrea");
+        highRiskCountries.add("Guinea-Bissau");
+        highRiskCountries.add("Iraq");
+        highRiskCountries.add("Lebanon");
+        highRiskCountries.add("Nicaragua");
+        
+        // EU High-Risk Third Countries
+        highRiskCountries.add("Afghanistan");
+        highRiskCountries.add("Botswana");
+        highRiskCountries.add("Ghana");
+        highRiskCountries.add("Pakistan");
+        highRiskCountries.add("Trinidad and Tobago");
+        highRiskCountries.add("Zimbabwe");
+        
+        // Additional High-Risk Countries (Corruption, Money Laundering, Terrorism)
+        highRiskCountries.add("Angola");
+        highRiskCountries.add("Bangladesh");
+        highRiskCountries.add("Cambodia");
+        highRiskCountries.add("Chad");
+        highRiskCountries.add("Comoros");
+        highRiskCountries.add("Congo");
+        highRiskCountries.add("Djibouti");
+        highRiskCountries.add("Equatorial Guinea");
+        highRiskCountries.add("Eswatini");
+        highRiskCountries.add("Ethiopia");
+        highRiskCountries.add("Gabon");
+        highRiskCountries.add("Gambia");
+        highRiskCountries.add("Guinea");
+        highRiskCountries.add("Kazakhstan");
+        highRiskCountries.add("Kenya");
+        highRiskCountries.add("Kyrgyzstan");
+        highRiskCountries.add("Laos");
+        highRiskCountries.add("Liberia");
+        highRiskCountries.add("Madagascar");
+        highRiskCountries.add("Malawi");
+        highRiskCountries.add("Mauritania");
+        highRiskCountries.add("Mauritius");
+        highRiskCountries.add("Mongolia");
+        highRiskCountries.add("Myanmar");
+        highRiskCountries.add("Nepal");
+        highRiskCountries.add("Niger");
+        highRiskCountries.add("Papua New Guinea");
+        highRiskCountries.add("Paraguay");
+        highRiskCountries.add("Rwanda");
+        highRiskCountries.add("Sierra Leone");
+        highRiskCountries.add("Sri Lanka");
+        highRiskCountries.add("Tajikistan");
+        highRiskCountries.add("Togo");
+        highRiskCountries.add("Turkmenistan");
+        highRiskCountries.add("Uzbekistan");
+        highRiskCountries.add("Vietnam");
+        highRiskCountries.add("Zambia");
+        
+        // Tax Havens and Offshore Financial Centers
+        highRiskCountries.add("Andorra");
+        highRiskCountries.add("Antigua and Barbuda");
+        highRiskCountries.add("Aruba");
+        highRiskCountries.add("Bahamas");
+        highRiskCountries.add("Bahrain");
+        highRiskCountries.add("Belize");
+        highRiskCountries.add("Bermuda");
+        highRiskCountries.add("British Virgin Islands");
+        highRiskCountries.add("Cook Islands");
+        highRiskCountries.add("Costa Rica");
+        highRiskCountries.add("Cyprus");
+        highRiskCountries.add("Dominica");
+        highRiskCountries.add("Dominican Republic");
+        highRiskCountries.add("Grenada");
+        highRiskCountries.add("Guernsey");
+        highRiskCountries.add("Isle of Man");
+        highRiskCountries.add("Jersey");
+        highRiskCountries.add("Liechtenstein");
+        highRiskCountries.add("Luxembourg");
+        highRiskCountries.add("Marshall Islands");
+        highRiskCountries.add("Monaco");
+        highRiskCountries.add("Montserrat");
+        highRiskCountries.add("Nauru");
+        highRiskCountries.add("Netherlands Antilles");
+        highRiskCountries.add("Niue");
+        highRiskCountries.add("Palau");
+        highRiskCountries.add("Saint Kitts and Nevis");
+        highRiskCountries.add("Saint Lucia");
+        highRiskCountries.add("Saint Vincent and the Grenadines");
+        highRiskCountries.add("Samoa");
+        highRiskCountries.add("San Marino");
+        highRiskCountries.add("Seychelles");
+        highRiskCountries.add("Switzerland");
+        highRiskCountries.add("Tonga");
+        highRiskCountries.add("Vanuatu");
     }
 
     /**

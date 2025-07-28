@@ -1,8 +1,8 @@
 package com.leizo.service;
 
-import com.leizo.model.User;
+import com.leizo.common.entity.Users;
 
 public interface AuthService {
-    User authenticate (String username, String password);
-    boolean authorize (User user, String requiredRole);
+    Users authenticate (String username, String password);
+    boolean authorize (Users user, String requiredRole);
 }

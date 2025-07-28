@@ -1,8 +1,7 @@
-package com.leizo.util.test;
+package com.leizo.admin.util;
 
 import com.leizo.enums.RuleSensitivity;
-import com.leizo.model.Rule;
-import com.leizo.util.RuleFSS;
+import com.leizo.admin.entity.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -65,4 +64,4 @@ class RuleFSSUtilTest {
         assertEquals(RuleSensitivity.MEDIUM, sorted[1].getSensitivity());
         assertEquals(RuleSensitivity.LOW, sorted[2].getSensitivity());
     }
-}
+} 

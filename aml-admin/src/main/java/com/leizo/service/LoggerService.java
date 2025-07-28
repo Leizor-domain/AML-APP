@@ -1,7 +1,5 @@
 package com.leizo.service;
 
-import com.leizo.model.Alert;
-
 public interface LoggerService {
 
     void logRiskScore(String sender, int score);

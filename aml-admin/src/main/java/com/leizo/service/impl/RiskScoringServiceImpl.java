@@ -54,14 +54,7 @@ public class RiskScoringServiceImpl implements RiskScoringService {
     @Override
     public int calculateRiskScore(Transaction txn, Rule rule) {
         int score = calculateRiskScore(txn);
-
-        if(rule != null && rule.getSensitivity() != null) {
-            switch(rule.getSensitivity()) {
-                case HIGH: score += 20; break;
-                case MEDIUM: score += 10; break;
-                case LOW: score += 5; break;
-            }
-        }
+        score += com.leizo.admin.util.RuleUtils.getPriorityAdjustment(rule);
         return Math.min(score, 100);
     }
 
@@ -85,11 +78,7 @@ public class RiskScoringServiceImpl implements RiskScoringService {
     }
 
     private boolean hasManualFlag(Transaction txn) {
-        return txn.getMetadata() instanceof Map && containsKeyIgnoreCase((Map<String, String>)txn.getMetadata(), "flagged");
-    }
-
-    private boolean containsKeyIgnoreCase(Map<String, String> map, String key) {
-        return map.keySet().stream().anyMatch(k -> k.equalsIgnoreCase(key));
+        return com.leizo.admin.util.TransactionUtils.hasManualFlag(txn);
     }
 
 }

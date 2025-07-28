@@ -1,7 +1,6 @@
-package com.leizo.util.test;
+package com.leizo.admin.util;
 
-import com.leizo.model.SanctionedEntity;
-import com.leizo.util.SanctionedEntityFSS;
+import com.leizo.admin.entity.SanctionedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,4 +52,4 @@ class SanctionedEntityFSSUtilTest {
         assertTrue(sorted[0].getName().compareToIgnoreCase(sorted[1].getName()) >= 0);
         assertTrue(sorted[1].getName().compareToIgnoreCase(sorted[2].getName()) >= 0);
     }
-}
+} 

@@ -1,8 +1,7 @@
-package com.leizo.util.test;
+package com.leizo.admin.util;
 
 import com.leizo.enums.RiskScore;
-import com.leizo.model.Transaction;
-import com.leizo.util.TransactionFSS;
+import com.leizo.admin.entity.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -78,4 +77,4 @@ class TransactionFSSUtilTest {
         assertEquals(RiskScore.MEDIUM, sorted[1].getRiskScore());
         assertEquals(RiskScore.LOW, sorted[2].getRiskScore());
     }
-}
+} 

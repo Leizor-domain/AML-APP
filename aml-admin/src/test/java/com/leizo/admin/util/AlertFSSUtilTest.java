@@ -1,8 +1,7 @@
-package com.leizo.util.test;
+package com.leizo.admin.util;
 
-import com.leizo.model.Alert;
-import com.leizo.model.Transaction;
-import com.leizo.util.AlertFSS;
+import com.leizo.admin.entity.Alert;
+import com.leizo.admin.entity.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -68,4 +67,4 @@ public class AlertFSSUtilTest {
         Alert[] sorted = AlertFSS.sortByPriority(alerts.toArray(new Alert[0]), true);
         assertTrue(sorted[0].getPriorityScore() >= sorted[1].getPriorityScore());
     }
-}
+} 

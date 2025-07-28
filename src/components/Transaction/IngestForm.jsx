@@ -121,17 +121,35 @@ const IngestForm = () => {
     setBatchError('');
     try {
       const resp = await transactionService.batchIngest(batchFile);
-      setBatchResult(resp);
-      setSnackbar({ open: true, message: 'Batch ingestion complete', severity: 'success' });
+      // Ensure response is valid before setting it
+      if (resp && typeof resp === 'object') {
+        setBatchResult(resp);
+        setSnackbar({ open: true, message: 'Batch ingestion complete', severity: 'success' });
+      } else {
+        throw new Error('Invalid response format from server');
+      }
     } catch (err) {
-      setBatchError(err.response?.data?.error || 'Batch ingestion failed');
-      setSnackbar({ open: true, message: err.response?.data?.error || 'Batch ingestion failed', severity: 'error' });
+      console.error('Batch upload error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Batch ingestion failed';
+      setBatchError(errorMessage);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setBatchLoading(false);
     }
   };
 
   const { user } = useSelector(state => state.auth);
+
+  // Safety check for user
+  if (!user) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h6" color="error">
+          User not authenticated. Please log in.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -189,16 +207,23 @@ const IngestForm = () => {
                 <Box>
                   <Typography variant="subtitle2">Batch Ingestion Summary</Typography>
                   <ul style={{ margin: 0, paddingLeft: 20 }}>
-                    <li>Processed: {batchResult.processed}</li>
-                    <li>Successful: {batchResult.successful}</li>
-                    <li>Failed: {batchResult.failed}</li>
-                    <li>Alerts Generated: {batchResult.alertsGenerated}</li>
-                    {batchResult.errors && batchResult.errors.length > 0 && (
+                    <li>Processed: {batchResult.processed || 0}</li>
+                    <li>Successful: {batchResult.successful || 0}</li>
+                    <li>Failed: {batchResult.failed || 0}</li>
+                    <li>Alerts Generated: {batchResult.alertsGenerated || 0}</li>
+                    {batchResult.errors && Array.isArray(batchResult.errors) && batchResult.errors.length > 0 && (
                       <li>
                         Errors:
                         <ul>
                           {batchResult.errors.map((err, idx) => (
-                            <li key={idx}>{err}</li>
+                            <li key={idx}>
+                              {err && typeof err === 'string' 
+                                ? err 
+                                : err && typeof err === 'object' && err.error 
+                                  ? `Row ${err.row || 'unknown'}: ${err.error}`
+                                  : 'Unknown error'
+                              }
+                            </li>
                           ))}
                         </ul>
                       </li>

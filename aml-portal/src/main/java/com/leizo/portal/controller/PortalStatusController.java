@@ -1,7 +1,7 @@
 package com.leizo.portal.controller;
 
 import com.leizo.enums.RiskScore;
-import com.leizo.model.Transaction;
+import com.leizo.admin.entity.Transaction;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

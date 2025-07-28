@@ -47,6 +47,14 @@
             <artifactId>aml-pojo</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        
+        <!-- Dependency on aml-admin for entity access -->
+        <dependency>
+            <groupId>com.leizo</groupId>
+            <artifactId>aml-admin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Jackson -->
         <dependency>

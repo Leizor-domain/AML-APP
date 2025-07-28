@@ -118,12 +118,7 @@ public class AlertServiceImpl implements AlertService {
      * @return a deduplication key string
      */
     private String generateAlertKey(com.leizo.admin.entity.Transaction txn, String reason) {
-        return txn.getSender() + "|" +
-                txn.getReceiver() + "|" +
-                txn.getAmount() + "|" +
-                txn.getCurrency() + "|" +
-                txn.getCountry() + "|" +
-                reason.trim().toLowerCase();
+        return com.leizo.admin.util.AlertUtils.generateAlertKey(txn, reason);
     }
 
     /**
@@ -134,25 +129,6 @@ public class AlertServiceImpl implements AlertService {
      * @return a fingerprint hash string
      */
     public String generateFingerPrint(com.leizo.admin.entity.Transaction txn, String reason) {
-        try {
-            String data = txn.getSender() + "|" +
-                    txn.getReceiver() + "|" +
-                    txn.getAmount() + "|" +
-                    txn.getCurrency() + "|" +
-                    txn.getCountry() + "|" +
-                    reason.trim().toLowerCase();
-
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(data.getBytes());
-
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashBytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Unable to generate fingerprint hash", e);
-        }
+        return com.leizo.admin.util.AlertUtils.generateAlertHash(txn, reason);
     }
 }

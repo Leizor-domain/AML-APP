@@ -17,14 +17,19 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
-                    "http://localhost:3000",
-                    "http://localhost:3001",
+                    // Production frontend (main React app)
+                    "https://aml-app.onrender.com",         // Main app (prod)
+                    "https://aml-portal.onrender.com",      // Portal (prod)
+                    "https://aml-admin.onrender.com",       // Admin (prod, if accessed from browser)
+                    // Local development
+                    "http://localhost:3000",                // React dev server
+                    "http://localhost:5173",                // Vite dev server
                     "http://127.0.0.1:3000",
-                    "http://127.0.0.1:3001"
+                    "http://127.0.0.1:5173"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
-                .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials")
+                .exposedHeaders("Authorization", "Content-Type")
                 .allowCredentials(true)
                 .maxAge(3600);
     }

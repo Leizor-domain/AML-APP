@@ -2,6 +2,7 @@ package com.leizo.service.impl;
 
 import com.leizo.pojo.entity.Alert;
 import com.leizo.service.LoggerService;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.*;
 
-
+@Service
 public class LoggerServiceImpl implements LoggerService{
 
     private final Logger logger;

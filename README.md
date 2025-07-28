@@ -1,439 +1,263 @@
-# AML Engine - Full Stack Application
+# AML Engine - Anti-Money Laundering System
 
-A comprehensive Anti-Money Laundering (AML) Engine application with Spring Boot backend and React frontend.
+A comprehensive, production-ready Anti-Money Laundering (AML) Engine with Spring Boot backend, React frontend, and advanced transaction monitoring capabilities.
 
-## Architecture
-
-This project consists of multiple modules:
-
-### Backend Modules
-- **aml-admin**: Main Spring Boot application with authentication and admin features
-- **aml-common**: Shared utilities, security, and common components
-- **aml-pojo**: Plain Old Java Objects (POJOs) and data models
-- **aml-portal**: Portal-specific Spring Boot application
-
-### Frontend
-- **React Application**: Modern React frontend with Material UI and Redux
-
----
-
-## Backend - AML Engine
-
-The `aml-engine` module houses the core logic of the AML system. It evaluates transactions using rule-based checks, applies risk scoring, checks for sanctions, and generates alerts when suspicious activity is detected.
-
-### Key Features
-
-- Full transaction evaluation pipeline
-- Rule-based AML checks
-- Integrated risk scoring engine
-- Sanctions list screening
-- Alert generation and deduplication
-- Modular, testable services using Spring Boot
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Java 17+
-- Maven
-- PostgreSQL (ensure the DB is running and configured)
-
-### Module Structure
-
-```bash
-aml-engine/
-├── config/                             # Configuration components
-│   └── EngineConfig.java
-│
-├── controller/                         # REST APIs for rule evaluation, alerts
-│   └── TransactionController.java
-│
-├── enums/
-│   ├── IngestionStatus.java
-│   ├── RiskScore.java
-│   └── RuleSensitivity.java
-│
-├── model/                              # Core domain models
-│   ├── Alert.java
-│   ├── IngestionResult.java
-│   ├── Rule.java
-│   ├── SanctionedEntity.java
-│   ├── Transaction.java
-│   └── User.java
-│
-├── repository/                         # Repositories for DB persistence
-│   └── AlertRepository.java
-│
-├── service/                            # Core business services
-│   ├── AlertService.java
-│   ├── AlertServiceImpl.java
-│   ├── RuleEngineService.java
-│   ├── RuleEngineServiceImpl.java
-│   ├── RiskScoringService.java
-│   ├── RiskScoringServiceImpl.java
-│   ├── SanctionCheckService.java
-│   ├── SanctionCheckServiceImpl.java
-│   └── TransactionService.java
-│   └── TransactionServiceImpl.java
-│
-├── AMLApp.java                         # Main Spring Boot entry point
-├── application.properties              # Environment config
-```
-
----
-
-## Frontend - React Application
-
-A comprehensive React frontend application for Anti-Money Laundering (AML) Engine built with Material UI, Redux, and modern React practices.
-
-### Features
-
-#### 🔐 Authentication & Authorization
-- **Secure Login**: JWT-based authentication with role-based access control. Only admins can create new users.
-- **Role-based Dashboards**: Different dashboards for Admin, Analyst, Supervisor, and Viewer roles
-- **Protected Routes**: Automatic redirection based on user roles and authentication status
-- **Logout Functionality**: Secure token removal and session cleanup
-
-#### Transaction Management
-- **Transaction Ingestion**: Comprehensive form for submitting new transactions
-- **Real-time Processing**: Immediate feedback on transaction status and risk assessment
-- **Transaction History**: Filterable and paginated transaction history with detailed views
-- **Status Tracking**: Monitor transaction processing status (success, flagged, alert generated)
-
-#### 🧠 Alert Management
-- **Alert Dashboard**: Comprehensive view of all system alerts with filtering capabilities
-- **Risk Assessment**: Visual indicators for risk levels (LOW, MEDIUM, HIGH)
-- **Alert Details**: Detailed view of individual alerts with transaction information
-- **Admin Actions**: Dismiss alerts and mark as false positives with reason tracking
-- **Sanction Flags**: Display of OFAC, UN, and other sanction list matches
-
-#### Technical Features
-- **Material UI**: Professional, responsive design with consistent theming
-- **Redux State Management**: Centralized state management for authentication and app data
-- **Axios Integration**: Robust API communication with automatic JWT token handling
-- **Responsive Design**: Mobile-friendly interface that works across all devices
-- **Error Handling**: Comprehensive error handling with user-friendly messages
-
-### Project Structure
-
-```
-src/
-├── components/
-│   ├── Auth/
-│   │   ├── LoginForm.jsx
-│   │   └── RegisterForm.jsx
-│   ├── Layout/
-│   │   ├── Navbar.jsx
-│   │   ├── Sidebar.jsx
-│   │   └── ProtectedRoute.jsx
-│   ├── Dashboard/
-│   │   ├── AdminDashboard.jsx
-│   │   ├── AnalystDashboard.jsx
-│   │   ├── SupervisorDashboard.jsx
-│   │   └── ViewerDashboard.jsx
-│   ├── Transaction/
-│   │   ├── IngestForm.jsx
-│   │   └── HistoryTable.jsx
-│   └── Alerts/
-│       ├── AlertsList.jsx
-│       └── AlertDetails.jsx
-├── pages/
-│   ├── LoginPage.jsx
-│   ├── RegisterPage.jsx
-│   ├── IngestPage.jsx
-│   ├── AlertsPage.jsx
-│   └── AlertDetailsPage.jsx
-├── services/
-│   ├── api.js
-│   ├── auth.js
-│   ├── transaction.js
-│   └── alerts.js
-├── store/
-│   ├── index.js
-│   └── authSlice.js
-├── App.jsx
-└── main.jsx
-```
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- Yarn package manager
-- Admin server running on `http://localhost:8080`
-- Portal server running on `http://localhost:8082`
+- **Java 17+**
+- **Node.js 18+**
+- **PostgreSQL 13+**
+- **Maven 3.8+**
 
 ### Installation
+```bash
+# Clone the repository
+git clone https://github.com/Leizor-domain/AML-APP.git
+cd AML-APP
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd aml-frontend
-   ```
+# Backend Setup
+cd aml-admin
+mvn clean install
+mvn spring-boot:run
 
-2. **Install dependencies**
-   ```bash
-   yarn install
-   ```
+# Frontend Setup (in new terminal)
+npm install
+npm run dev
+```
 
-3. **Environment Configuration**
-   Create a `.env` file in the root directory:
-   ```env
-   VITE_ADMIN_API_URL=http://localhost:8080
-   VITE_PORTAL_API_URL=http://localhost:8082
-   ```
+## 🏗️ Architecture Overview
 
-4. **Start the development server**
-   ```bash
-   yarn dev
-   ```
+### Backend Modules
+- **`aml-admin`** - Main Spring Boot application with authentication, transaction processing, and alert management
+- **`aml-common`** - Shared utilities, security components, and common entities
+- **`aml-pojo`** - Core domain models and data transfer objects
+- **`aml-portal`** - Portal-specific Spring Boot application
 
-5. **Open your browser**
-   Navigate to `http://localhost:3000`
+### Frontend
+- **React 18** with **Material-UI** and **Redux Toolkit**
+- **Role-based dashboards** (Admin, Analyst, Supervisor, Viewer)
+- **Real-time transaction monitoring** and alert management
 
-### Available Scripts
+## 🔧 Core Features
 
-- `yarn dev` - Start development server
-- `yarn build` - Build for production
-- `yarn preview` - Preview production build
-- `yarn lint` - Run ESLint
+### Transaction Processing
+- **CSV/JSON ingestion** with validation and error handling
+- **Real-time transaction evaluation** against AML rules
+- **Risk scoring** with configurable thresholds
+- **Sanctions screening** (OFAC SDN + Local lists)
+- **Alert generation** with deduplication and cooldown
 
----
+### Rule Engine
+- **JSON-based rule configuration** with hot-reloading
+- **Multiple rule types**: High value, sanctions, structuring, PEP, geographic risk
+- **Configurable sensitivity levels** (LOW, MEDIUM, HIGH)
+- **Rule chaining** and priority-based evaluation
 
-## 🔌 API Integration
+### Alert Management
+- **Comprehensive alert types**: Sanctions, high value, behavioral patterns
+- **Alert lifecycle management**: Creation, review, resolution
+- **Dashboard integration** with real-time updates
+- **Export capabilities** for compliance reporting
 
-The frontend is designed to work with dual Spring Boot backends:
+### Security & Authentication
+- **JWT-based authentication** with role-based access control
+- **Four user roles**: Admin, Analyst, Supervisor, Viewer
+- **Secure API endpoints** with proper authorization
+- **Audit logging** for compliance requirements
 
-### Admin Server (Port 8080)
-- User authentication and management
-- Alert management
-- System administration
+## 📊 Dashboard Features
 
-### Portal Server (Port 8082)
-- Transaction ingestion
-- Transaction history
-- Portal-specific operations
+### Admin Dashboard
+- **System overview** with key metrics
+- **User management** with role assignment
+- **Alert monitoring** with real-time updates
+- **Transaction processing** status and statistics
+
+### Analyst Dashboard
+- **Alert review** and investigation tools
+- **Transaction analysis** with detailed views
+- **Risk assessment** tools and reporting
+- **Case management** for ongoing investigations
+
+### Supervisor Dashboard
+- **Team performance** monitoring
+- **Escalation management** for high-risk alerts
+- **Compliance reporting** and analytics
+- **System configuration** and rule management
+
+## 🗄️ Database Schema
+
+### Core Tables
+- **`users`** - User accounts and role management
+- **`transactions`** - Transaction data with metadata
+- **`alerts`** - Generated alerts with status tracking
+- **`transaction_metadata`** - Extended transaction properties
+
+### Key Relationships
+- Transactions → Alerts (one-to-many)
+- Users → Transactions (many-to-many via roles)
+- Alerts → Users (assigned investigators)
+
+## 🔌 API Endpoints
 
 ### Authentication
-- `POST /users/login` - User login
-- `POST /users/create` - Admin-only user creation (requires ROLE_ADMIN)
+- `POST /auth/login` - User authentication
+- `POST /auth/register` - User registration (admin only)
 
-### Transactions
-- `POST /ingest` - Submit new transaction
-- `GET /transactions` - Get transaction history
+### Transaction Management
+- `POST /ingest/file` - Upload transaction files (CSV/JSON)
+- `GET /ingest/transactions` - Retrieve transaction history
+- `GET /ingest/transactions/{id}` - Get specific transaction
 
-### Alerts
-- `GET /alerts` - Get all alerts
-- `GET /alerts/{id}` - Get alert details
-- `PATCH /alerts/{id}/dismiss` - Dismiss alert
-- `PATCH /alerts/{id}/false-positive` - Mark as false positive
+### Alert Management
+- `GET /alerts` - List all alerts with filtering
+- `GET /alerts/{id}` - Get specific alert details
+- `PATCH /alerts/{id}/status` - Update alert status
+- `POST /alerts/populate-mock` - Generate test alerts
 
----
+### User Management
+- `GET /users` - List all users
+- `POST /users/create` - Create new user (admin only)
+- `PATCH /users/{id}/status` - Enable/disable user
 
-## 👥 User Roles
+## 🧪 Testing
 
-### Admin
-- Full system access
-- User management
-- System configuration
-- Report generation
-
-### Analyst
-- Transaction analysis
-- Alert investigation
-- Risk assessment
-- Case management
-
-### Supervisor
-- Team oversight
-- Alert review
-- Performance monitoring
-- Escalation management
-
-### Viewer
-- Read-only access
-- View reports
-- Monitor system status
-- View statistics
-
----
-
-## Security Features
-
-- **JWT Token Management**: Automatic token handling with expiration checks
-- **Role-based Access Control**: Route protection based on user roles
-- **Secure API Communication**: All requests include authentication headers
-- **Session Management**: Automatic logout on token expiration
-- **Input Validation**: Client-side validation for all forms
-
----
-
-## Customization
-
-### Theming
-The application uses Material UI theming. Customize colors and styles in `src/main.jsx`:
-
-```javascript
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
-```
-
----
-
-## Getting Started
-
-### Backend Setup
-1. Ensure Java 17+ and Maven are installed
-2. Configure PostgreSQL database
-3. Run the Spring Boot applications:
-   ```bash
-   # Admin server
-   cd aml-admin && mvn spring-boot:run
-   
-   # Portal server
-   cd aml-portal && mvn spring-boot:run
-   ```
-
-### Frontend Setup
-1. Install Node.js dependencies
-2. Configure environment variables
-3. Start the development server:
-   ```bash
-   cd aml-frontend && yarn dev
-   ```
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## Troubleshooting Backend Build Errors
-
-### 1. Run Maven Clean to Remove Stale Classes
-```
+### Backend Testing
+```bash
 cd aml-admin
-mvn clean
+mvn test
 ```
 
-### 2. Ensure Only One UserRepository Exists
-- Only keep `aml-admin/src/main/java/com/leizo/admin/repository/UserRepository.java`.
-- Delete any duplicate `UserRepository.java` in other packages (e.g., `com/leizo/repository`).
-
-### 3. Check @EnableJpaRepositories
-- In `AMLAdminApplication.java`, use:
-  ```java
-  @EnableJpaRepositories(basePackages = {"com.leizo.admin.repository"})
-  ```
-- Do **not** include `com.leizo.repository` or other packages.
-
-### 4. Remove Stale Compiled Files
-- Delete any `.class` files in `aml-admin/target/classes/com/leizo/repository/` if they exist.
-
-### 5. Rebuild and Run Only the Correct Module
+### Frontend Testing
+```bash
+npm test
 ```
+
+### Integration Testing
+```bash
+# Test transaction ingestion
+curl -X POST -F "file=@test_transactions.csv" http://localhost:8080/ingest/file
+
+# Test alert generation
+curl -X POST http://localhost:8080/alerts/populate-mock
+```
+
+## 🚀 Deployment
+
+### Local Development
+```bash
+# Backend (Port 8080)
 cd aml-admin
-mvn clean compile
 mvn spring-boot:run
+
+# Frontend (Port 5173)
+npm run dev
 ```
 
-### 6. If Bean Conflict Persists
-- Add to `application.properties` (for debugging only):
-  ```
-  spring.main.allow-bean-definition-overriding=true
-  ```
+### Production Deployment
+```bash
+# Build backend
+cd aml-admin
+mvn clean package -DskipTests
 
-### 7. Other Common Issues
-- If you see `Database may be already in use`, stop all Java processes and delete the H2 database file:
-  ```powershell
-  Get-Process java | Stop-Process -Force
-  Remove-Item "aml-admin/data/amlengine_db.mv.db" -Force
-  ```
-- If you see schema validation errors, drop and recreate your dev database or update your entity/table definitions to match.
+# Build frontend
+npm run build
 
-## OpenSanctions Integration (Real-Time Sanctions Screening)
-
-### How It Works
-- Every transaction is screened in real time against the OpenSanctions API.
-- If a match is found, an `Alert` is created in the database with details of the match (entity name, list, reason, etc.).
-- The backend logs a warning and returns alert details for frontend feedback.
-
-### Example Test Data (Sanctioned Transaction)
-
-Submit a transaction with a known sanctioned individual:
-
-```json
-{
-  "transactionId": 1001,
-  "senderName": "Viktor Yanukovych",
-  "senderCountry": "Ukraine",
-  "senderDob": "1950-07-09",
-  "receiverName": "John Doe",
-  "receiverCountry": "USA",
-  "amount": 10000,
-  "currency": "USD",
-  "date": "2025-07-21T10:00:00Z"
-}
+# Deploy using Docker
+docker-compose up -d
 ```
 
-### Backend Logging and Alert Details
-- When a match is found, the backend logs:
-  - `OpenSanctions MATCH: Entity [Viktor Yanukovych] from [Ukraine] (DOB: 1950-07-09) is sanctioned! Details: {...}`
-  - `ALERT CREATED: Transaction [1001] flagged for sanctioned entity [Viktor Yanukovych]`
-- The `Alert` entity will have:
-  - `matchedEntityName`: Viktor Yanukovych
-  - `matchedList`: OpenSanctions
-  - `matchReason`: Matched by OpenSanctions real-time screening
-  - `transactionId`, `reason`, `timestamp`, `alertType`, `priorityLevel`
+### Environment Variables
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=aml_database
+DB_USERNAME=aml_user
+DB_PASSWORD=your_password
 
-### Frontend Real-Time Feedback
-- When a transaction is flagged, the backend returns alert details.
-- The frontend should display a red warning banner or modal:
-  - `Transaction flagged! Sender "Viktor Yanukovych" is on OpenSanctions list.`
-  - Show details: name, country, DOB, matched list, reason, and a link to the OpenSanctions profile if available.
-- If no match, show a "Clear" or "Not Sanctioned" status.
+# JWT
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRATION=86400000
+
+# API URLs
+VITE_ADMIN_API_URL=http://localhost:8080
+VITE_PORTAL_API_URL=http://localhost:8081
+```
+
+## 📈 Monitoring & Analytics
+
+### Key Metrics
+- **Transaction processing rate** (transactions/minute)
+- **Alert generation rate** (alerts/day)
+- **False positive rate** (resolved alerts/total alerts)
+- **System uptime** and performance metrics
+
+### Logging
+- **Structured logging** with correlation IDs
+- **Audit trails** for compliance requirements
+- **Error tracking** with detailed stack traces
+- **Performance monitoring** with response times
+
+## 🔒 Security Features
+
+### Data Protection
+- **Encrypted data transmission** (HTTPS/TLS)
+- **Secure password hashing** (BCrypt)
+- **Input validation** and sanitization
+- **SQL injection prevention** with parameterized queries
+
+### Access Control
+- **Role-based permissions** with fine-grained access
+- **Session management** with automatic timeout
+- **API rate limiting** to prevent abuse
+- **Audit logging** for security events
+
+## 📚 Documentation
+
+### Additional Resources
+- [Alert Generation Guide](ALERT_GENERATION_DETAILED_GUIDE.md)
+- [High-Risk Countries Documentation](HIGH_RISK_COUNTRIES_DOCUMENTATION.md)
+- [Local Sanctions List Documentation](LOCAL_SANCTIONS_LIST_DOCUMENTATION.md)
+- [OFAC API Integration Guide](OFAC_API_OFFLINE_ANALYSIS.md)
+
+### API Documentation
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI Spec**: `http://localhost:8080/v3/api-docs`
+
+## 🤝 Contributing
+
+### Development Workflow
+1. **Fork** the repository
+2. **Create** a feature branch
+3. **Implement** your changes
+4. **Test** thoroughly
+5. **Submit** a pull request
+
+### Code Standards
+- **Java**: Follow Google Java Style Guide
+- **JavaScript**: Use ESLint and Prettier
+- **Documentation**: Update README files for new features
+- **Testing**: Maintain >80% code coverage
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
 
 ### Troubleshooting
-- Ensure the backend can reach `https://api.opensanctions.org/`.
-- Check backend logs for `OpenSanctions MATCH` and `ALERT CREATED` messages.
-- Alerts are stored in the `alerts` table with match details for audit and review.
+- **Database connection issues**: Check PostgreSQL service and credentials
+- **Authentication problems**: Verify JWT configuration and user roles
+- **Alert generation**: Review rule configuration and transaction data
+- **Performance issues**: Monitor database indexes and query optimization
 
-## 👤 User Management (Admin Only)
+### Contact
+- **Issues**: [GitHub Issues](https://github.com/Leizor-domain/AML-APP/issues)
+- **Documentation**: Check the `/docs` folder for detailed guides
+- **Email**: leizordev@outlook.com
 
-- Only admins can create new users and assign roles (ADMIN, ANALYST, SUPERVISOR, VIEWER).
-- All users are stored securely in the database with BCrypt-hashed passwords.
-- User listing, creation, and status management are available in the Admin Dashboard.
-- Passwords are never returned in any API response.
+---
 
-### API Endpoints
-- `POST /users/create` (admin only): Create a new user. Request body: `{ username, password, role }` (UserRequest DTO)
-- `GET /users`: List all users (paginated, admin only). Response: array of `{ username, role, createdAt }` (UserResponse DTO)
-
-### UI/UX Features
-- Modern Material UI design with:
-  - Snackbars for all feedback (success/error)
-  - Skeleton loaders for tables and details
-  - Confirmation dialogs for destructive actions
-  - Avatars for users in tables
-  - Responsive design for all screens
-  - Role chips with icons
-  - Tooltips for all action buttons
-  - Improved empty states with icons/messages
-
-### Testing User Management
-1. Log in as `amladmin` (default admin)
-2. Go to Admin Dashboard → User Management
-3. Create a new user (e.g., `analyst1`, role ANALYST)
-4. Validate user appears in the table
-5. Try creating a duplicate username (should show error)
-6. Password is never shown in UI or API response
-7. Try enabling/disabling users and exporting CSV
-
-### DTOs
-- **UserRequest:** `{ username, password, role }`
-- **UserResponse:** `{ username, role, createdAt }`
+**Built with ❤️ for financial compliance and security**

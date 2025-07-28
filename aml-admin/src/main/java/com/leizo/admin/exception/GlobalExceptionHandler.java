@@ -4,14 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,9 +34,36 @@ public class GlobalExceptionHandler {
         response.put("status", "ERROR");
         response.put("message", "An unexpected error occurred");
         response.put("error", ex.getMessage());
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
         
         // Return 200 OK instead of 500 to prevent client-side crashes
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Handle validation exceptions from @Valid annotations
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+        logger.warn("Validation error: {}", ex.getMessage());
+        
+        Map<String, String> fieldErrors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                    FieldError::getField,
+                    FieldError::getDefaultMessage
+                ));
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "VALIDATION_ERROR");
+        response.put("message", "Validation failed");
+        response.put("fieldErrors", fieldErrors);
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
+        
+        return ResponseEntity.badRequest().body(response);
     }
     
     /**
@@ -45,6 +76,8 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "VALIDATION_ERROR");
         response.put("message", ex.getMessage());
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
         
         return ResponseEntity.badRequest().body(response);
     }
@@ -59,6 +92,8 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "FILE_TOO_LARGE");
         response.put("message", "File size exceeds maximum allowed limit");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
         
         return ResponseEntity.badRequest().body(response);
     }
@@ -74,6 +109,8 @@ public class GlobalExceptionHandler {
         response.put("status", "NOT_FOUND");
         response.put("message", "Endpoint not found");
         response.put("path", ex.getRequestURL());
+        response.put("method", ex.getHttpMethod());
+        response.put("timestamp", LocalDateTime.now().toString());
         
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
@@ -89,6 +126,8 @@ public class GlobalExceptionHandler {
         response.put("status", "DATABASE_ERROR");
         response.put("message", "Database operation failed");
         response.put("error", "Database temporarily unavailable");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
         
         // Return 200 OK instead of 500
         return ResponseEntity.ok(response);
@@ -104,6 +143,8 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "INVALID_JSON");
         response.put("message", "Invalid JSON format");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
         
         return ResponseEntity.badRequest().body(response);
     }
@@ -119,6 +160,8 @@ public class GlobalExceptionHandler {
         response.put("status", "INTERNAL_ERROR");
         response.put("message", "Internal processing error");
         response.put("error", "Service temporarily unavailable");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("path", request.getDescription(false).replace("uri=", ""));
         
         // Return 200 OK instead of 500
         return ResponseEntity.ok(response);

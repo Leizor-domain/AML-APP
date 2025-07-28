@@ -7,8 +7,8 @@ import { useNavigate } from 'react-router-dom';
 function PublicNavBar() {
   const navigate = useNavigate();
   return (
-    <AppBar position="sticky" elevation={0} sx={{ background: 'linear-gradient(90deg, #0f2027 0%, #2c5364 100%)' }}>
-      <Toolbar>
+    <AppBar position="sticky" elevation={0} sx={{ background: 'linear-gradient(90deg, #0f2027 0%, #2c5364 100%)', width: '100vw', left: 0 }}>
+      <Toolbar sx={{ px: { xs: 2, md: 4 } }}>
         <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 1 }}>
           AML Platform
         </Typography>
@@ -26,6 +26,7 @@ function HeroSection() {
     <Box
       sx={{
         minHeight: { xs: 400, md: 520 },
+        width: '100vw',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -33,6 +34,8 @@ function HeroSection() {
         color: 'white',
         position: 'relative',
         overflow: 'hidden',
+        px: 0,
+        mx: 0,
       }}
     >
       {/* Animated background graphic */}
@@ -49,7 +52,7 @@ function HeroSection() {
           animation: 'fadeIn 2s',
         }}
       />
-      <Container sx={{ zIndex: 2, textAlign: 'center' }}>
+      <Box sx={{ zIndex: 2, textAlign: 'center', width: '100vw', px: 0 }}>
         <Fade in timeout={1200}>
           <Box>
             <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, letterSpacing: 1 }}>
@@ -76,7 +79,7 @@ function HeroSection() {
             </Button>
           </Box>
         </Fade>
-      </Container>
+      </Box>
     </Box>
   );
 }
@@ -84,8 +87,8 @@ function HeroSection() {
 // --- About Us Section ---
 function AboutUsSection() {
   return (
-    <Box id="about" sx={{ py: { xs: 6, md: 10 }, background: 'rgba(20,30,40,0.7)', backdropFilter: 'blur(6px)', borderRadius: 4, mx: { xs: 1, md: 0 }, my: 4 }}>
-      <Container maxWidth="md">
+    <Box id="about" sx={{ py: { xs: 6, md: 10 }, background: 'rgba(20,30,40,0.7)', backdropFilter: 'blur(6px)', width: '100vw' }}>
+      <Box sx={{ maxWidth: '900px', margin: '0 auto', px: { xs: 2, md: 4 } }}>
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, textAlign: 'center', color: '#fff' }}>
           About Us
         </Typography>
@@ -111,7 +114,7 @@ function AboutUsSection() {
             </Typography>
           </Paper>
         </Box>
-      </Container>
+      </Box>
     </Box>
   );
 }
@@ -139,8 +142,8 @@ function ContactUsSection() {
   };
 
   return (
-    <Box id="contact" sx={{ py: { xs: 6, md: 10 }, background: 'rgba(20,30,40,0.7)', backdropFilter: 'blur(6px)', borderRadius: 4, mx: { xs: 1, md: 0 }, my: 4 }}>
-      <Container maxWidth="sm">
+    <Box id="contact" sx={{ py: { xs: 6, md: 10 }, background: 'rgba(20,30,40,0.7)', backdropFilter: 'blur(6px)', width: '100vw' }}>
+      <Box sx={{ maxWidth: '600px', margin: '0 auto', px: { xs: 2, md: 4 } }}>
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, textAlign: 'center', color: '#fff' }}>
           Contact Us
         </Typography>
@@ -169,7 +172,7 @@ function ContactUsSection() {
             </Grid>
           </form>
         </Paper>
-      </Container>
+      </Box>
     </Box>
   );
 }
@@ -193,8 +196,8 @@ function NewsletterSection() {
   };
 
   return (
-    <Box sx={{ py: { xs: 6, md: 8 }, background: 'rgba(20,30,40,0.7)', backdropFilter: 'blur(6px)', borderRadius: 4, mx: { xs: 1, md: 0 }, my: 4 }}>
-      <Container maxWidth="sm">
+    <Box sx={{ py: { xs: 6, md: 8 }, background: 'rgba(20,30,40,0.7)', backdropFilter: 'blur(6px)', width: '100vw' }}>
+      <Box sx={{ maxWidth: '600px', margin: '0 auto', px: { xs: 2, md: 4 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center', background: 'rgba(30,40,50,0.85)' }}>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#fff' }}>
             Stay Updated
@@ -227,7 +230,7 @@ function NewsletterSection() {
           {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
           {success && <Typography color="success.main" sx={{ mt: 2 }}>Subscribed successfully!</Typography>}
         </Paper>
-      </Container>
+      </Box>
     </Box>
   );
 }
@@ -235,8 +238,8 @@ function NewsletterSection() {
 // --- Footer ---
 function Footer() {
   return (
-    <Box sx={{ background: 'linear-gradient(90deg, #0f2027 0%, #2c5364 100%)', color: 'white', py: 4, mt: 6 }}>
-      <Container maxWidth="lg">
+    <Box sx={{ background: 'linear-gradient(90deg, #0f2027 0%, #2c5364 100%)', color: 'white', py: 4, mt: 6, width: '100vw' }}>
+      <Box sx={{ maxWidth: '1200px', margin: '0 auto', px: { xs: 2, md: 4 } }}>
         <Grid container spacing={2} alignItems="center" justifyContent="space-between">
           <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
             <Typography variant="body2" sx={{ mb: 1 }}>
@@ -259,7 +262,7 @@ function Footer() {
             <Button color="inherit" size="small" sx={{ textTransform: 'none', opacity: 0.8 }} disabled>Privacy Policy</Button>
           </Grid>
         </Grid>
-      </Container>
+      </Box>
     </Box>
   );
 }
@@ -267,7 +270,7 @@ function Footer() {
 // --- Main Home Page ---
 export default function HomePage() {
   return (
-    <Box sx={{ fontFamily: 'Roboto, Inter, Poppins, sans-serif', background: 'linear-gradient(120deg, #232526 0%, #414345 100%)', minHeight: '100vh' }}>
+    <Box sx={{ fontFamily: 'Roboto, Inter, Poppins, sans-serif', background: 'linear-gradient(120deg, #232526 0%, #414345 100%)', minHeight: '100vh', width: '100vw', overflowX: 'hidden' }}>
       <PublicNavBar />
       <HeroSection />
       <AboutUsSection />

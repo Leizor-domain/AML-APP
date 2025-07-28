@@ -270,7 +270,22 @@ function Footer() {
 // --- Main Home Page ---
 export default function HomePage() {
   return (
-    <Box sx={{ fontFamily: 'Roboto, Inter, Poppins, sans-serif', background: 'linear-gradient(120deg, #232526 0%, #414345 100%)', minHeight: '100vh', width: '100vw', overflowX: 'hidden' }}>
+    <Box
+      sx={{
+        fontFamily: 'Roboto, Inter, Poppins, sans-serif',
+        background: 'linear-gradient(120deg, #232526 0%, #414345 100%)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        minHeight: '100vh',
+        overflow: 'auto',
+        zIndex: 0,
+        m: 0,
+        p: 0,
+      }}
+    >
       <PublicNavBar />
       <HeroSection />
       <AboutUsSection />

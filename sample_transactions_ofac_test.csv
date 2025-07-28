@@ -1,6 +1,0 @@
-transactionId,timestamp,amount,currency,senderName,receiverName,senderAccount,receiverAccount,country,manualFlag,description
-TXN-OFAC-001,2025-07-25T14:22:30Z,1000.00,USD,Ali Mohammed,Jane Smith,ACC-001,ACC-002,US,true,Test transaction with potential OFAC match
-TXN-OFAC-002,2025-07-25T15:10:00Z,2500.50,EUR,Jane Doe,Carlos Rodriguez,ACC-003,ACC-004,ES,false,Test transaction with neutral name
-TXN-OFAC-003,2025-07-25T16:00:00Z,5000.00,GBP,Mohammed Ali,Sarah Johnson,ACC-005,ACC-006,GB,true,Test transaction with another potential OFAC match
-TXN-OFAC-004,2025-07-25T16:30:00Z,750.25,USD,John Smith,Emily Davis,ACC-007,ACC-008,US,false,Test transaction with common name
-TXN-OFAC-005,2025-07-25T17:00:00Z,3000.00,EUR,Vladimir Petrov,Anna Kowalski,ACC-009,ACC-010,PL,true,Test transaction with Russian name 

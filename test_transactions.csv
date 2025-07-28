@@ -1,4 +1,0 @@
-﻿transactionId,sender,recipient,amount,currency,country,dob
-TXN001,John Doe,Jane Smith,1000.00,USD,USA,1980-01-01
-TXN002,Jane Smith,Bob Johnson,2500.50,EUR,Germany,1985-05-15
-TXN003,Bob Johnson,Alice Brown,750.25,GBP,UK,1990-12-20

@@ -1,6 +1,0 @@
-transactionId,timestamp,amount,currency,senderName,receiverName,senderAccount,receiverAccount,country,manualFlag,description
-TXN-001,2025-07-25T14:22:30Z,1000.00,USD,John Doe,Jane Smith,ACC-001,ACC-002,US,true,Salary payment
-TXN-002,2025-07-25T15:10:00Z,2500.50,EUR,Maria Garcia,Carlos Rodriguez,ACC-003,ACC-004,ES,false,Invoice settlement
-TXN-003,2025-07-25T16:00:00Z,5000.00,GBP,Ahmed Hassan,Sarah Johnson,ACC-005,ACC-006,GB,true,Consulting fee
-TXN-004,2025-07-25T16:30:00Z,750.25,USD,John Smith,Emily Davis,ACC-007,ACC-008,US,false,Gift
-TXN-005,2025-07-25T17:00:00Z,3000.00,EUR,Vladimir Petrov,Anna Kowalski,ACC-009,ACC-010,PL,true,Equipment purchase 

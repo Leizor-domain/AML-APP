@@ -5,10 +5,12 @@ import com.leizo.enums.RiskScore;
 import com.leizo.service.TransactionHistoryService;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import java.sql.*;
 import java.util.*;
 import java.math.*;
 
+@Service
 public class TransactionHistoryServiceImpl implements TransactionHistoryService {
 
     @Value("${spring.datasource.url}")

@@ -159,7 +159,7 @@ public class TransactionEvaluatorServiceImpl implements TransactionEvaluatorServ
         try {
             // Load rules from JSON file
             ruleLoader.loadFromJson("classpath:rules.json");
-            jsonRules.addAll(ruleEngine.getActiveRules());
+            jsonRules.addAll(ruleLoader.getRules());
             logger.info("Loaded {} JSON-based rules", jsonRules.size());
         } catch (Exception e) {
             logger.warn("Failed to load JSON rules: {}", e.getMessage());

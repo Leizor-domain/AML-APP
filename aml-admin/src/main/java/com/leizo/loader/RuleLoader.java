@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.*;
 import com.leizo.enums.RuleSensitivity;
 import com.leizo.pojo.entity.Transaction;
 import com.leizo.pojo.entity.Rule;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.math.*;
@@ -16,18 +17,15 @@ import java.util.function.BiPredicate;
  *
  * This supports scalable, rule-driven AML detection logic with externalized configuration.
  */
+@Component
 public class RuleLoader {
-    private final List<Rule> rules;
+    private final List<Rule> rules = new ArrayList<>();
 
     /**
-     * Constructor for injecting the RuleRepository implementation
-     * that will store the loaded rules.
-     *
-     * @param ruleRepository the in-memory rule storage handler
+     * Constructor for RuleLoader
      */
-
-    public RuleLoader(List<Rule> rules) {
-        this.rules = rules;
+    public RuleLoader() {
+        // Initialize with empty list, rules will be loaded when needed
     }
 
     /**
@@ -44,7 +42,15 @@ public class RuleLoader {
     public void loadFromJson(String filePath) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(new File(filePath));
+            JsonNode root;
+            
+            // Try to load from classpath first, then from file system
+            try {
+                root = mapper.readTree(getClass().getClassLoader().getResourceAsStream(filePath.replace("classpath:", "")));
+            } catch (Exception e) {
+                root = mapper.readTree(new File(filePath));
+            }
+            
             for (JsonNode ruleNode : root) {
                 // Extract rule properties
                 String description = ruleNode.get("description").asText();
@@ -87,6 +93,22 @@ public class RuleLoader {
             case "low_value" -> (txn, amt) -> amt.compareTo(new BigDecimal("500")) < 0;
             default -> null;
         };
+    }
+    
+    /**
+     * Get the list of loaded rules
+     * @return List of loaded rules
+     */
+    public List<Rule> getRules() {
+        return new ArrayList<>(rules);
+    }
+    
+    /**
+     * Get the number of loaded rules
+     * @return Number of loaded rules
+     */
+    public int getRuleCount() {
+        return rules.size();
     }
 }
 

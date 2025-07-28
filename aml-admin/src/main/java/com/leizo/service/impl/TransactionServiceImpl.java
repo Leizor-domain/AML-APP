@@ -3,10 +3,12 @@ package com.leizo.service.impl;
 
 import com.leizo.pojo.entity.Transaction;
 import com.leizo.service.TransactionService;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class TransactionServiceImpl implements TransactionService{
 
     private final List<Transaction> transactionLog = new ArrayList<>();

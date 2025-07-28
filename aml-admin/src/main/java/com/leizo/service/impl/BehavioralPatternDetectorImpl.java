@@ -2,10 +2,12 @@ package com.leizo.service.impl;
 
 import com.leizo.pojo.entity.Transaction;
 import com.leizo.service.BehavioralPatternDetector;
+import org.springframework.stereotype.Service;
 
 import java.math.*;
 import java.util.*;
 
+@Service
 public class BehavioralPatternDetectorImpl implements BehavioralPatternDetector {
 
     private static final BigDecimal AMOUNT_DEVIATION_THRESHOLD = new BigDecimal("2.0"); // e.g. 2x avg

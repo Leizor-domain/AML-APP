@@ -16,6 +16,7 @@ import AlertDetailsPage from './pages/AlertDetailsPage.jsx'
 import ReportsPage from './pages/ReportsPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 import UserManagementPage from './pages/UserManagementPage.jsx'
+import HomePage from './pages/HomePage.jsx'
 import { canAccess, normalizeRole } from './utils/permissions';
 
 function App() {
@@ -160,14 +161,14 @@ function App() {
               }
             />
 
-            {/* Default redirect */}
+            {/* Default redirect / Home Page */}
             <Route
               path="/"
               element={
                 isAuthenticated ? (
                   <Navigate to={`/${user?.role?.toLowerCase().replace('role_', '')}/dashboard`} replace />
                 ) : (
-                  <Navigate to="/login" replace />
+                  <HomePage />
                 )
               }
             />

@@ -30,11 +30,12 @@ import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
 import CurrencyConverterWidget from '../CurrencyConverter/CurrencyConverterWidget';
 import StockChart from '../StockMarket/StockChart';
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const ViewerDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  const navigate = useNavigate();
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -314,6 +315,7 @@ const ViewerDashboard = () => {
                 startIcon={<Visibility />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/alerts')}
               >
                 View Reports
               </Button>
@@ -322,6 +324,7 @@ const ViewerDashboard = () => {
                 startIcon={<Assessment />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/admin/db-health')}
               >
                 System Status
               </Button>

@@ -31,11 +31,12 @@ import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
 import CurrencyConverterWidget from '../CurrencyConverter/CurrencyConverterWidget';
 import StockChart from '../StockMarket/StockChart';
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const SupervisorDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  const navigate = useNavigate();
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -126,6 +127,16 @@ const SupervisorDashboard = () => {
         return 'default'
     }
   }
+
+  // Placeholder for team management and performance report if missing
+  const goToTeamManagement = () => {
+    // TODO: Wire to backend/service if available
+    navigate('/admin/team-management');
+  };
+  const goToPerformanceReport = () => {
+    // TODO: Wire to backend/service if available
+    navigate('/reports');
+  };
 
   return (
     <Box>
@@ -315,6 +326,7 @@ const SupervisorDashboard = () => {
                 startIcon={<SupervisorAccount />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/alerts')}
               >
                 Review Cases
               </Button>
@@ -323,6 +335,7 @@ const SupervisorDashboard = () => {
                 startIcon={<People />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={goToTeamManagement}
               >
                 Team Management
               </Button>
@@ -331,6 +344,7 @@ const SupervisorDashboard = () => {
                 startIcon={<Assessment />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={goToPerformanceReport}
               >
                 Performance Report
               </Button>

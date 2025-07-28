@@ -30,11 +30,12 @@ import { adminApi } from '../../services/api';
 import { alertsService } from '../../services/alerts';
 import CurrencyConverterWidget from '../CurrencyConverter/CurrencyConverterWidget';
 import StockChart from '../StockMarket/StockChart';
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const AnalystDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  const navigate = useNavigate();
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -112,6 +113,13 @@ const AnalystDashboard = () => {
         return 'default'
     }
   }
+
+  // Placeholder for risk review if backend not available
+  const performRiskReview = () => {
+    // TODO: Wire to backend if available
+    console.log('Risk review triggered');
+    navigate('/alerts');
+  };
 
   return (
     <Box>
@@ -301,6 +309,7 @@ const AnalystDashboard = () => {
                 startIcon={<Search />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={() => navigate('/ingest')}
               >
                 Start Analysis
               </Button>
@@ -317,6 +326,7 @@ const AnalystDashboard = () => {
                 startIcon={<Security />}
                 fullWidth
                 sx={{ fontWeight: 600 }}
+                onClick={performRiskReview}
               >
                 Risk Assessment
               </Button>

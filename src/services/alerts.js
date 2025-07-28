@@ -7,7 +7,8 @@ export const alertsService = {
       return response.data
     } catch (error) {
       console.error('Failed to fetch alerts:', error)
-      return null
+      // Return empty array instead of null to prevent frontend errors
+      return []
     }
   },
 

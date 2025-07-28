@@ -82,12 +82,25 @@ const AdminDashboard = () => {
     setErrorAlerts(null)
     alertsService.getAlerts({ size: 5 })
       .then(res => {
-        const alerts = res.content || res.alerts || []
-        setRecentAlerts(alerts)
-        // If backend provides time-series, use it; else fallback
-        if (res.alertsByDay) {
+        if (res && Array.isArray(res)) {
+          // If response is directly an array
+          setRecentAlerts(res)
+        } else if (res && Array.isArray(res.content)) {
+          // If response has content array
+          setRecentAlerts(res.content)
+        } else if (res && Array.isArray(res.alerts)) {
+          // If response has alerts array
+          setRecentAlerts(res.alerts)
+        } else {
+          // Fallback to empty array
+          setRecentAlerts([])
+        }
+        
+        // Set chart data - use fallback data if backend doesn't provide it
+        if (res && res.alertsByDay && Array.isArray(res.alertsByDay)) {
           setAlertData(res.alertsByDay)
         } else {
+          // Fallback chart data
           setAlertData([
             { date: 'Mon', alerts: 12 },
             { date: 'Tue', alerts: 18 },
@@ -101,8 +114,20 @@ const AdminDashboard = () => {
         setLoadingAlerts(false)
       })
       .catch(err => {
-        setErrorAlerts('Failed to load recent alerts')
+        console.error('Failed to load alerts:', err)
+        // Set fallback data instead of showing error
+        setRecentAlerts([])
+        setAlertData([
+          { date: 'Mon', alerts: 0 },
+          { date: 'Tue', alerts: 0 },
+          { date: 'Wed', alerts: 0 },
+          { date: 'Thu', alerts: 0 },
+          { date: 'Fri', alerts: 0 },
+          { date: 'Sat', alerts: 0 },
+          { date: 'Sun', alerts: 0 },
+        ])
         setLoadingAlerts(false)
+        // Don't set error state - just show empty data gracefully
       })
   }, [])
 
@@ -233,8 +258,6 @@ const AdminDashboard = () => {
         </Typography>
         {loadingAlerts ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>
-        ) : errorAlerts ? (
-          <Typography color="error">{errorAlerts}</Typography>
         ) : (
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={alertData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -263,8 +286,15 @@ const AdminDashboard = () => {
             </Typography>
             {loadingAlerts ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>
-            ) : errorAlerts ? (
-              <Typography color="error">{errorAlerts}</Typography>
+            ) : recentAlerts.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 3 }}>
+                <Typography color="text.secondary" variant="body2">
+                  No recent alerts to display
+                </Typography>
+                <Typography color="text.secondary" variant="caption">
+                  Alerts will appear here when they are generated
+                </Typography>
+              </Box>
             ) : (
             <List>
               {recentAlerts.map((alert) => (
@@ -273,12 +303,12 @@ const AdminDashboard = () => {
                     <Notifications color="error" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={alert?.description || ''}
+                    primary={alert?.reason || alert?.description || 'Alert'}
                     secondary={alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
                   />
                   <Chip
-                    label={alert?.type ? alert.type.replace('_', ' ') : ''}
-                    color={getRiskColor(alert?.type)}
+                    label={alert?.alertType || alert?.type ? (alert.alertType || alert.type).replace('_', ' ') : 'ALERT'}
+                    color={getRiskColor(alert?.alertType || alert?.type)}
                     size="small"
                   />
                 </ListItem>

@@ -3,7 +3,7 @@ package com.leizo.admin.controller;
 import com.leizo.common.entity.Users;
 import com.leizo.common.repository.UserRepository;
 import com.leizo.admin.repository.AlertRepository;
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

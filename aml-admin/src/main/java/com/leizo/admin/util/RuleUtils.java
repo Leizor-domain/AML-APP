@@ -1,6 +1,6 @@
 package com.leizo.admin.util;
 
-import com.leizo.admin.entity.Rule;
+import com.leizo.pojo.entity.Rule;
 import com.leizo.enums.RuleSensitivity;
 
 /**

@@ -1,6 +1,6 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Transaction;
 import com.leizo.service.BehavioralPatternDetector;
 
 import java.math.*;

@@ -1,8 +1,8 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.Alert;
-import com.leizo.admin.entity.Transaction;
-import com.leizo.admin.entity.Rule;
+import com.leizo.pojo.entity.Alert;
+import com.leizo.pojo.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
 import com.leizo.admin.repository.AlertRepository;
 import com.leizo.service.AlertService;
 import org.springframework.stereotype.Service;
@@ -75,20 +75,20 @@ public class AlertServiceImpl implements AlertService {
      * @return the created alert object or null if duplicate
      */
     @Override
-    public com.leizo.admin.entity.Alert generateAlert(com.leizo.admin.entity.Transaction txn, com.leizo.admin.entity.Rule rule, String reason) {
+    public com.leizo.pojo.entity.Alert generateAlert(com.leizo.pojo.entity.Transaction txn, com.leizo.pojo.entity.Rule rule, String reason) {
         if (isDuplicateAlert(txn, reason)) {
             System.out.println("[AlertService] Duplicate alert skipped for sender: " + txn.getSender());
             return null;
         }
         // Convert model.Transaction to entity.Alert for persistence
-        com.leizo.admin.entity.Alert entityAlert = new com.leizo.admin.entity.Alert();
+        com.leizo.pojo.entity.Alert entityAlert = new com.leizo.pojo.entity.Alert();
         entityAlert.setReason(reason);
         entityAlert.setTimestamp(java.time.LocalDateTime.ofEpochSecond(System.currentTimeMillis() / 1000, 0, java.time.ZoneOffset.UTC));
         entityAlert.setAlertType("Generic");
         entityAlert.setPriorityLevel("Low");
         // alertRepository.save(entityAlert);
         // Convert back to model.Alert for return
-        com.leizo.admin.entity.Alert modelAlert = new com.leizo.admin.entity.Alert();
+        com.leizo.pojo.entity.Alert modelAlert = new com.leizo.pojo.entity.Alert();
         modelAlert.setAlertId(entityAlert.getAlertId());
         modelAlert.setReason(entityAlert.getReason());
         modelAlert.setTimestamp(java.time.LocalDateTime.now());
@@ -105,7 +105,7 @@ public class AlertServiceImpl implements AlertService {
      * @return true if a duplicate alert exists, false otherwise
      */
     @Override
-    public boolean isDuplicateAlert(com.leizo.admin.entity.Transaction txn, String reason) {
+    public boolean isDuplicateAlert(com.leizo.pojo.entity.Transaction txn, String reason) {
         String key = generateAlertKey(txn, reason);
         return alertHashes.contains(key);
     }
@@ -117,7 +117,7 @@ public class AlertServiceImpl implements AlertService {
      * @param reason the reason for alert creation
      * @return a deduplication key string
      */
-    private String generateAlertKey(com.leizo.admin.entity.Transaction txn, String reason) {
+    private String generateAlertKey(com.leizo.pojo.entity.Transaction txn, String reason) {
         return com.leizo.admin.util.AlertUtils.generateAlertKey(txn, reason);
     }
 
@@ -128,7 +128,8 @@ public class AlertServiceImpl implements AlertService {
      * @param reason the alert reason
      * @return a fingerprint hash string
      */
-    public String generateFingerPrint(com.leizo.admin.entity.Transaction txn, String reason) {
+    @Override
+    public String generateFingerPrint(com.leizo.pojo.entity.Transaction txn, String reason) {
         return com.leizo.admin.util.AlertUtils.generateAlertHash(txn, reason);
     }
 }

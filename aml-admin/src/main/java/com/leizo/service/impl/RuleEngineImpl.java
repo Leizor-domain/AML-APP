@@ -1,7 +1,7 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.Rule;
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
+import com.leizo.pojo.entity.Transaction;
 import com.leizo.service.RuleEngine;
 import org.springframework.stereotype.Service;
 

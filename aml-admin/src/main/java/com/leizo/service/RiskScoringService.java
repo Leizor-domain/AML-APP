@@ -1,8 +1,8 @@
 package com.leizo.service;
 
 import com.leizo.enums.RiskScore;
-import com.leizo.admin.entity.Rule;
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
+import com.leizo.pojo.entity.Transaction;
 
 import java.util.Set;
 

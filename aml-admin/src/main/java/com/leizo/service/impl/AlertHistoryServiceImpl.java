@@ -1,7 +1,7 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.Alert;
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Alert;
+import com.leizo.pojo.entity.Transaction;
 import com.leizo.service.AlertHistoryService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

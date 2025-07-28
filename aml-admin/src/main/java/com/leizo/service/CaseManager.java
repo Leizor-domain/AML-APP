@@ -1,9 +1,9 @@
 package com.leizo.service;
 
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 
 public interface CaseManager {
 
-    void reviewAlert(com.leizo.admin.entity.Alert alert);
+    void reviewAlert(com.leizo.pojo.entity.Alert alert);
 
 }

@@ -1,6 +1,6 @@
 package com.leizo.loader;
 
-import com.leizo.admin.entity.SanctionedEntity;
+import com.leizo.pojo.entity.SanctionedEntity;
 import com.leizo.service.FileImportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package com.leizo.admin.service;
 
-import com.leizo.admin.entity.AuditLogEntry;
+import com.leizo.pojo.entity.AuditLogEntry;
 import java.util.List;
 
 public interface AuditLogService {

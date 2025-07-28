@@ -1,6 +1,6 @@
 package com.leizo.service;
 
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 
 import java.util.List;
 

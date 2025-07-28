@@ -1,4 +1,4 @@
-package com.leizo.admin.entity;
+package com.leizo.pojo.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

@@ -2,8 +2,8 @@ package com.leizo.loader;
 
 import com.fasterxml.jackson.databind.*;
 import com.leizo.enums.RuleSensitivity;
-import com.leizo.admin.entity.Transaction;
-import com.leizo.admin.entity.Rule;
+import com.leizo.pojo.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
 
 import java.util.*;
 import java.math.*;

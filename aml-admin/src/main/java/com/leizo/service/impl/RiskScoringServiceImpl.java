@@ -2,8 +2,8 @@ package com.leizo.service.impl;
 
 import com.leizo.enums.RiskScore;
 import com.leizo.loader.SanctionListLoader;
-import com.leizo.admin.entity.Rule;
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
+import com.leizo.pojo.entity.Transaction;
 import com.leizo.service.RiskScoringService;
 import org.springframework.stereotype.Service;
 

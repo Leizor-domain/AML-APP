@@ -1,6 +1,6 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 import com.leizo.service.LoggerService;
 
 import java.io.IOException;

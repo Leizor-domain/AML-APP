@@ -1,6 +1,6 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.SanctionedEntity;
+import com.leizo.pojo.entity.SanctionedEntity;
 import com.leizo.service.FileImportService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

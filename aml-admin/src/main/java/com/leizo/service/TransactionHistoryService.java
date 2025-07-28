@@ -1,6 +1,6 @@
 package com.leizo.service;
 
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Transaction;
 
 import java.math.BigDecimal;
 import java.util.*;

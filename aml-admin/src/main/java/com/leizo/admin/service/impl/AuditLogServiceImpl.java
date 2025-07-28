@@ -1,6 +1,6 @@
 package com.leizo.admin.service.impl;
 
-import com.leizo.admin.entity.AuditLogEntry;
+import com.leizo.pojo.entity.AuditLogEntry;
 import com.leizo.admin.repository.AuditLogRepository;
 import com.leizo.admin.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;

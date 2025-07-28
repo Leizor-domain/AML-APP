@@ -3,7 +3,7 @@ package com.leizo.service.impl;
 import com.leizo.loader.SanctionListLoader;
 import com.leizo.service.SanctionsChecker;
 import com.leizo.service.OfacXmlSanctionsApiClient;
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 import com.leizo.admin.repository.AlertRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

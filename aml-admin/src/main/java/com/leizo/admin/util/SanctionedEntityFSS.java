@@ -1,6 +1,6 @@
 package com.leizo.admin.util;
 
-import com.leizo.admin.entity.SanctionedEntity;
+import com.leizo.pojo.entity.SanctionedEntity;
 
 import java.util.ArrayList;
 import java.util.List;

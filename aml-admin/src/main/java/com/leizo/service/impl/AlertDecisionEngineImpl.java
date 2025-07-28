@@ -1,8 +1,8 @@
 package com.leizo.service.impl;
 
-import com.leizo.admin.entity.Alert;
-import com.leizo.admin.entity.Transaction;
-import com.leizo.admin.entity.Rule;
+import com.leizo.pojo.entity.Alert;
+import com.leizo.pojo.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
 import com.leizo.admin.repository.AlertRepository;
 import com.leizo.service.AlertDecisionEngine;
 import com.leizo.service.LoggerService;

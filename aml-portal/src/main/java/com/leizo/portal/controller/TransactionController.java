@@ -2,7 +2,7 @@ package com.leizo.portal.controller;
 
 import com.leizo.enums.IngestionStatus;
 import com.leizo.model.IngestionResult;
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Transaction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

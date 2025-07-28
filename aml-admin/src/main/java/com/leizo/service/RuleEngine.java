@@ -1,7 +1,7 @@
 package com.leizo.service;
 
-import com.leizo.admin.entity.Rule;
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Rule;
+import com.leizo.pojo.entity.Transaction;
 import java.math.BigDecimal;
 import java.util.List;
 public interface RuleEngine {

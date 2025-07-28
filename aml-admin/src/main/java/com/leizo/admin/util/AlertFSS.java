@@ -1,6 +1,6 @@
 package com.leizo.admin.util;
 
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 
 import java.util.ArrayList;
 import java.util.List;

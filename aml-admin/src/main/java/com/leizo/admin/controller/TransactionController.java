@@ -1,11 +1,11 @@
 package com.leizo.admin.controller;
 
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Transaction;
 import com.leizo.admin.repository.TransactionRepository;
 import com.leizo.service.RuleEngine;
 import com.leizo.service.RiskScoringService;
 import com.leizo.service.SanctionsChecker;
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 import com.leizo.admin.repository.AlertRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

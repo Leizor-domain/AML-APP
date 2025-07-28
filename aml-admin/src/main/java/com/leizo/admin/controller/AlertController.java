@@ -1,6 +1,6 @@
 package com.leizo.admin.controller;
 
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 import com.leizo.admin.repository.AlertRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

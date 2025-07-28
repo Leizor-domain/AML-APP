@@ -1,6 +1,6 @@
 package com.leizo.admin.util;
 
-import com.leizo.admin.entity.Transaction;
+import com.leizo.pojo.entity.Transaction;
 import java.util.Map;
 
 /**

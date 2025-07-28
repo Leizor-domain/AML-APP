@@ -1,6 +1,6 @@
 package com.leizo.admin.repository;
 
-import com.leizo.admin.entity.Alert;
+import com.leizo.pojo.entity.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

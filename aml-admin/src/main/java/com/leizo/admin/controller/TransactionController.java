@@ -7,6 +7,7 @@ import com.leizo.service.RiskScoringService;
 import com.leizo.service.SanctionsChecker;
 import com.leizo.pojo.entity.Alert;
 import com.leizo.admin.repository.AlertRepository;
+import com.leizo.service.TransactionEvaluatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ import com.leizo.admin.dto.TransactionCsvParser;
 import com.leizo.admin.dto.TransactionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.leizo.service.AlertDecisionResult;
 
 @RestController
 @RequestMapping("/ingest")
@@ -45,6 +47,8 @@ public class TransactionController {
     private SanctionsChecker sanctionsChecker;
     @Autowired
     private AlertRepository alertRepository;
+    @Autowired
+    private TransactionEvaluatorService transactionEvaluatorService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final int BATCH_SIZE = 100; // Process transactions in batches
@@ -204,36 +208,26 @@ public class TransactionController {
                         txn.setRiskScore(com.leizo.enums.RiskScore.MEDIUM); // Default fallback
                     }
                     
-                    // Rule engine (apply all active rules) with error handling
+                    // NEW: Use TransactionEvaluatorService for comprehensive alert evaluation
                     try {
-                        for (var rule : ruleEngine.getActiveRules()) {
-                            ruleEngine.applyRule(txn, rule, txn.getAmount());
+                        AlertDecisionResult alertResult = transactionEvaluatorService.evaluateForAlert(txn);
+                        
+                        if (alertResult.shouldTriggerAlert()) {
+                            try {
+                                Alert alert = alertResult.getAlert();
+                                if (alert != null) {
+                                    alertRepository.save(alert);
+                                    alertsGenerated++;
+                                    logger.info("Alert saved to database for transaction {}: {}", txn.getId(), alert.getReason());
+                                }
+                            } catch (Exception e) {
+                                logger.error("Failed to save alert for transaction {}: {}", txn.getId(), e.getMessage());
+                                // Continue processing even if alert saving fails
+                            }
                         }
                     } catch (Exception e) {
-                        logger.warn("Rule engine failed for transaction {}: {}", txn.getId(), e.getMessage());
-                        // Continue processing even if rule engine fails
-                    }
-                    
-                    // Sanctions check with enhanced matching and error handling
-                    boolean isSanctioned = false;
-                    try {
-                        isSanctioned = sanctionsChecker.isSanctionedEntity(
-                            txn.getSender(), txn.getCountry(), txn.getDob(), null
-                        );
-                    } catch (Exception e) {
-                        logger.warn("Sanctions check failed for transaction {}: {}", txn.getId(), e.getMessage());
-                        // Continue processing even if sanctions check fails
-                    }
-                    
-                    if (isSanctioned) {
-                        try {
-                            Alert alert = createSanctionsAlert(txn);
-                            alertRepository.save(alert);
-                            alertsGenerated++;
-                        } catch (Exception e) {
-                            logger.error("Failed to create sanctions alert for transaction {}: {}", txn.getId(), e.getMessage());
-                            // Continue processing even if alert creation fails
-                        }
+                        logger.warn("Alert evaluation failed for transaction {}: {}", txn.getId(), e.getMessage());
+                        // Continue processing even if alert evaluation fails
                     }
                     
                     // Save transaction with validation

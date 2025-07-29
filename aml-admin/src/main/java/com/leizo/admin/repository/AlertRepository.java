@@ -32,12 +32,6 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
     // Find alerts by alert type with pagination
     Page<Alert> findByAlertTypeContainingIgnoreCase(String alertType, Pageable pageable);
 
-    // Find alerts by status with pagination
-    Page<Alert> findByStatusContainingIgnoreCase(String status, Pageable pageable);
-
-    // Find alerts by risk level with pagination
-    Page<Alert> findByRiskLevelContainingIgnoreCase(String riskLevel, Pageable pageable);
-
     // Find alerts by priority level - removed due to missing ruleId field
     // List<Alert> findByRuleId(String ruleId);
 

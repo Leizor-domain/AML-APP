@@ -53,17 +53,14 @@ public class AlertController {
 
             Page<Alert> alertsPage;
 
-            // Apply filters if provided - handle both frontend and backend parameter names
-            if (status != null && !status.isEmpty()) {
-                alertsPage = alertRepository.findByStatusContainingIgnoreCase(status, pageable);
-            } else if (alertType != null && !alertType.isEmpty()) {
+            // Apply filters if provided - only use fields that exist in the Alert entity
+            if (alertType != null && !alertType.isEmpty()) {
                 alertsPage = alertRepository.findByAlertTypeContainingIgnoreCase(alertType, pageable);
             } else if (priorityLevel != null && !priorityLevel.isEmpty()) {
                 alertsPage = alertRepository.findByPriorityLevelContainingIgnoreCase(priorityLevel, pageable);
-            } else if (riskLevel != null && !riskLevel.isEmpty()) {
-                alertsPage = alertRepository.findByRiskLevelContainingIgnoreCase(riskLevel, pageable);
             } else {
-                // No filters - get all alerts
+                // No filters or unsupported filters - get all alerts
+                // Note: status and riskLevel filters are ignored since these fields don't exist in Alert entity
                 alertsPage = alertRepository.findAll(pageable);
             }
 

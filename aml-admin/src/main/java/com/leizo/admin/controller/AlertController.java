@@ -172,6 +172,34 @@ public class AlertController {
             return ResponseEntity.internalServerError().body(response);
         }
     }
+
+    /**
+     * Safely populate database with 50 mock alerts (clears existing first)
+     */
+    @PostMapping("/populate-mock-safe")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> populateMockAlertsSafely() {
+        try {
+            logger.info("Received request to safely populate mock alerts");
+            long previousCount = mockAlertDataService.getAlertCount();
+            mockAlertDataService.populateMockAlertsSafely();
+            long newCount = mockAlertDataService.getAlertCount();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Mock alerts safely populated (cleared existing first)");
+            response.put("previousCount", previousCount);
+            response.put("newCount", newCount);
+            response.put("addedCount", newCount);
+            logger.info("Successfully safely populated {} mock alerts", newCount);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Failed to safely populate mock alerts: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Failed to safely populate mock alerts: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
     
     /**
      * Clear all alerts from database

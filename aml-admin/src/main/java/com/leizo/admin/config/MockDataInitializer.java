@@ -23,6 +23,9 @@ public class MockDataInitializer implements CommandLineRunner {
         logger.info("Starting mock data initialization...");
         
         try {
+            // Wait a bit for database to be fully ready
+            Thread.sleep(2000);
+            
             // Initialize mock alerts if database is empty
             mockAlertDataService.initializeMockAlertsIfEmpty();
             
@@ -30,6 +33,7 @@ public class MockDataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             logger.error("Failed to initialize mock data: {}", e.getMessage(), e);
             // Don't throw exception to prevent application startup failure
+            // Just log the error and continue
         }
     }
 }

@@ -130,8 +130,7 @@ public class MockAlertDataService {
     private Alert createMockAlert(int alertId, LocalDateTime baseTime) {
         Alert alert = new Alert();
         
-        // Basic alert information
-        alert.setId(alertId);
+        // Basic alert information - DO NOT set ID manually, let Hibernate generate it
         alert.setAlertId("ALERT-" + String.format("%06d", alertId));
         alert.setMatchedEntityName(getRandomElement(mockEntityNames));
         alert.setMatchedList(getRandomElement(mockMatchedLists));
@@ -198,6 +197,21 @@ public class MockAlertDataService {
             }
         } catch (Exception e) {
             logger.error("Failed to initialize mock alerts: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Safely populate mock alerts by clearing existing ones first
+     */
+    public void populateMockAlertsSafely() {
+        try {
+            logger.info("Safely populating mock alerts - clearing existing alerts first");
+            clearMockAlerts();
+            populateMockAlerts();
+            logger.info("Successfully populated mock alerts safely");
+        } catch (Exception e) {
+            logger.error("Failed to safely populate mock alerts: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to safely populate mock alerts", e);
         }
     }
 }

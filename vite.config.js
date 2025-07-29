@@ -61,6 +61,8 @@ export default defineConfig({
       'react-router-dom',
       'axios',
       'recharts',
+      'jwt-decode',
+      'papaparse',
     ],
   },
 })

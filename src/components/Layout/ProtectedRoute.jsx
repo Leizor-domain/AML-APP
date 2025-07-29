@@ -2,7 +2,7 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import { CircularProgress, Box } from '@mui/material'
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { canAccess, normalizeRole } from '../../utils/permissions';
 
 const isTokenExpired = (token) => {

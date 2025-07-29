@@ -1,6 +1,12 @@
-# AML Engine - Anti-Money Laundering System
+# AML Application
 
-A comprehensive, production-ready Anti-Money Laundering (AML) Engine with Spring Boot backend, React frontend, and advanced transaction monitoring capabilities.
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://openjdk.java.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-green.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+A comprehensive **Anti-Money Laundering (AML)** application built with Spring Boot backend and React frontend, designed for financial institutions to monitor transactions, detect suspicious activities, and ensure regulatory compliance.
 
 ## 🚀 Quick Start
 
@@ -11,149 +17,114 @@ A comprehensive, production-ready Anti-Money Laundering (AML) Engine with Spring
 - **Maven 3.8+**
 
 ### Installation
-```bash
-# Clone the repository
-git clone https://github.com/Leizor-domain/AML-APP.git
-cd AML-APP
 
-# Backend Setup
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd AML-App
+   ```
+
+2. **Backend Setup**
+   ```bash
+   cd aml-admin
+   mvn spring-boot:run
+   ```
+
+3. **Frontend Setup**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. **Database Setup**
+   ```bash
+   # Use the provided schema
+   psql -U your_user -d your_database -f config/schema.sql
+   ```
+
+## 📁 Project Structure
+
+```
+AML App/
+├── 📁 aml-admin/          # Main Spring Boot application
+├── 📁 aml-common/         # Shared utilities and components
+├── 📁 aml-pojo/           # Domain models and entities
+├── 📁 aml-portal/         # Portal-specific application
+├── 📁 src/                # React frontend application
+├── 📁 docs/               # Documentation
+├── 📁 scripts/            # Utility scripts
+├── 📁 config/             # Configuration files
+├── 📁 test-data/          # Test data files
+└── 📁 public/             # Static assets
+```
+
+📖 **Detailed Structure**: See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)
+
+## 🔧 Core Features
+
+### Backend Features
+- **Transaction Monitoring**: Real-time transaction analysis
+- **Alert Generation**: Automated suspicious activity detection
+- **Sanctions Screening**: OFAC and local sanctions checking
+- **Rule Engine**: Configurable AML rules
+- **Risk Scoring**: Dynamic risk assessment
+- **User Management**: Role-based access control
+- **Audit Logging**: Comprehensive activity tracking
+
+### Frontend Features
+- **Responsive Dashboard**: Role-specific dashboards
+- **Real-time Alerts**: Live alert monitoring
+- **Transaction Ingestion**: File upload and processing
+- **Currency Conversion**: Real-time exchange rates
+- **Stock Market Data**: Market analysis tools
+- **User Management**: Admin user controls
+- **Reporting**: Comprehensive reporting tools
+
+## 🎯 User Roles
+
+- **Admin**: System administration and user management
+- **Analyst**: Transaction analysis and alert review
+- **Supervisor**: Team management and oversight
+- **Viewer**: Read-only access to reports and data
+
+## 🛠️ Development
+
+### Backend Development
+```bash
 cd aml-admin
 mvn clean install
 mvn spring-boot:run
+```
 
-# Frontend Setup (in new terminal)
+### Frontend Development
+```bash
 npm install
 npm run dev
 ```
 
-## 🏗️ Architecture Overview
-
-### Backend Modules
-- **`aml-admin`** - Main Spring Boot application with authentication, transaction processing, and alert management
-- **`aml-common`** - Shared utilities, security components, and common entities
-- **`aml-pojo`** - Core domain models and data transfer objects
-- **`aml-portal`** - Portal-specific Spring Boot application
-
-### Frontend
-- **React 18** with **Material-UI** and **Redux Toolkit**
-- **Role-based dashboards** (Admin, Analyst, Supervisor, Viewer)
-- **Real-time transaction monitoring** and alert management
-
-## 🔧 Core Features
-
-### Transaction Processing
-- **CSV/JSON ingestion** with validation and error handling
-- **Real-time transaction evaluation** against AML rules
-- **Risk scoring** with configurable thresholds
-- **Sanctions screening** (OFAC SDN + Local lists)
-- **Alert generation** with deduplication and cooldown
-
-### Rule Engine
-- **JSON-based rule configuration** with hot-reloading
-- **Multiple rule types**: High value, sanctions, structuring, PEP, geographic risk
-- **Configurable sensitivity levels** (LOW, MEDIUM, HIGH)
-- **Rule chaining** and priority-based evaluation
-
-### Alert Management
-- **Comprehensive alert types**: Sanctions, high value, behavioral patterns
-- **Alert lifecycle management**: Creation, review, resolution
-- **Dashboard integration** with real-time updates
-- **Export capabilities** for compliance reporting
-
-### Security & Authentication
-- **JWT-based authentication** with role-based access control
-- **Four user roles**: Admin, Analyst, Supervisor, Viewer
-- **Secure API endpoints** with proper authorization
-- **Audit logging** for compliance requirements
-
-## 📊 Dashboard Features
-
-### Admin Dashboard
-- **System overview** with key metrics
-- **User management** with role assignment
-- **Alert monitoring** with real-time updates
-- **Transaction processing** status and statistics
-
-### Analyst Dashboard
-- **Alert review** and investigation tools
-- **Transaction analysis** with detailed views
-- **Risk assessment** tools and reporting
-- **Case management** for ongoing investigations
-
-### Supervisor Dashboard
-- **Team performance** monitoring
-- **Escalation management** for high-risk alerts
-- **Compliance reporting** and analytics
-- **System configuration** and rule management
-
-## 🗄️ Database Schema
-
-### Core Tables
-- **`users`** - User accounts and role management
-- **`transactions`** - Transaction data with metadata
-- **`alerts`** - Generated alerts with status tracking
-- **`transaction_metadata`** - Extended transaction properties
-
-### Key Relationships
-- Transactions → Alerts (one-to-many)
-- Users → Transactions (many-to-many via roles)
-- Alerts → Users (assigned investigators)
-
-## 🔌 API Endpoints
-
-### Authentication
-- `POST /auth/login` - User authentication
-- `POST /auth/register` - User registration (admin only)
-
-### Transaction Management
-- `POST /ingest/file` - Upload transaction files (CSV/JSON)
-- `GET /ingest/transactions` - Retrieve transaction history
-- `GET /ingest/transactions/{id}` - Get specific transaction
-
-### Alert Management
-- `GET /alerts` - List all alerts with filtering
-- `GET /alerts/{id}` - Get specific alert details
-- `PATCH /alerts/{id}/status` - Update alert status
-- `POST /alerts/populate-mock` - Generate test alerts
-
-### User Management
-- `GET /users` - List all users
-- `POST /users/create` - Create new user (admin only)
-- `PATCH /users/{id}/status` - Enable/disable user
-
-## 🧪 Testing
-
-### Backend Testing
+### Testing
 ```bash
+# Backend tests
 cd aml-admin
 mvn test
-```
 
-### Frontend Testing
-```bash
+# Frontend tests
 npm test
 ```
 
-### Integration Testing
-```bash
-# Test transaction ingestion
-curl -X POST -F "file=@test_transactions.csv" http://localhost:8080/ingest/file
+## 📊 API Documentation
 
-# Test alert generation
-curl -X POST http://localhost:8080/alerts/populate-mock
-```
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **API Docs**: See [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
+
+## 🔒 Security
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-based Access**: Granular permission control
+- **Data Encryption**: Encrypted data transmission
+- **Audit Logging**: Comprehensive activity tracking
 
 ## 🚀 Deployment
-
-### Local Development
-```bash
-# Backend (Port 8080)
-cd aml-admin
-mvn spring-boot:run
-
-# Frontend (Port 5173)
-npm run dev
-```
 
 ### Production Deployment
 ```bash
@@ -168,96 +139,65 @@ npm run build
 docker-compose up -d
 ```
 
-### Environment Variables
+### Docker Deployment
 ```bash
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=aml_database
-DB_USERNAME=aml_user
-DB_PASSWORD=your_password
-
-# JWT
-JWT_SECRET=your_jwt_secret_key
-JWT_EXPIRATION=86400000
-
-# API URLs
-VITE_ADMIN_API_URL=http://localhost:8080
-VITE_PORTAL_API_URL=http://localhost:8081
+# Build and run with Docker Compose
+docker-compose up --build
 ```
 
-## 📈 Monitoring & Analytics
+## 📈 Monitoring
 
-### Key Metrics
-- **Transaction processing rate** (transactions/minute)
-- **Alert generation rate** (alerts/day)
-- **False positive rate** (resolved alerts/total alerts)
-- **System uptime** and performance metrics
-
-### Logging
-- **Structured logging** with correlation IDs
-- **Audit trails** for compliance requirements
-- **Error tracking** with detailed stack traces
-- **Performance monitoring** with response times
-
-## 🔒 Security Features
-
-### Data Protection
-- **Encrypted data transmission** (HTTPS/TLS)
-- **Secure password hashing** (BCrypt)
-- **Input validation** and sanitization
-- **SQL injection prevention** with parameterized queries
-
-### Access Control
-- **Role-based permissions** with fine-grained access
-- **Session management** with automatic timeout
-- **API rate limiting** to prevent abuse
-- **Audit logging** for security events
-
-## 📚 Documentation
-
-### Additional Resources
-- [Alert Generation Guide](ALERT_GENERATION_DETAILED_GUIDE.md)
-- [High-Risk Countries Documentation](HIGH_RISK_COUNTRIES_DOCUMENTATION.md)
-- [Local Sanctions List Documentation](LOCAL_SANCTIONS_LIST_DOCUMENTATION.md)
-- [OFAC API Integration Guide](OFAC_API_OFFLINE_ANALYSIS.md)
-
-### API Documentation
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **OpenAPI Spec**: `http://localhost:8080/v3/api-docs`
+- **Health Checks**: `http://localhost:8080/actuator/health`
+- **Metrics**: `http://localhost:8080/actuator/metrics`
+- **Logs**: Application logs with structured logging
 
 ## 🤝 Contributing
 
-### Development Workflow
-1. **Fork** the repository
-2. **Create** a feature branch
-3. **Implement** your changes
-4. **Test** thoroughly
-5. **Submit** a pull request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ### Code Standards
-- **Java**: Follow Google Java Style Guide
-- **JavaScript**: Use ESLint and Prettier
-- **Documentation**: Update README files for new features
-- **Testing**: Maintain >80% code coverage
+- **Backend**: Java coding conventions
+- **Frontend**: ESLint and Prettier
+- **Documentation**: Markdown standards
+- **Testing**: Minimum 80% coverage
+
+## 📚 Documentation
+
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)**: Detailed project organization
+- **[API Reference](docs/API_REFERENCE.md)**: Complete API documentation
+- **[Deployment Guide](docs/DEPLOYMENT.md)**: Production deployment instructions
+- **[User Manual](docs/USER_MANUAL.md)**: End-user documentation
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)**: Development setup and guidelines
+
+## 🐛 Troubleshooting
+
+### Common Issues
+- **Database Connection**: Check PostgreSQL service and credentials
+- **Port Conflicts**: Ensure ports 8080 and 3000 are available
+- **Dependencies**: Run `mvn clean install` and `npm install`
+
+### Support
+- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
+- **Documentation**: [docs/](docs/)
+- **Email**: support@your-company.com
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🙏 Acknowledgments
 
-### Troubleshooting
-- **Database connection issues**: Check PostgreSQL service and credentials
-- **Authentication problems**: Verify JWT configuration and user roles
-- **Alert generation**: Review rule configuration and transaction data
-- **Performance issues**: Monitor database indexes and query optimization
-
-### Contact
-- **Issues**: [GitHub Issues](https://github.com/Leizor-domain/AML-APP/issues)
-- **Documentation**: Check the `/docs` folder for detailed guides
-- **Email**: leizordev@outlook.com
+- **Spring Boot Team**: For the excellent framework
+- **React Team**: For the powerful frontend library
+- **PostgreSQL**: For the reliable database
+- **Open Source Community**: For the amazing tools and libraries
 
 ---
 
-**Built with ❤️ for financial compliance and security**
+**AML Application** - Professional, scalable, and maintainable anti-money laundering solution.
+
+*Built with ❤️ for financial compliance and security.*

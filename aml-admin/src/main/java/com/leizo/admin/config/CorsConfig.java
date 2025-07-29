@@ -10,7 +10,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
             // Production frontend (main React app)
-            .allowedOrigins(
+            .allowedOriginPatterns(
                 "https://aml-app.onrender.com",         // Main app (prod)
                 "https://aml-portal.onrender.com",      // Portal (prod)
                 "https://aml-admin.onrender.com",       // Admin (prod, if accessed from browser)
@@ -25,4 +25,4 @@ public class CorsConfig implements WebMvcConfigurer {
             .exposedHeaders("Authorization", "Content-Type")
             .allowCredentials(true);
     }
-} 
+}

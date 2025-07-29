@@ -1,6 +1,8 @@
 package com.leizo.admin.repository;
 
 import com.leizo.pojo.entity.Alert;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +26,13 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
     // Find alerts by priority level
     List<Alert> findByPriorityLevel(String priorityLevel);
 
-    // Find alerts by rule ID - removed due to missing ruleId field
+    // Find alerts by priority level with pagination
+    Page<Alert> findByPriorityLevelContainingIgnoreCase(String priorityLevel, Pageable pageable);
+
+    // Find alerts by alert type with pagination
+    Page<Alert> findByAlertTypeContainingIgnoreCase(String alertType, Pageable pageable);
+
+    // Find alerts by priority level - removed due to missing ruleId field
     // List<Alert> findByRuleId(String ruleId);
 
     // Find high priority alerts - removed due to missing createdAt field

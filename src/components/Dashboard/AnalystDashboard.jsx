@@ -75,14 +75,27 @@ const AnalystDashboard = () => {
   useEffect(() => {
     setLoadingAlerts(true)
     setErrorAlerts(null)
-    alertsService.getAlertsForAnalyst({ size: 5 })
+    alertsService.getAlerts({ status: 'PENDING', size: 5 })
       .then(res => {
-        const alerts = res.content || []
-        setPendingAlerts(alerts)
-        // If backend provides time-series, use it; else fallback
-        if (res.reviewsByDay) {
+        if (res && Array.isArray(res)) {
+          // If response is directly an array
+          setPendingAlerts(res)
+        } else if (res && Array.isArray(res.content)) {
+          // If response has content array
+          setPendingAlerts(res.content)
+        } else if (res && Array.isArray(res.alerts)) {
+          // If response has alerts array
+          setPendingAlerts(res.alerts)
+        } else {
+          // Fallback to empty array
+          setPendingAlerts([])
+        }
+        
+        // Set chart data - use fallback data if backend doesn't provide it
+        if (res && res.reviewsByDay && Array.isArray(res.reviewsByDay)) {
           setReviewData(res.reviewsByDay)
         } else {
+          // Fallback chart data
           setReviewData([
             { date: 'Mon', reviews: 5 },
             { date: 'Tue', reviews: 8 },
@@ -96,7 +109,18 @@ const AnalystDashboard = () => {
         setLoadingAlerts(false)
       })
       .catch(err => {
+        console.error('Failed to load alerts:', err)
         setErrorAlerts('Failed to load pending alerts')
+        setPendingAlerts([])
+        setReviewData([
+          { date: 'Mon', reviews: 0 },
+          { date: 'Tue', reviews: 0 },
+          { date: 'Wed', reviews: 0 },
+          { date: 'Thu', reviews: 0 },
+          { date: 'Fri', reviews: 0 },
+          { date: 'Sat', reviews: 0 },
+          { date: 'Sun', reviews: 0 },
+        ])
         setLoadingAlerts(false)
       })
   }, [])
@@ -263,6 +287,15 @@ const AnalystDashboard = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>
             ) : errorAlerts ? (
               <Typography color="error">{errorAlerts}</Typography>
+            ) : pendingAlerts.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 3 }}>
+                <Typography color="text.secondary" variant="body2">
+                  No pending alerts to display
+                </Typography>
+                <Typography color="text.secondary" variant="caption">
+                  Alerts will appear here when they are generated
+                </Typography>
+              </Box>
             ) : (
             <List>
               {pendingAlerts.map((alert) => (
@@ -271,27 +304,19 @@ const AnalystDashboard = () => {
                     <Notifications color="error" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={alert?.reason || 'Alert'}
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Transaction ID: {alert?.transactionId || 'N/A'}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
-                        </Typography>
-                      </Box>
-                    }
+                    primary={alert?.reason || alert?.description || 'Alert'}
+                    secondary={`${alert?.matchedEntityName || 'Unknown Entity'} • ${alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}`}
                   />
-                  <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
-                      label={alert?.alertType ? alert.alertType.replace('_', ' ') : 'ALERT'}
-                      color={getRiskColor(alert?.alertType)}
+                      label={alert?.alertType || alert?.type ? (alert.alertType || alert.type).replace('_', ' ') : 'ALERT'}
+                      color={getRiskColor(alert?.alertType || alert?.type)}
                       size="small"
                     />
                     <Chip
-                      label={alert?.priorityLevel || 'MEDIUM'}
-                      color={alert?.priorityLevel === 'HIGH' ? 'error' : alert?.priorityLevel === 'MEDIUM' ? 'warning' : 'success'}
+                      label={alert?.priorityLevel || alert?.priority || 'MEDIUM'}
+                      color={alert?.priorityLevel === 'HIGH' || alert?.priority === 'HIGH' ? 'error' : 
+                             alert?.priorityLevel === 'MEDIUM' || alert?.priority === 'MEDIUM' ? 'warning' : 'default'}
                       size="small"
                     />
                   </Box>
@@ -304,6 +329,7 @@ const AnalystDashboard = () => {
                 variant="outlined" 
                 color="primary"
                 onClick={() => navigate('/alerts')}
+                sx={{ fontWeight: 600 }}
               >
                 View All Pending Alerts
               </Button>

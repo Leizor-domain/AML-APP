@@ -36,12 +36,7 @@ public class MockAlertDataService {
         "Karim El-Sayed", "Lauren Scott", "Nasser Al-Qahtani", "Victoria Adams",
         "Tarek Hassan", "Samantha Baker", "Ziad Khalil", "Amber Carter",
         "Faisal Al-Rashid", "Danielle Evans", "Malik Johnson", "Courtney Foster",
-        "Rami El-Hassan", "Tiffany Garcia", "Samir Al-Zahra", "Monica Rodriguez",
-        "Adel Khalil", "Heather Martinez", "Waleed Al-Mansouri", "Brittany Anderson",
-        "Karim Hassan", "Melissa Taylor", "Tariq Al-Rashid", "Christina Moore",
-        "Hassan El-Sayed", "Rebecca Jackson", "Omar Khalil", "Stephanie Martin",
-        "Rashid Al-Zahra", "Nicole Lee", "Malik Al-Mansouri", "Amanda White",
-        "Faisal Hassan", "Jessica Brown", "Samir Khalil", "Ashley Davis"
+        "Rami El-Hassan", "Tiffany Garcia", "Samir Al-Zahra", "Monica Rodriguez"
     };
     
     // Mock countries for alerts
@@ -54,28 +49,28 @@ public class MockAlertDataService {
         "Monaco", "San Marino", "Vatican City", "Andorra", "Malta", "Cyprus"
     };
     
-    // Mock alert reasons
+    // Mock alert reasons with realistic AML conditions
     private final String[] mockAlertReasons = {
-        "High value transaction exceeding threshold",
-        "Suspicious transaction pattern detected",
-        "Entity matched against sanctions list",
-        "Unusual frequency of transactions",
-        "High-risk country transfer",
-        "Structuring behavior detected",
-        "PEP (Politically Exposed Person) transaction",
-        "Suspicious description keywords",
-        "Manual flag raised by analyst",
-        "Risk score exceeded threshold",
-        "Unusual transaction timing",
+        "High value transaction exceeding $50,000 threshold",
+        "Suspicious transaction pattern detected - multiple small transfers",
+        "Entity matched against OFAC SDN sanctions list",
+        "Unusual frequency of transactions - 15+ in 24 hours",
+        "High-risk country transfer to Iran",
+        "Structuring behavior detected - amounts under $10,000",
+        "PEP (Politically Exposed Person) transaction identified",
+        "Suspicious description keywords: 'urgent', 'confidential'",
+        "Manual flag raised by analyst for review",
+        "Risk score exceeded 85% threshold",
+        "Unusual transaction timing - 3 AM transfers",
         "Cross-border transfer to high-risk jurisdiction",
-        "Large cash transaction",
-        "Suspicious beneficiary relationship",
-        "Transaction amount inconsistent with profile",
-        "Geographic risk factor",
-        "Currency risk indicator",
-        "Account behavior anomaly",
-        "Network analysis alert",
-        "Compliance rule violation"
+        "Large cash transaction - $25,000 in cash",
+        "Suspicious beneficiary relationship detected",
+        "Transaction amount inconsistent with customer profile",
+        "Geographic risk factor - sanctioned country",
+        "Currency risk indicator - multiple currency exchanges",
+        "Account behavior anomaly - sudden activity increase",
+        "Network analysis alert - connected to known suspicious entities",
+        "Compliance rule violation - missing documentation"
     };
     
     // Mock alert types
@@ -97,34 +92,38 @@ public class MockAlertDataService {
     
     // Mock match reasons
     private final String[] mockMatchReasons = {
-        "Exact name match", "Fuzzy name match", "Address match", "Date of birth match",
-        "Nationality match", "Document number match", "Phone number match",
-        "Email address match", "IP address match", "Bank account match"
+        "Exact name match", "Fuzzy name match (85% similarity)", "Address match", "Date of birth match",
+        "Phone number match", "Email address match", "ID document match", "Bank account match",
+        "IP address match", "Device fingerprint match", "Transaction pattern match", "Geographic location match"
     };
-    
+
     /**
-     * Generate and populate 70 mock alerts
+     * Populate database with 50 mock alerts for testing
      */
     public void populateMockAlerts() {
-        logger.info("Starting mock alert population - generating 70 alerts");
-        
-        List<Alert> mockAlerts = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        
-        for (int i = 1; i <= 70; i++) {
-            Alert alert = createMockAlert(i, now);
-            mockAlerts.add(alert);
-        }
-        
-        // Save all alerts to database
         try {
-            alertRepository.saveAll(mockAlerts);
-            logger.info("Successfully populated {} mock alerts in database", mockAlerts.size());
+            logger.info("Starting to populate 50 mock alerts");
+            
+            List<Alert> alerts = new ArrayList<>();
+            LocalDateTime baseTime = LocalDateTime.now().minusDays(7); // Start from 7 days ago
+            
+            for (int i = 1; i <= 50; i++) {
+                Alert alert = createMockAlert(i, baseTime);
+                alerts.add(alert);
+                
+                // Increment time by random intervals
+                baseTime = baseTime.plusMinutes(random.nextInt(180) + 30); // 30-210 minutes
+            }
+            
+            alertRepository.saveAll(alerts);
+            logger.info("Successfully populated {} mock alerts", alerts.size());
+            
         } catch (Exception e) {
-            logger.error("Failed to save mock alerts to database: {}", e.getMessage(), e);
+            logger.error("Failed to populate mock alerts: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to populate mock alerts", e);
         }
     }
-    
+
     /**
      * Create a single mock alert with realistic data
      */
@@ -137,108 +136,68 @@ public class MockAlertDataService {
         alert.setMatchedEntityName(getRandomElement(mockEntityNames));
         alert.setMatchedList(getRandomElement(mockMatchedLists));
         alert.setMatchReason(getRandomElement(mockMatchReasons));
-        alert.setAlertType(getRandomElement(mockAlertTypes));
-        alert.setPriorityLevel(getRandomElement(mockPriorityLevels));
-        alert.setReason(getRandomElement(mockAlertReasons));
         
-        // Timestamp - spread over the last 30 days
-        int daysAgo = random.nextInt(30);
-        int hoursAgo = random.nextInt(24);
-        int minutesAgo = random.nextInt(60);
-        LocalDateTime alertTime = baseTime
-            .minusDays(daysAgo)
-            .minusHours(hoursAgo)
-            .minusMinutes(minutesAgo);
-        alert.setTimestamp(alertTime);
-        
-        // Transaction information
-        alert.setTransactionId(random.nextInt(1000) + 1);
+        // Alert type and priority
+        String alertType = getRandomElement(mockAlertTypes);
+        alert.setAlertType(alertType);
         
         // Priority score and level
         int priorityScore = random.nextInt(100) + 1;
         alert.setPriorityScore(priorityScore);
         alert.updatePriorityLevel(); // This will set priority level based on score
         
+        // Transaction information
+        alert.setTransactionId(random.nextInt(1000) + 1);
+        
+        // Reason and timestamp
+        alert.setReason(getRandomElement(mockAlertReasons));
+        alert.setTimestamp(baseTime);
+        
         return alert;
     }
-    
-    /**
-     * Generate random transaction amount
-     */
-    private java.math.BigDecimal generateRandomAmount() {
-        // Generate amounts between $1,000 and $500,000
-        double amount = 1000 + (random.nextDouble() * 499000);
-        return java.math.BigDecimal.valueOf(amount).setScale(2, java.math.BigDecimal.ROUND_HALF_UP);
-    }
-    
-    /**
-     * Generate random currency
-     */
-    private String getRandomCurrency() {
-        String[] currencies = {"USD", "EUR", "GBP", "CAD", "AUD", "JPY", "CHF", "SEK", "NOK", "DKK"};
-        return getRandomElement(currencies);
-    }
-    
-    /**
-     * Generate random risk score
-     */
-    private String generateRandomRiskScore() {
-        int score = random.nextInt(100) + 1;
-        if (score >= 80) return "HIGH";
-        else if (score >= 50) return "MEDIUM";
-        else return "LOW";
-    }
-    
-    /**
-     * Generate mock notes based on alert type
-     */
-    private String generateMockNotes(Alert alert) {
-        String alertType = alert.getAlertType();
-        String entityName = alert.getMatchedEntityName();
-        
-        switch (alertType) {
-            case "HIGH_VALUE":
-                return String.format("High value transaction by %s requires immediate review", entityName);
-            case "SANCTIONS":
-                return String.format("Entity %s matched against %s. Requires immediate blocking and investigation", 
-                    entityName, alert.getMatchedList());
-            case "STRUCTURING":
-                return String.format("Potential structuring behavior detected for %s. Multiple transactions below reporting threshold", 
-                    entityName);
-            case "PEP":
-                return String.format("Politically Exposed Person transaction by %s. Enhanced due diligence required", 
-                    entityName);
-            case "MANUAL_FLAG":
-                return String.format("Manual flag raised by analyst for %s. Additional investigation needed", 
-                    entityName);
-            default:
-                return String.format("Alert generated for %s. Review required for compliance purposes", entityName);
-        }
-    }
-    
+
     /**
      * Get random element from array
      */
     private <T> T getRandomElement(T[] array) {
         return array[random.nextInt(array.length)];
     }
-    
+
     /**
-     * Clear all mock alerts from database
+     * Clear all alerts from database
      */
     public void clearMockAlerts() {
         try {
+            long count = alertRepository.count();
             alertRepository.deleteAll();
-            logger.info("Cleared all alerts from database");
+            logger.info("Cleared {} alerts from database", count);
         } catch (Exception e) {
-            logger.error("Failed to clear alerts from database: {}", e.getMessage(), e);
+            logger.error("Failed to clear alerts: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to clear alerts", e);
         }
     }
-    
+
     /**
-     * Get count of alerts in database
+     * Get current alert count
      */
     public long getAlertCount() {
         return alertRepository.count();
+    }
+
+    /**
+     * Initialize mock alerts if database is empty (called at startup)
+     */
+    public void initializeMockAlertsIfEmpty() {
+        try {
+            long currentCount = alertRepository.count();
+            if (currentCount == 0) {
+                logger.info("No alerts found in database, initializing 50 mock alerts");
+                populateMockAlerts();
+            } else {
+                logger.info("Database already contains {} alerts, skipping mock initialization", currentCount);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize mock alerts: {}", e.getMessage(), e);
+        }
     }
 }

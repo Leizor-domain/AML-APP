@@ -4,6 +4,10 @@ import com.leizo.pojo.entity.Alert;
 import com.leizo.admin.repository.AlertRepository;
 import com.leizo.admin.service.MockAlertDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,69 +33,51 @@ public class AlertController {
     private MockAlertDataService mockAlertDataService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<Alert>> getAllAlerts() {
-        return ResponseEntity.ok(alertRepository.findAll());
-    }
-
-    /**
-     * Get alerts for analyst dashboard with sorting and filtering
-     */
-    @GetMapping("/analyst")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_ANALYST')")
-    public ResponseEntity<?> getAlertsForAnalyst(
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANALYST') or hasRole('ROLE_SUPERVISOR')")
+    public ResponseEntity<?> getAllAlerts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String priority) {
+            @RequestParam(required = false) String alertType,
+            @RequestParam(required = false) String priorityLevel) {
         
         try {
-            List<Alert> alerts = alertRepository.findAll();
+            // Create pageable with sorting by timestamp descending (newest first)
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
             
-            // Sort by timestamp descending (newest first)
-            alerts.sort((a1, a2) -> a2.getTimestamp().compareTo(a1.getTimestamp()));
+            Page<Alert> alertsPage;
             
-            // Apply status filter if provided
+            // Apply filters if provided
             if (status != null && !status.isEmpty()) {
-                alerts = alerts.stream()
-                    .filter(alert -> status.equalsIgnoreCase(alert.getPriorityLevel()))
-                    .collect(java.util.stream.Collectors.toList());
+                alertsPage = alertRepository.findByPriorityLevelContainingIgnoreCase(status, pageable);
+            } else if (alertType != null && !alertType.isEmpty()) {
+                alertsPage = alertRepository.findByAlertTypeContainingIgnoreCase(alertType, pageable);
+            } else if (priorityLevel != null && !priorityLevel.isEmpty()) {
+                alertsPage = alertRepository.findByPriorityLevelContainingIgnoreCase(priorityLevel, pageable);
+            } else {
+                alertsPage = alertRepository.findAll(pageable);
             }
-            
-            // Apply priority filter if provided
-            if (priority != null && !priority.isEmpty()) {
-                alerts = alerts.stream()
-                    .filter(alert -> priority.equalsIgnoreCase(alert.getPriorityLevel()))
-                    .collect(java.util.stream.Collectors.toList());
-            }
-            
-            // Apply pagination
-            int start = page * size;
-            int end = Math.min(start + size, alerts.size());
-            List<Alert> paginatedAlerts = alerts.subList(start, end);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("content", paginatedAlerts);
-            response.put("totalElements", alerts.size());
-            response.put("totalPages", (int) Math.ceil((double) alerts.size() / size));
-            response.put("currentPage", page);
-            response.put("size", size);
+            response.put("content", alertsPage.getContent());
+            response.put("totalElements", alertsPage.getTotalElements());
+            response.put("totalPages", alertsPage.getTotalPages());
+            response.put("currentPage", alertsPage.getNumber());
+            response.put("size", alertsPage.getSize());
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Failed to get alerts for analyst: {}", e.getMessage(), e);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Failed to get alerts: " + e.getMessage());
-            
-            return ResponseEntity.internalServerError().body(response);
+            logger.error("Error fetching alerts: {}", e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to fetch alerts");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANALYST') or hasRole('ROLE_SUPERVISOR')")
     public ResponseEntity<?> getAlertById(@PathVariable Integer id) {
         Optional<Alert> alert = alertRepository.findById(id);
         if (alert.isPresent()) {
@@ -104,7 +90,7 @@ public class AlertController {
     }
 
     @PatchMapping("/{id}/dismiss")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANALYST')")
     public ResponseEntity<?> dismissAlert(@PathVariable Integer id, @RequestBody Map<String, String> body) {
         Optional<Alert> alertOpt = alertRepository.findById(id);
         if (alertOpt.isPresent()) {
@@ -120,7 +106,7 @@ public class AlertController {
     }
 
     @PatchMapping("/{id}/false-positive")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANALYST')")
     public ResponseEntity<?> tagAsFalsePositive(@PathVariable Integer id, @RequestBody Map<String, String> body) {
         Optional<Alert> alertOpt = alertRepository.findById(id);
         if (alertOpt.isPresent()) {
@@ -136,7 +122,7 @@ public class AlertController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANALYST')")
     public ResponseEntity<?> updateAlertStatus(@PathVariable Integer id, @RequestBody Map<String, String> body) {
         Optional<Alert> alertOpt = alertRepository.findById(id);
         if (alertOpt.isPresent()) {
@@ -159,41 +145,30 @@ public class AlertController {
     }
 
     /**
-     * Populate database with 70 mock alerts
+     * Populate database with 50 mock alerts
      */
     @PostMapping("/populate-mock")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> populateMockAlerts() {
         try {
             logger.info("Received request to populate mock alerts");
-            
-            // Get current alert count
             long currentCount = mockAlertDataService.getAlertCount();
-            
-            // Populate mock alerts
             mockAlertDataService.populateMockAlerts();
-            
-            // Get new count
             long newCount = mockAlertDataService.getAlertCount();
             long addedCount = newCount - currentCount;
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Mock alerts populated successfully");
             response.put("previousCount", currentCount);
             response.put("newCount", newCount);
             response.put("addedCount", addedCount);
-            
             logger.info("Successfully populated {} mock alerts. Total alerts: {}", addedCount, newCount);
-            
             return ResponseEntity.ok(response);
-            
         } catch (Exception e) {
             logger.error("Failed to populate mock alerts: {}", e.getMessage(), e);
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Failed to populate mock alerts: " + e.getMessage());
-            
             return ResponseEntity.internalServerError().body(response);
         }
     }
@@ -202,29 +177,23 @@ public class AlertController {
      * Clear all alerts from database
      */
     @DeleteMapping("/clear-all")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> clearAllAlerts() {
         try {
             logger.info("Received request to clear all alerts");
-            
             long currentCount = mockAlertDataService.getAlertCount();
             mockAlertDataService.clearMockAlerts();
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "All alerts cleared successfully");
             response.put("clearedCount", currentCount);
-            
             logger.info("Successfully cleared {} alerts", currentCount);
-            
             return ResponseEntity.ok(response);
-            
         } catch (Exception e) {
             logger.error("Failed to clear alerts: {}", e.getMessage(), e);
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Failed to clear alerts: " + e.getMessage());
-            
             return ResponseEntity.internalServerError().body(response);
         }
     }
@@ -233,23 +202,19 @@ public class AlertController {
      * Get current alert count
      */
     @GetMapping("/count")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANALYST') or hasRole('ROLE_SUPERVISOR')")
     public ResponseEntity<?> getAlertCount() {
         try {
             long count = mockAlertDataService.getAlertCount();
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("count", count);
-            
             return ResponseEntity.ok(response);
-            
         } catch (Exception e) {
             logger.error("Failed to get alert count: {}", e.getMessage(), e);
-            
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Failed to get alert count: " + e.getMessage());
-            
             return ResponseEntity.internalServerError().body(response);
         }
     }

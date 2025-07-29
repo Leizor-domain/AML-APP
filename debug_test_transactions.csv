@@ -1,6 +1,0 @@
-transactionId,timestamp,amount,currency,senderName,receiverName,senderAccount,receiverAccount,country,manualFlag,description
-9001,2024-07-01T09:00:00,50000,USD,Debug Test 1,Receiver 1,ACC901,ACC1001,USA,FALSE,Very high value transfer test
-9002,2024-07-01T09:30:00,200,USD,Debug Test 2,Receiver 2,ACC902,ACC1002,USA,FALSE,Low value routine transfer test
-9003,2024-07-01T10:00:00,15000,USD,Debug Test 3,Receiver 3,ACC903,ACC1003,USA,TRUE,High value manually flagged transaction
-9004,2024-07-01T10:30:00,25000,USD,Debug Test 4,Receiver 4,ACC904,ACC1004,Iran,FALSE,High value transfer to high risk country
-9005,2024-07-01T11:00:00,30000,USD,Debug Test 5,Receiver 5,ACC905,ACC1005,North Korea,FALSE,High value transfer to sanctioned country 

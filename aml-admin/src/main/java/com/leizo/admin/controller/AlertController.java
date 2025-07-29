@@ -21,7 +21,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/alerts")
-@CrossOrigin(origins = "*")
 public class AlertController {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertController.class);

@@ -75,9 +75,9 @@ const AnalystDashboard = () => {
   useEffect(() => {
     setLoadingAlerts(true)
     setErrorAlerts(null)
-    alertsService.getAlerts({ status: 'PENDING', size: 5 })
+    alertsService.getAlertsForAnalyst({ size: 5 })
       .then(res => {
-        const alerts = res.content || res.alerts || []
+        const alerts = res.content || []
         setPendingAlerts(alerts)
         // If backend provides time-series, use it; else fallback
         if (res.reviewsByDay) {
@@ -271,18 +271,27 @@ const AnalystDashboard = () => {
                     <Notifications color="error" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={alert?.description || ''}
-                    secondary={alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
+                    primary={alert?.reason || 'Alert'}
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Transaction ID: {alert?.transactionId || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {alert?.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}
+                        </Typography>
+                      </Box>
+                    }
                   />
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'flex-end' }}>
                     <Chip
-                      label={alert?.type ? alert.type.replace('_', ' ') : ''}
-                      color={getRiskColor(alert?.type)}
+                      label={alert?.alertType ? alert.alertType.replace('_', ' ') : 'ALERT'}
+                      color={getRiskColor(alert?.alertType)}
                       size="small"
                     />
                     <Chip
-                      label={alert?.priority || ''}
-                      color={alert?.priority === 'HIGH' ? 'error' : 'warning'}
+                      label={alert?.priorityLevel || 'MEDIUM'}
+                      color={alert?.priorityLevel === 'HIGH' ? 'error' : alert?.priorityLevel === 'MEDIUM' ? 'warning' : 'success'}
                       size="small"
                     />
                   </Box>
@@ -291,7 +300,11 @@ const AnalystDashboard = () => {
             </List>
             )}
             <Box sx={{ mt: 2 }}>
-              <Button variant="outlined" color="primary">
+              <Button 
+                variant="outlined" 
+                color="primary"
+                onClick={() => navigate('/alerts')}
+              >
                 View All Pending Alerts
               </Button>
             </Box>

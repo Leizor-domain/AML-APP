@@ -34,6 +34,62 @@ public class AlertController {
         return ResponseEntity.ok(alertRepository.findAll());
     }
 
+    /**
+     * Get alerts for analyst dashboard with sorting and filtering
+     */
+    @GetMapping("/analyst")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_ANALYST')")
+    public ResponseEntity<?> getAlertsForAnalyst(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority) {
+        
+        try {
+            List<Alert> alerts = alertRepository.findAll();
+            
+            // Sort by timestamp descending (newest first)
+            alerts.sort((a1, a2) -> a2.getTimestamp().compareTo(a1.getTimestamp()));
+            
+            // Apply status filter if provided
+            if (status != null && !status.isEmpty()) {
+                alerts = alerts.stream()
+                    .filter(alert -> status.equalsIgnoreCase(alert.getPriorityLevel()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Apply priority filter if provided
+            if (priority != null && !priority.isEmpty()) {
+                alerts = alerts.stream()
+                    .filter(alert -> priority.equalsIgnoreCase(alert.getPriorityLevel()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Apply pagination
+            int start = page * size;
+            int end = Math.min(start + size, alerts.size());
+            List<Alert> paginatedAlerts = alerts.subList(start, end);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", paginatedAlerts);
+            response.put("totalElements", alerts.size());
+            response.put("totalPages", (int) Math.ceil((double) alerts.size() / size));
+            response.put("currentPage", page);
+            response.put("size", size);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Failed to get alerts for analyst: {}", e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Failed to get alerts: " + e.getMessage());
+            
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> getAlertById(@PathVariable Integer id) {

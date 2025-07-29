@@ -12,6 +12,17 @@ export const alertsService = {
     }
   },
 
+  getAlertsForAnalyst: async (params = {}) => {
+    try {
+      const response = await adminApi.get('/alerts/analyst', { params })
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch alerts for analyst:', error)
+      // Return empty array instead of null to prevent frontend errors
+      return { content: [], totalElements: 0, totalPages: 0, currentPage: 0, size: 10 }
+    }
+  },
+
   getAlertById: async (id) => {
     try {
       const response = await adminApi.get(`/alerts/${id}`)

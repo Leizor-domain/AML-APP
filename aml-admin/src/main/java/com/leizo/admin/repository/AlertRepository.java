@@ -32,6 +32,12 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
     // Find alerts by alert type with pagination
     Page<Alert> findByAlertTypeContainingIgnoreCase(String alertType, Pageable pageable);
 
+    // Find alerts by status with pagination
+    Page<Alert> findByStatusContainingIgnoreCase(String status, Pageable pageable);
+
+    // Find alerts by risk level with pagination
+    Page<Alert> findByRiskLevelContainingIgnoreCase(String riskLevel, Pageable pageable);
+
     // Find alerts by priority level - removed due to missing ruleId field
     // List<Alert> findByRuleId(String ruleId);
 
@@ -40,12 +46,12 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
 
     // Find alerts by priority score range - removed due to missing priorityScore field
     // @Query("SELECT a FROM Alert a WHERE a.priorityScore BETWEEN :minScore AND :maxScore")
-    // List<Alert> findByPriorityScoreRange(@Param("minScore") Integer minScore, 
+    // List<Alert> findByPriorityScoreRange(@Param("minScore") Integer minScore,
     //                                     @Param("maxScore") Integer maxScore);
 
     // Find alerts by date range - removed due to missing createdAt field
     // @Query("SELECT a FROM Alert a WHERE a.createdAt BETWEEN :startDate AND :endDate")
-    // List<Alert> findByDateRange(@Param("startDate") LocalDateTime startDate, 
+    // List<Alert> findByDateRange(@Param("startDate") LocalDateTime startDate,
     //                            @Param("endDate") LocalDateTime endDate);
 
     // Find alerts by finger print - removed due to missing fingerPrint field
@@ -73,6 +79,6 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
 
     // Find alerts by timestamp range - fixed to use LocalDateTime
     @Query("SELECT a FROM Alert a WHERE a.timestamp BETWEEN :startTimestamp AND :endTimestamp")
-    List<Alert> findByTimestampRange(@Param("startTimestamp") LocalDateTime startTimestamp, 
+    List<Alert> findByTimestampRange(@Param("startTimestamp") LocalDateTime startTimestamp,
                                     @Param("endTimestamp") LocalDateTime endTimestamp);
-} 
+}

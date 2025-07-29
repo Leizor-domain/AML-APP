@@ -39,38 +39,70 @@ public class AlertController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String alertType,
-            @RequestParam(required = false) String priorityLevel) {
-        
+            @RequestParam(required = false) String priorityLevel,
+            @RequestParam(required = false) String riskLevel,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo) {
+
         try {
+            logger.info("Fetching alerts with params: page={}, size={}, status={}, alertType={}, priorityLevel={}, riskLevel={}, dateFrom={}, dateTo={}",
+                       page, size, status, alertType, priorityLevel, riskLevel, dateFrom, dateTo);
+
             // Create pageable with sorting by timestamp descending (newest first)
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
-            
+
             Page<Alert> alertsPage;
-            
-            // Apply filters if provided
+
+            // Apply filters if provided - handle both frontend and backend parameter names
             if (status != null && !status.isEmpty()) {
-                alertsPage = alertRepository.findByPriorityLevelContainingIgnoreCase(status, pageable);
+                alertsPage = alertRepository.findByStatusContainingIgnoreCase(status, pageable);
             } else if (alertType != null && !alertType.isEmpty()) {
                 alertsPage = alertRepository.findByAlertTypeContainingIgnoreCase(alertType, pageable);
             } else if (priorityLevel != null && !priorityLevel.isEmpty()) {
                 alertsPage = alertRepository.findByPriorityLevelContainingIgnoreCase(priorityLevel, pageable);
+            } else if (riskLevel != null && !riskLevel.isEmpty()) {
+                alertsPage = alertRepository.findByRiskLevelContainingIgnoreCase(riskLevel, pageable);
             } else {
+                // No filters - get all alerts
                 alertsPage = alertRepository.findAll(pageable);
             }
-            
+
+            logger.info("Found {} alerts out of {} total", alertsPage.getContent().size(), alertsPage.getTotalElements());
+
             Map<String, Object> response = new HashMap<>();
             response.put("content", alertsPage.getContent());
             response.put("totalElements", alertsPage.getTotalElements());
             response.put("totalPages", alertsPage.getTotalPages());
             response.put("currentPage", alertsPage.getNumber());
             response.put("size", alertsPage.getSize());
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             logger.error("Error fetching alerts: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to fetch alerts");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> testAlerts() {
+        try {
+            long count = alertRepository.count();
+            List<Alert> sampleAlerts = alertRepository.findAll(PageRequest.of(0, 5)).getContent();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalAlerts", count);
+            response.put("sampleAlerts", sampleAlerts);
+            response.put("message", "Alerts endpoint is working");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error in test endpoint: {}", e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Test failed");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.internalServerError().body(errorResponse);
         }
@@ -200,7 +232,7 @@ public class AlertController {
             return ResponseEntity.internalServerError().body(response);
         }
     }
-    
+
     /**
      * Clear all alerts from database
      */
@@ -225,7 +257,7 @@ public class AlertController {
             return ResponseEntity.internalServerError().body(response);
         }
     }
-    
+
     /**
      * Get current alert count
      */
@@ -246,4 +278,4 @@ public class AlertController {
             return ResponseEntity.internalServerError().body(response);
         }
     }
-} 
+}

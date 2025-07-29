@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
-  env: { 
-    browser: true, 
+  env: {
+    browser: true,
     es2020: true,
     node: true,
   },
@@ -45,7 +45,7 @@ module.exports = {
     'react/jsx-sort-props': 'off',
     'react/jsx-tag-spacing': ['error', { beforeSelfClosing: 'always' }],
     'react/jsx-wrap-multilines': 'error',
-    
+
     // General rules
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
@@ -73,7 +73,7 @@ module.exports = {
     'space-in-parens': 'error',
     'space-infix-ops': 'error',
     'spaced-comment': 'error',
-    
+
     // Import rules
     'import/order': [
       'error',
